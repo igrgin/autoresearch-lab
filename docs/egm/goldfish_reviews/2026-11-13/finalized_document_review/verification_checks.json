@@ -1,0 +1,24 @@
+{
+  "target_unchanged": true,
+  "input_matches_target": true,
+  "target_sha256": "c336a21b03ac04d5eebc7c6295f7f882b5690feb3ed6cc61528dec96efd5ef2a",
+  "source_readable_hashes_verified": 12,
+  "raw_documentation_hashes_verified": 6,
+  "reviewers_completed": 7,
+  "failed_required_reads": 0,
+  "report_links_resolve": true,
+  "review_stage_9": "not applicable",
+  "critic_rounds": 1,
+  "critic_convergence_claimed": false,
+  "validation_scope": "Original review checks, before user-authorized documentation corrections",
+  "post_review_correction_checks": {
+    "F01_documented": true,
+    "F02_corrected": true,
+    "required_sections_checked": true,
+    "local_links_and_fragment_checked": true,
+    "archived_review_input_unchanged": true,
+    "current_target_sha256": "8519bf35dd4deae3f27ba0690b9231218d18ffefb69b4e621832d27f389ee42b",
+    "new_reviewer_pass": false,
+    "implementation_tests": false
+  }
+}

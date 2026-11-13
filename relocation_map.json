@@ -1,0 +1,407 @@
+{
+  "original_workspace": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0",
+  "repository_root": ".",
+  "relocated_paths": [
+    "concepts_brief.md",
+    "project_and_run_setup.md",
+    "goldfish_reviews"
+  ],
+  "historical_path_rule": "Strip original_workspace from historical absolute paths, then apply path_mappings (exact file or directory prefix) and resolve against this checkout. Global EGM plugin paths describe the original review environment.",
+  "preserved_files": [
+    {
+      "path": "concepts_brief.md",
+      "bytes": 55429,
+      "sha256": "8519bf35dd4deae3f27ba0690b9231218d18ffefb69b4e621832d27f389ee42b",
+      "current_path": "docs/designs/concepts_brief.md",
+      "current_bytes": 55453,
+      "current_sha256": "cd17fe7b47c9c32604f0c00095ce59abcdd8e9d0774ed4c377817e0cee803f2f"
+    },
+    {
+      "path": "project_and_run_setup.md",
+      "bytes": 36370,
+      "sha256": "e1a39d439479154176c468632cb30c16de95b9403412f45114418fed94675d78",
+      "current_path": "docs/egm/project_and_run_setup.md",
+      "current_bytes": 36379,
+      "current_sha256": "71466d974b2c2e1d5b78e5ec98285db0cfcf2008ef87ad12fd81acd47dff8ce9"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/concepts_brief.input.md",
+      "bytes": 37442,
+      "sha256": "09d365858422d3d267dd7297d93be71f070e3d9ba73a0c16498dba68218605ae",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/concepts_brief.input.md",
+      "current_bytes": 37442,
+      "current_sha256": "09d365858422d3d267dd7297d93be71f070e3d9ba73a0c16498dba68218605ae"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/egm-codebase-details.md",
+      "bytes": 4795,
+      "sha256": "5bb47db9a3585d423092597620b58c4337946c5b2892a6c8c62d9d3e12d073c9",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/egm-codebase-details.md",
+      "current_bytes": 4795,
+      "current_sha256": "5bb47db9a3585d423092597620b58c4337946c5b2892a6c8c62d9d3e12d073c9"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/egm-comprehension.md",
+      "bytes": 4004,
+      "sha256": "7fb29878754f1c8d4ad1547043f5ba4c31417aba3cf122c3993edee57e42aa57",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/egm-comprehension.md",
+      "current_bytes": 4004,
+      "current_sha256": "7fb29878754f1c8d4ad1547043f5ba4c31417aba3cf122c3993edee57e42aa57"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/egm-design.md",
+      "bytes": 4700,
+      "sha256": "6e7d1e47c2bdafcab210c0fd91de2bba0ac96999888268861ee9ccdac2b9376f",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/egm-design.md",
+      "current_bytes": 4700,
+      "current_sha256": "6e7d1e47c2bdafcab210c0fd91de2bba0ac96999888268861ee9ccdac2b9376f"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/egm-implementation-readiness.md",
+      "bytes": 4191,
+      "sha256": "0d06d53c28bff880bd97b2f538978b4dc13e247075bec91e5caf9401689abcc5",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/egm-implementation-readiness.md",
+      "current_bytes": 4191,
+      "current_sha256": "0d06d53c28bff880bd97b2f538978b4dc13e247075bec91e5caf9401689abcc5"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/egm-inventive-catalyst.md",
+      "bytes": 3926,
+      "sha256": "8ef3ff2a197a3a2483b26ae8276c94a1c04645663d1cea0d0fd8998691d02814",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/egm-inventive-catalyst.md",
+      "current_bytes": 3926,
+      "current_sha256": "8ef3ff2a197a3a2483b26ae8276c94a1c04645663d1cea0d0fd8998691d02814"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/egm-structural.md",
+      "bytes": 4176,
+      "sha256": "e17d0df0fb0cf0d3117b90c6270f878612b4068c348ac0d2b5ce392dd4fec2ff",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/egm-structural.md",
+      "current_bytes": 4176,
+      "current_sha256": "e17d0df0fb0cf0d3117b90c6270f878612b4068c348ac0d2b5ce392dd4fec2ff"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/egm-zoom-out.md",
+      "bytes": 4034,
+      "sha256": "88281c9db68cc47d20ed3be8b71efa51a062784dadaf30f22ded6fc4018f8736",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/egm-zoom-out.md",
+      "current_bytes": 4034,
+      "current_sha256": "88281c9db68cc47d20ed3be8b71efa51a062784dadaf30f22ded6fc4018f8736"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/comprehension_report.md",
+      "bytes": 2960,
+      "sha256": "8bab46012f1dcb94d9896cafd4cbeb3059700ac06483bdb5af40e4a52a03a240",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/comprehension_report.md",
+      "current_bytes": 2960,
+      "current_sha256": "8bab46012f1dcb94d9896cafd4cbeb3059700ac06483bdb5af40e4a52a03a240"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/concepts_brief.input.md",
+      "bytes": 54490,
+      "sha256": "c336a21b03ac04d5eebc7c6295f7f882b5690feb3ed6cc61528dec96efd5ef2a",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/concepts_brief.input.md",
+      "current_bytes": 54490,
+      "current_sha256": "c336a21b03ac04d5eebc7c6295f7f882b5690feb3ed6cc61528dec96efd5ef2a"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/consolidated_review_report.md",
+      "bytes": 14075,
+      "sha256": "6147b9e2d35b60076b0cc1a4a81fb639ae401355d4cd3bc4ae677cc16948a01c",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/consolidated_review_report.md",
+      "current_bytes": 14075,
+      "current_sha256": "6147b9e2d35b60076b0cc1a4a81fb639ae401355d4cd3bc4ae677cc16948a01c"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/context_manifest.md",
+      "bytes": 8749,
+      "sha256": "31d0430762b33d6077ccf442f3c8b8415c0a3fc68e0f928c39e3b6ee024b3c83",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/context_manifest.md",
+      "current_bytes": 8749,
+      "current_sha256": "31d0430762b33d6077ccf442f3c8b8415c0a3fc68e0f928c39e3b6ee024b3c83"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/critic_report.md",
+      "bytes": 6080,
+      "sha256": "642beed17ec0600866e887b0ccac56f62ec3f762822176a72ea9b808a18b92c0",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/critic_report.md",
+      "current_bytes": 6080,
+      "current_sha256": "642beed17ec0600866e887b0ccac56f62ec3f762822176a72ea9b808a18b92c0"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/implementation_readiness_report.md",
+      "bytes": 601,
+      "sha256": "63378596970114690d1aad9b6e56de5186486cef2fed006d90278dbeb2956f37",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/implementation_readiness_report.md",
+      "current_bytes": 601,
+      "current_sha256": "63378596970114690d1aad9b6e56de5186486cef2fed006d90278dbeb2956f37"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/intermediate_zoom_out_report.md",
+      "bytes": 6269,
+      "sha256": "9319e6dfa98002e799e593ee5886252a0ecd0da0167c6ec14105d6ae6a1dd847",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/intermediate_zoom_out_report.md",
+      "current_bytes": 6269,
+      "current_sha256": "9319e6dfa98002e799e593ee5886252a0ecd0da0167c6ec14105d6ae6a1dd847"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/review_state.json",
+      "bytes": 7903,
+      "sha256": "b91f650498eee52b2d6ed569ae90b761b6a378b816074f1b6c4d0ae527eee1cc",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/review_state.json",
+      "current_bytes": 7903,
+      "current_sha256": "b91f650498eee52b2d6ed569ae90b761b6a378b816074f1b6c4d0ae527eee1cc"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/autoresearch-program.txt",
+      "bytes": 7040,
+      "sha256": "9c585e47936e23f46f70cce51491d15c623d4491d40efec5ba34b95a72f6372d",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/autoresearch-program.txt",
+      "current_bytes": 7040,
+      "current_sha256": "9c585e47936e23f46f70cce51491d15c623d4491d40efec5ba34b95a72f6372d"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/autoresearch-train.txt",
+      "bytes": 26231,
+      "sha256": "4bc1d5f6d4ec0699406ceed5220e6a35c6b6966df6acb4078f7044305e708b0b",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/autoresearch-train.txt",
+      "current_bytes": 26231,
+      "current_sha256": "4bc1d5f6d4ec0699406ceed5220e6a35c6b6966df6acb4078f7044305e708b0b"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/cifar10-prepare.txt",
+      "bytes": 1398,
+      "sha256": "685f8d829743793f089ae2bbba8697f9d0bb8a234ec79cd3567511ba5ecabce4",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/cifar10-prepare.txt",
+      "current_bytes": 1398,
+      "current_sha256": "685f8d829743793f089ae2bbba8697f9d0bb8a234ec79cd3567511ba5ecabce4"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/cifar10-train.txt",
+      "bytes": 8112,
+      "sha256": "b78d53bd78ce2296f8ab623e628432f9052bbe9dc504e5bb13bff1bfc8334467",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/cifar10-train.txt",
+      "current_bytes": 8112,
+      "current_sha256": "b78d53bd78ce2296f8ab623e628432f9052bbe9dc504e5bb13bff1bfc8334467"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/general-autoresearch-guide.txt",
+      "bytes": 9934,
+      "sha256": "f2ce70a23dac918e71629eae19659bfc9e1eb338dfa1cd2529cf7a7142ec633b",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/general-autoresearch-guide.txt",
+      "current_bytes": 9934,
+      "current_sha256": "f2ce70a23dac918e71629eae19659bfc9e1eb338dfa1cd2529cf7a7142ec633b"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/github_sources_manifest.json",
+      "bytes": 2311,
+      "sha256": "61a4748cbb430f22592dc32ff43e6f2178c71fedc83f7d0a7237924cbc7d7869",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/github_sources_manifest.json",
+      "current_bytes": 2311,
+      "current_sha256": "61a4748cbb430f22592dc32ff43e6f2178c71fedc83f7d0a7237924cbc7d7869"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/huggingface-download.txt",
+      "bytes": 14522,
+      "sha256": "7a7cc8849870c0c30549402b4ae055ef5b419d0df50b6fdd9616396a0a8c6ee5",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/huggingface-download.txt",
+      "current_bytes": 14522,
+      "current_sha256": "7a7cc8849870c0c30549402b4ae055ef5b419d0df50b6fdd9616396a0a8c6ee5"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/mlx-program.txt",
+      "bytes": 7660,
+      "sha256": "e02ae99215fc6bd6f3a38fcf44f9b14db299d3e31ff053ad6b1f218142336b97",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/mlx-program.txt",
+      "current_bytes": 7660,
+      "current_sha256": "e02ae99215fc6bd6f3a38fcf44f9b14db299d3e31ff053ad6b1f218142336b97"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/pytorch-crossentropy.txt",
+      "bytes": 10626,
+      "sha256": "afebbb619cd2cb5dd898675d8d795ba8428260d61f9ee93067b927ed016ce566",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/pytorch-crossentropy.txt",
+      "current_bytes": 10626,
+      "current_sha256": "afebbb619cd2cb5dd898675d8d795ba8428260d61f9ee93067b927ed016ce566"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/pytorch-transfer.txt",
+      "bytes": 15718,
+      "sha256": "7cddacf494b7582dfb3cb31beceef01f7e902078fa87378fb82db97ddf9e98e0",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/pytorch-transfer.txt",
+      "current_bytes": 15718,
+      "current_sha256": "7cddacf494b7582dfb3cb31beceef01f7e902078fa87378fb82db97ddf9e98e0"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/huggingface-download.html",
+      "bytes": 173669,
+      "sha256": "96ef6d722178cf493adb7379a59a39fcddeeb09d11cd2807021d7fbe8c55528a",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/huggingface-download.html",
+      "current_bytes": 173669,
+      "current_sha256": "96ef6d722178cf493adb7379a59a39fcddeeb09d11cd2807021d7fbe8c55528a"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/pytorch-crossentropy.html",
+      "bytes": 285596,
+      "sha256": "1e413846e03c1a787aac62ff35b491cf39528c85fa792666756a20bfbfb443ad",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/pytorch-crossentropy.html",
+      "current_bytes": 285596,
+      "current_sha256": "1e413846e03c1a787aac62ff35b491cf39528c85fa792666756a20bfbfb443ad"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/pytorch-transfer.html",
+      "bytes": 214811,
+      "sha256": "de138326361b93fdde3dfc86b86c75018dec9a2b184b650ae28030796ab0fce4",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/pytorch-transfer.html",
+      "current_bytes": 214811,
+      "current_sha256": "de138326361b93fdde3dfc86b86c75018dec9a2b184b650ae28030796ab0fce4"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/runpod-lifecycle.html",
+      "bytes": 354578,
+      "sha256": "3055829fbe53afdf7450cd0ec54fc41491889b9ccb64083d11f9c5804c3aac6a",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/runpod-lifecycle.html",
+      "current_bytes": 354578,
+      "current_sha256": "3055829fbe53afdf7450cd0ec54fc41491889b9ccb64083d11f9c5804c3aac6a"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/sklearn-pitfalls.html",
+      "bytes": 109748,
+      "sha256": "21fac11c181ab35624dcf8673f0475d403d4f6ecf0f9bead01a573d7642b515c",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/sklearn-pitfalls.html",
+      "current_bytes": 109748,
+      "current_sha256": "21fac11c181ab35624dcf8673f0475d403d4f6ecf0f9bead01a573d7642b515c"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/vast-lifecycle.html",
+      "bytes": 278660,
+      "sha256": "8b6b2a6173bd569c6a3b699affb2692f9eed50fdcb35f1894a656ea2c6f78361",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/vast-lifecycle.html",
+      "current_bytes": 278660,
+      "current_sha256": "8b6b2a6173bd569c6a3b699affb2692f9eed50fdcb35f1894a656ea2c6f78361"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/runpod-lifecycle.txt",
+      "bytes": 6118,
+      "sha256": "2782e10b062cc6c14e5df1c988a453d01e0801514974765e39e727b34fc6f44e",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/runpod-lifecycle.txt",
+      "current_bytes": 6118,
+      "current_sha256": "2782e10b062cc6c14e5df1c988a453d01e0801514974765e39e727b34fc6f44e"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/sklearn-pitfalls.txt",
+      "bytes": 22548,
+      "sha256": "48025a7c4fa37a1e5da2badbcc17addfb4b83525faecb0976e9333eed1d70763",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/sklearn-pitfalls.txt",
+      "current_bytes": 22548,
+      "current_sha256": "48025a7c4fa37a1e5da2badbcc17addfb4b83525faecb0976e9333eed1d70763"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/source_manifest.json",
+      "bytes": 7843,
+      "sha256": "1ecc4c715097dc2f477bbbf8a3b1bb21260fccb69c5ac6519c0bf8569325cfd3",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/source_manifest.json",
+      "current_bytes": 7843,
+      "current_sha256": "1ecc4c715097dc2f477bbbf8a3b1bb21260fccb69c5ac6519c0bf8569325cfd3"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/sources/vast-lifecycle.txt",
+      "bytes": 4925,
+      "sha256": "c2603ff8a4c6ee9ffc43d929a60bd1e782f77d482ca6bfe791abbd468563d0b6",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/sources/vast-lifecycle.txt",
+      "current_bytes": 4925,
+      "current_sha256": "c2603ff8a4c6ee9ffc43d929a60bd1e782f77d482ca6bfe791abbd468563d0b6"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/stage5_inventive.raw.md",
+      "bytes": 3586,
+      "sha256": "ec72fc3bca3d044d297e01aefdd0e3992a2dc62968b1ec650abd1f9505ce9338",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/stage5_inventive.raw.md",
+      "current_bytes": 3586,
+      "current_sha256": "ec72fc3bca3d044d297e01aefdd0e3992a2dc62968b1ec650abd1f9505ce9338"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/stage5_zoom.raw.md",
+      "bytes": 3966,
+      "sha256": "da9bacaf8c2a016b70276d304a84610810c590126c36f1dd37cebeaa11790752",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/stage5_zoom.raw.md",
+      "current_bytes": 3966,
+      "current_sha256": "da9bacaf8c2a016b70276d304a84610810c590126c36f1dd37cebeaa11790752"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/stage7_design.raw.md",
+      "bytes": 8652,
+      "sha256": "bfcd1df35213d04b068bc0b9f8d1da79a00ba1d5264b818f7adc07e362c00e2c",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/stage7_design.raw.md",
+      "current_bytes": 8652,
+      "current_sha256": "bfcd1df35213d04b068bc0b9f8d1da79a00ba1d5264b818f7adc07e362c00e2c"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/stage7_structural.raw.md",
+      "bytes": 3074,
+      "sha256": "ca186edffd85d126d5d1d1da610438a1adc319e25dc8dc49211024ef166aa034",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/stage7_structural.raw.md",
+      "current_bytes": 3074,
+      "current_sha256": "ca186edffd85d126d5d1d1da610438a1adc319e25dc8dc49211024ef166aa034"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/stage7_style.raw.md",
+      "bytes": 2361,
+      "sha256": "909ba11ea65980fe9a7aba7398901441d88526478c4666b1dfde627ee1fb6e3f",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/stage7_style.raw.md",
+      "current_bytes": 2361,
+      "current_sha256": "909ba11ea65980fe9a7aba7398901441d88526478c4666b1dfde627ee1fb6e3f"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/verification_checks.json",
+      "bytes": 910,
+      "sha256": "aa45b2b7722517e5e7463c453cab6920a06612fc067fa5f5b7bac58e90b2d77c",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/verification_checks.json",
+      "current_bytes": 910,
+      "current_sha256": "aa45b2b7722517e5e7463c453cab6920a06612fc067fa5f5b7bac58e90b2d77c"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/web_sources_manifest.json",
+      "bytes": 4610,
+      "sha256": "54bef546af66c07513713065a12b8b7dc215099cc42b55b1b468b12d794f6700",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/web_sources_manifest.json",
+      "current_bytes": 4610,
+      "current_sha256": "54bef546af66c07513713065a12b8b7dc215099cc42b55b1b468b12d794f6700"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/finalized_document_review/zoom_out_report.md",
+      "bytes": 1313,
+      "sha256": "d496ae416ee98996ed693b17be8741a2fea2e218bc6f9f6fcbf01e55c6a458d4",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/finalized_document_review/zoom_out_report.md",
+      "current_bytes": 1313,
+      "current_sha256": "d496ae416ee98996ed693b17be8741a2fea2e218bc6f9f6fcbf01e55c6a458d4"
+    },
+    {
+      "path": "goldfish_reviews/2026-11-13/goldfish_review_report.md",
+      "bytes": 21598,
+      "sha256": "9c3e51850ae1e8b94d878c533621c45eb58378009d52575d85dd1a8f9cda4ec0",
+      "current_path": "docs/egm/goldfish_reviews/2026-11-13/goldfish_review_report.md",
+      "current_bytes": 21598,
+      "current_sha256": "9c3e51850ae1e8b94d878c533621c45eb58378009d52575d85dd1a8f9cda4ec0"
+    }
+  ],
+  "layout_version": 2,
+  "path_mappings": [
+    {
+      "original_path": "concepts_brief.md",
+      "current_path": "docs/designs/concepts_brief.md",
+      "kind": "file"
+    },
+    {
+      "original_path": "project_and_run_setup.md",
+      "current_path": "docs/egm/project_and_run_setup.md",
+      "kind": "file"
+    },
+    {
+      "original_path": "goldfish_reviews/",
+      "current_path": "docs/egm/goldfish_reviews/",
+      "kind": "prefix"
+    }
+  ],
+  "hash_policy": "preserved_files.bytes and sha256 describe the original relocation. current_path/current_bytes/current_sha256 describe the EGM layout. Only navigation links and the archive location text changed in the active brief and setup notes; all review evidence remains byte-for-byte unchanged."
+}

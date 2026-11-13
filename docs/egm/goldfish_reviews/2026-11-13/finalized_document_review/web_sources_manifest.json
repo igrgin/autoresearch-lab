@@ -1,0 +1,71 @@
+{
+  "sources": [
+    {
+      "name": "huggingface-download",
+      "url": "https://huggingface.co/docs/huggingface_hub/en/guides/download",
+      "resolved_url": "https://huggingface.co/docs/huggingface_hub/en/guides/download",
+      "path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/huggingface-download.txt",
+      "raw_path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/huggingface-download.html",
+      "sha256": "96ef6d722178cf493adb7379a59a39fcddeeb09d11cd2807021d7fbe8c55528a",
+      "characters": 14366,
+      "retrieved_at": "2026-11-13T00:31:50.496668+00:00",
+      "method": "HTTPS raw page plus HTML main/article text extraction"
+    },
+    {
+      "name": "pytorch-transfer",
+      "url": "https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial.html",
+      "resolved_url": "https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial.html",
+      "path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/pytorch-transfer.txt",
+      "raw_path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/pytorch-transfer.html",
+      "sha256": "de138326361b93fdde3dfc86b86c75018dec9a2b184b650ae28030796ab0fce4",
+      "characters": 15689,
+      "retrieved_at": "2026-11-13T00:31:50.496265+00:00",
+      "method": "HTTPS raw page plus HTML main/article text extraction"
+    },
+    {
+      "name": "pytorch-crossentropy",
+      "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html",
+      "resolved_url": "https://docs.pytorch.org/docs/2.15/generated/torch.nn.CrossEntropyLoss.html",
+      "path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/pytorch-crossentropy.txt",
+      "raw_path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/pytorch-crossentropy.html",
+      "sha256": "1e413846e03c1a787aac62ff35b491cf39528c85fa792666756a20bfbfb443ad",
+      "characters": 10329,
+      "retrieved_at": "2026-11-13T00:31:50.738172+00:00",
+      "method": "HTTPS raw page plus HTML main/article text extraction"
+    },
+    {
+      "name": "sklearn-pitfalls",
+      "url": "https://scikit-learn.org/stable/common_pitfalls.html",
+      "resolved_url": "https://scikit-learn.org/stable/common_pitfalls.html",
+      "path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/sklearn-pitfalls.txt",
+      "raw_path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/sklearn-pitfalls.html",
+      "sha256": "21fac11c181ab35624dcf8673f0475d403d4f6ecf0f9bead01a573d7642b515c",
+      "characters": 22523,
+      "retrieved_at": "2026-11-13T00:31:50.425606+00:00",
+      "method": "HTTPS raw page plus HTML main/article text extraction"
+    },
+    {
+      "name": "runpod-lifecycle",
+      "url": "https://docs.runpod.io/pods/manage-pods",
+      "resolved_url": "https://docs.runpod.io/pods/manage-pods",
+      "path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/runpod-lifecycle.txt",
+      "raw_path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/runpod-lifecycle.html",
+      "sha256": "3055829fbe53afdf7450cd0ec54fc41491889b9ccb64083d11f9c5804c3aac6a",
+      "characters": 6049,
+      "retrieved_at": "2026-11-13T00:31:50.367152+00:00",
+      "method": "HTTPS raw page plus HTML main/article text extraction"
+    },
+    {
+      "name": "vast-lifecycle",
+      "url": "https://docs.vast.ai/guides/instances/manage-instances",
+      "resolved_url": "https://docs.vast.ai/guides/instances/manage-instances",
+      "path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/vast-lifecycle.txt",
+      "raw_path": "/Users/igrgin/.t3/worktrees/home-repo/t3-6158f6d0/goldfish_reviews/2026-11-13/finalized_document_review/sources/raw/vast-lifecycle.html",
+      "sha256": "8b6b2a6173bd569c6a3b699affb2692f9eed50fdcb35f1894a656ea2c6f78361",
+      "characters": 4832,
+      "retrieved_at": "2026-11-13T00:31:50.473030+00:00",
+      "method": "HTTPS raw page plus HTML main/article text extraction"
+    }
+  ],
+  "errors": []
+}

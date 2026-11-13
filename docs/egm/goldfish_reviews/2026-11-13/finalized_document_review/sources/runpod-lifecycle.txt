@@ -1,0 +1,378 @@
+This page covers the core Pod management operations. For CLI usage, first
+install the Runpod CLI
+and configure your API key:
+runpodctl
+config
+--apiKey
+RUNPOD_API_KEY
+​
+Quick reference
+Action
+Web UI
+CLI
+Deploy
+Pods page
+→ Deploy
+runpodctl pod create --name NAME --gpu-id "GPU" --image "IMAGE"
+Start
+Expand Pod → Play icon
+runpodctl pod start POD_ID
+Stop
+Expand Pod → Stop icon
+runpodctl pod stop POD_ID
+Restart
+Three-dot menu → Restart Pod
+runpodctl pod restart POD_ID
+Update
+Three-dot menu → Edit Pod
+runpodctl pod update POD_ID
+Terminate
+Expand Pod → Trash icon
+runpodctl pod delete POD_ID
+List
+Pods page
+runpodctl pod list
+​
+Deploy a Pod
+Deploy preconfigured Pods from the
+Runpod Hub
+for quick setup.
+Web
+CLI
+REST API
+Open the
+Pods page
+and click
+Deploy
+.
+(Optional) Attach a
+network volume
+for persistent storage.
+Select
+GPU
+or
+CPU
+, then configure:
+GPU
+: Select GPU type → Name your Pod → (Optional) Choose a template → Set GPU count → Click
+Deploy On-Demand
+CPU
+: Select CPU type → Choose instance configuration → Name your Pod → Click
+Deploy On-Demand
+CUDA compatibility
+: Ensure the host
+machine
+CUDA version matches your
+templates
+requirements. If you see “OCI runtime create failed” errors, use
+Additional filters → CUDA Versions
+to select compatible machines.
+runpodctl
+pod
+create
+\
+--name
+hello-world
+\
+--gpu-id
+"NVIDIA A40"
+\
+--image
+"runpod/pytorch:3.10-2.0.0-117"
+\
+--container-disk-in-gb
+10
+\
+--volume-in-gb
+100
+curl
+--request
+POST
+\
+--url
+https://api.runpod.io/v2/pods
+\
+--header
+"Authorization: Bearer
+$RUNPOD_API_KEY
+"
+\
+--header
+'Content-Type: application/json'
+\
+--data
+'{
+"name": "my-pod",
+"image": "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
+"gpu": {"id": "NVIDIA GeForce RTX 4090", "count": 1},
+"disk": 50,
+"mounts": {"persistent": {"size": 20, "path": "/workspace"}}
+}'
+To deploy a Pod from an existing template, use the
+templateId
+parameter instead of specifying individual configuration options:
+curl
+--request
+POST
+\
+--url
+https://api.runpod.io/v2/pods
+\
+--header
+"Authorization: Bearer
+$RUNPOD_API_KEY
+"
+\
+--header
+'Content-Type: application/json'
+\
+--data
+'{
+"name": "my-pod-from-template",
+"templateId": "YOUR_TEMPLATE_ID",
+"gpu": {"id": "NVIDIA GeForce RTX 4090", "count": 1}
+}'
+See the
+Create a Pod reference
+for all parameters.
+​
+Stop a Pod
+Stopping a Pod releases the GPU and preserves data in
+/workspace
+(volume disk). Container disk data is cleared.
+You’ll still be charged for
+volume disk storage
+while stopped. Terminate the Pod if you don’t need to retain your environment.
+When using a
+network volume
+, your
+/workspace
+data is preserved whether you stop or terminate the Pod.
+Web
+CLI
+REST API
+Open the
+Pods page
+and expand your Pod.
+Click the
+Stop
+button (square icon) and confirm.
+runpodctl
+pod
+stop
+$RUNPOD_POD_ID
+Schedule a stop
+(e.g., after 2 hours):
+sleep
+2h
+;
+runpodctl
+pod
+stop
+$RUNPOD_POD_ID &
+curl
+--request
+POST
+\
+--url
+"https://api.runpod.io/v2/pods/
+$RUNPOD_POD_ID
+/action"
+\
+--header
+"Authorization: Bearer
+$RUNPOD_API_KEY
+"
+\
+--header
+'Content-Type: application/json'
+\
+--data
+'{"action":"stop"}'
+​
+Start a Pod
+Resume a stopped Pod. Note: You may be allocated
+zero GPUs
+if capacity has changed.
+Web
+CLI
+REST API
+Open the
+Pods page
+and expand your Pod.
+Click the
+Start
+button (play icon).
+runpodctl
+pod
+start
+$RUNPOD_POD_ID
+curl
+--request
+POST
+\
+--url
+"https://api.runpod.io/v2/pods/
+$RUNPOD_POD_ID
+/action"
+\
+--header
+"Authorization: Bearer
+$RUNPOD_API_KEY
+"
+\
+--header
+'Content-Type: application/json'
+\
+--data
+'{"action":"start"}'
+Unlike the console, the REST
+start
+action does not offer a zero-GPU start. If the GPUs on the Pod’s host machine are no longer free, the request fails with
+400
+and a message saying there are not enough free GPUs on the host.
+​
+Restart a Pod
+Restarting reboots a running Pod’s container on the same machine. The Pod keeps its GPU, so it’s a safe way to reload a process, such as one running as PID 1. Unlike stopping and starting, restarting can’t leave you with
+zero GPUs
+.
+Web
+CLI
+REST API
+Open the
+Pods page
+.
+Open the Pod’s three-dot menu and click
+Restart Pod
+.
+runpodctl
+pod
+restart
+$RUNPOD_POD_ID
+curl
+--request
+POST
+\
+--url
+"https://api.runpod.io/v2/pods/
+$RUNPOD_POD_ID
+/action"
+\
+--header
+'Authorization: Bearer RUNPOD_API_KEY'
+\
+--header
+'Content-Type: application/json'
+\
+--data
+'{"action": "restart"}'
+​
+Update a Pod
+Modify an existing Pod’s configuration, such as storage size, image, ports, or environment variables.
+Editing a running Pod resets it completely, erasing all data not stored in
+/workspace
+or a network volume.
+Web
+REST API
+Open the
+Pods page
+.
+Click the three-dot menu next to the Pod you want to update.
+Click
+Edit Pod
+and modify your configuration.
+Click
+Save
+to apply changes.
+curl
+--request
+PATCH
+\
+--url
+"https://api.runpod.io/v2/pods/
+$RUNPOD_POD_ID
+"
+\
+--header
+"Authorization: Bearer
+$RUNPOD_API_KEY
+"
+\
+--header
+'Content-Type: application/json'
+\
+--data
+'{
+"disk": 100,
+"mounts": {"persistent": {"size": 200, "path": "/workspace"}}
+}'
+See the
+Update a Pod reference
+for all editable fields.
+​
+Terminate a Pod
+Terminating permanently deletes all data not stored in a
+network volume
+. Export important data first.
+Web
+CLI
+REST API
+Open the
+Pods page
+and expand your Pod.
+Stop the Pod if running, then click
+Terminate
+(trash icon) and confirm.
+runpodctl
+pod
+delete
+$RUNPOD_POD_ID
+curl
+--request
+DELETE
+\
+--url
+"https://api.runpod.io/v2/pods/
+$RUNPOD_POD_ID
+"
+\
+--header
+"Authorization: Bearer
+$RUNPOD_API_KEY
+"
+​
+View logs
+Pods provide two log types:
+Container logs
+: Application output (stdout)
+System logs
+: Pod lifecycle events (startup, shutdown, errors)
+Access logs from the
+Pods page
+by expanding your Pod and clicking
+Logs
+.
+​
+Troubleshooting
+Issue
+Solution
+Zero GPUs on restart
+See
+Zero GPU Pods
+Pod stuck initializing
+Check logs for command errors; ensure you have an idle job (e.g.,
+sleep infinity
+) if using SSH
+Docker Compose not working
+Not supported. Use a
+custom template
+with your dependencies baked in.
+Need help?
+Contact support
+.
+Last modified on
+October 30, 2026
+Suggest edits
+Raise issue
+⌘
+I
