@@ -13,8 +13,8 @@
       "bytes": 55429,
       "sha256": "8519bf35dd4deae3f27ba0690b9231218d18ffefb69b4e621832d27f389ee42b",
       "current_path": "docs/designs/concepts_brief.md",
-      "current_bytes": 55453,
-      "current_sha256": "cd17fe7b47c9c32604f0c00095ce59abcdd8e9d0774ed4c377817e0cee803f2f"
+      "current_bytes": 57043,
+      "current_sha256": "1b440b87d8a8eb698f5b36e2dd83a5d8021cabc68e24c018d8999ede5d4dac8a"
     },
     {
       "path": "project_and_run_setup.md",
@@ -403,5 +403,16 @@
       "kind": "prefix"
     }
   ],
-  "hash_policy": "preserved_files.bytes and sha256 describe the original relocation. current_path/current_bytes/current_sha256 describe the EGM layout. Only navigation links and the archive location text changed in the active brief and setup notes; all review evidence remains byte-for-byte unchanged."
+  "hash_policy": "preserved_files.bytes and sha256 describe the original relocation source. current_path/current_bytes/current_sha256 describe the latest recorded bytes at the mapped path. active_document_updates preserves prior hashes when an active document changes after relocation. Archived review inputs, raw responses, and captured sources remain byte-for-byte unchanged.",
+  "active_document_updates": [
+    {
+      "date": "2026-11-13",
+      "path": "docs/designs/concepts_brief.md",
+      "reason": "Sync author-approved desktop wording, task-general scope, Overview & Goals approval, published issue plan, first route, and comment-first spike deliverables.",
+      "previous_bytes": 55453,
+      "previous_sha256": "cd17fe7b47c9c32604f0c00095ce59abcdd8e9d0774ed4c377817e0cee803f2f",
+      "current_bytes": 57043,
+      "current_sha256": "1b440b87d8a8eb698f5b36e2dd83a5d8021cabc68e24c018d8999ede5d4dac8a"
+    }
+  ]
 }

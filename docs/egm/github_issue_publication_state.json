@@ -1,0 +1,907 @@
+{
+  "created": {
+    "E1": {
+      "number": 1,
+      "id": 6364916592,
+      "node_id": "I_kwDOVsliWc8AAAABe2DrcA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/1",
+      "title": "[E1] Create and reopen local projects"
+    },
+    "E2": {
+      "number": 2,
+      "id": 6364916807,
+      "node_id": "I_kwDOVsliWc8AAAABe2DsRw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/2",
+      "title": "[E2] Prepare datasets for research"
+    },
+    "E3": {
+      "number": 3,
+      "id": 6364917080,
+      "node_id": "I_kwDOVsliWc8AAAABe2DtWA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/3",
+      "title": "[E3] Configure runs and starting models"
+    },
+    "E4": {
+      "number": 4,
+      "id": 6364917355,
+      "node_id": "I_kwDOVsliWc8AAAABe2Duaw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/4",
+      "title": "[E4] Connect existing Runpod compute"
+    },
+    "E5": {
+      "number": 5,
+      "id": 6364917568,
+      "node_id": "I_kwDOVsliWc8AAAABe2DvQA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/5",
+      "title": "[E5] Connect existing Vast.ai compute"
+    },
+    "E6": {
+      "number": 6,
+      "id": 6364917781,
+      "node_id": "I_kwDOVsliWc8AAAABe2DwFQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/6",
+      "title": "[E6] Use Codex as the research agent"
+    },
+    "E7": {
+      "number": 7,
+      "id": 6364918059,
+      "node_id": "I_kwDOVsliWc8AAAABe2DxKw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/7",
+      "title": "[E7] Use Claude as the research agent"
+    },
+    "E8": {
+      "number": 8,
+      "id": 6364918247,
+      "node_id": "I_kwDOVsliWc8AAAABe2Dx5w",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/8",
+      "title": "[E8] Execute isolated, bounded experiments"
+    },
+    "E9": {
+      "number": 9,
+      "id": 6364918496,
+      "node_id": "I_kwDOVsliWc8AAAABe2Dy4A",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/9",
+      "title": "[E9] Evaluate checkpoints and select accepted results"
+    },
+    "E10": {
+      "number": 10,
+      "id": 6364918693,
+      "node_id": "I_kwDOVsliWc8AAAABe2DzpQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/10",
+      "title": "[E10] Run the autonomous research loop"
+    },
+    "E11": {
+      "number": 11,
+      "id": 6364918961,
+      "node_id": "I_kwDOVsliWc8AAAABe2D0sQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/11",
+      "title": "[E11] Control runs and recover interrupted connections"
+    },
+    "E12": {
+      "number": 12,
+      "id": 6364919210,
+      "node_id": "I_kwDOVsliWc8AAAABe2D1qg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/12",
+      "title": "[E12] Monitor active research"
+    },
+    "E13": {
+      "number": 13,
+      "id": 6364919437,
+      "node_id": "I_kwDOVsliWc8AAAABe2D2jQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/13",
+      "title": "[E13] Inspect research history and compare outcomes"
+    },
+    "E14": {
+      "number": 14,
+      "id": 6364919633,
+      "node_id": "I_kwDOVsliWc8AAAABe2D3UQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/14",
+      "title": "[E14] Retain, retrieve, and reuse selected models"
+    },
+    "1.1": {
+      "number": 15,
+      "id": 6364919918,
+      "node_id": "I_kwDOVsliWc8AAAABe2D4bg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/15",
+      "title": "[1.1] Choose desktop stack and persistence"
+    },
+    "1.2": {
+      "number": 16,
+      "id": 6364920117,
+      "node_id": "I_kwDOVsliWc8AAAABe2D5NQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/16",
+      "title": "[1.2] Define shared integration contracts"
+    },
+    "1.3": {
+      "number": 17,
+      "id": 6364920365,
+      "node_id": "I_kwDOVsliWc8AAAABe2D6LQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/17",
+      "title": "[1.3] Define credential access and safe recording"
+    },
+    "1.4": {
+      "number": 18,
+      "id": 6364920579,
+      "node_id": "I_kwDOVsliWc8AAAABe2D7Aw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/18",
+      "title": "[1.4] Launch the app and build in CI"
+    },
+    "1.5": {
+      "number": 19,
+      "id": 6364920839,
+      "node_id": "I_kwDOVsliWc8AAAABe2D8Bw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/19",
+      "title": "[1.5] Create and reopen projects"
+    },
+    "1.6": {
+      "number": 20,
+      "id": 6364921089,
+      "node_id": "I_kwDOVsliWc8AAAABe2D9AQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/20",
+      "title": "[1.6] Manage global and project defaults"
+    },
+    "1.7": {
+      "number": 21,
+      "id": 6364921297,
+      "node_id": "I_kwDOVsliWc8AAAABe2D90Q",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/21",
+      "title": "[1.7] Protect credentials and recorded activity"
+    },
+    "2.1": {
+      "number": 22,
+      "id": 6364921519,
+      "node_id": "I_kwDOVsliWc8AAAABe2D-rw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/22",
+      "title": "[2.1] Define supported tasks and dataset preparation"
+    },
+    "2.2": {
+      "number": 23,
+      "id": 6364921795,
+      "node_id": "I_kwDOVsliWc8AAAABe2D_ww",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/23",
+      "title": "[2.2] Import local data"
+    },
+    "2.3": {
+      "number": 24,
+      "id": 6364922007,
+      "node_id": "I_kwDOVsliWc8AAAABe2EAlw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/24",
+      "title": "[2.3] Inspect data with a setup agent"
+    },
+    "2.4": {
+      "number": 25,
+      "id": 6364922195,
+      "node_id": "I_kwDOVsliWc8AAAABe2EBUw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/25",
+      "title": "[2.4] Establish fixed dataset and split identities"
+    },
+    "2.5": {
+      "number": 26,
+      "id": 6364922441,
+      "node_id": "I_kwDOVsliWc8AAAABe2ECSQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/26",
+      "title": "[2.5] Apply explicit dataset updates"
+    },
+    "3.1": {
+      "number": 27,
+      "id": 6364922679,
+      "node_id": "I_kwDOVsliWc8AAAABe2EDNw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/27",
+      "title": "[3.1] Define model and initialization compatibility"
+    },
+    "3.2": {
+      "number": 28,
+      "id": 6364922881,
+      "node_id": "I_kwDOVsliWc8AAAABe2EEAQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/28",
+      "title": "[3.2] Create and save run configurations"
+    },
+    "3.3": {
+      "number": 29,
+      "id": 6364923135,
+      "node_id": "I_kwDOVsliWc8AAAABe2EE_w",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/29",
+      "title": "[3.3] Choose starting code and isolate a run"
+    },
+    "3.4": {
+      "number": 30,
+      "id": 6364923345,
+      "node_id": "I_kwDOVsliWc8AAAABe2EF0Q",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/30",
+      "title": "[3.4] Generate an agent-designed setup"
+    },
+    "3.5": {
+      "number": 31,
+      "id": 6364923566,
+      "node_id": "I_kwDOVsliWc8AAAABe2EGrg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/31",
+      "title": "[3.5] Prepare an external pretrained model"
+    },
+    "3.6": {
+      "number": 32,
+      "id": 6364923866,
+      "node_id": "I_kwDOVsliWc8AAAABe2EH2g",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/32",
+      "title": "[3.6] Initialize from a previous run"
+    },
+    "3.7": {
+      "number": 33,
+      "id": 6364924090,
+      "node_id": "I_kwDOVsliWc8AAAABe2EIug",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/33",
+      "title": "[3.7] Check preparation against assigned hardware"
+    },
+    "4.1": {
+      "number": 34,
+      "id": 6364924336,
+      "node_id": "I_kwDOVsliWc8AAAABe2EJsA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/34",
+      "title": "[4.1] Determine Runpod integration methods"
+    },
+    "4.2": {
+      "number": 35,
+      "id": 6364924534,
+      "node_id": "I_kwDOVsliWc8AAAABe2EKdg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/35",
+      "title": "[4.2] Authenticate and discover Pods"
+    },
+    "4.3": {
+      "number": 36,
+      "id": 6364924783,
+      "node_id": "I_kwDOVsliWc8AAAABe2ELbw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/36",
+      "title": "[4.3] Assign a Pod to a run"
+    },
+    "4.4": {
+      "number": 37,
+      "id": 6364925021,
+      "node_id": "I_kwDOVsliWc8AAAABe2EMXQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/37",
+      "title": "[4.4] Collect Pod capabilities and observations"
+    },
+    "4.5": {
+      "number": 38,
+      "id": 6364925235,
+      "node_id": "I_kwDOVsliWc8AAAABe2ENMw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/38",
+      "title": "[4.5] Handle lost access and changed Pod state"
+    },
+    "5.1": {
+      "number": 39,
+      "id": 6364925460,
+      "node_id": "I_kwDOVsliWc8AAAABe2EOFA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/39",
+      "title": "[5.1] Determine Vast.ai integration methods"
+    },
+    "5.2": {
+      "number": 40,
+      "id": 6364925770,
+      "node_id": "I_kwDOVsliWc8AAAABe2EPSg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/40",
+      "title": "[5.2] Authenticate and discover instances"
+    },
+    "5.3": {
+      "number": 41,
+      "id": 6364926048,
+      "node_id": "I_kwDOVsliWc8AAAABe2EQYA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/41",
+      "title": "[5.3] Assign an instance to a run"
+    },
+    "5.4": {
+      "number": 42,
+      "id": 6364926244,
+      "node_id": "I_kwDOVsliWc8AAAABe2ERJA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/42",
+      "title": "[5.4] Collect instance capabilities and observations"
+    },
+    "5.5": {
+      "number": 43,
+      "id": 6364926463,
+      "node_id": "I_kwDOVsliWc8AAAABe2ER_w",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/43",
+      "title": "[5.5] Handle lost access and changed instance state"
+    },
+    "6.1": {
+      "number": 44,
+      "id": 6364926704,
+      "node_id": "I_kwDOVsliWc8AAAABe2ES8A",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/44",
+      "title": "[6.1] Determine Codex integration methods"
+    },
+    "6.2": {
+      "number": 45,
+      "id": 6364927034,
+      "node_id": "I_kwDOVsliWc8AAAABe2EUOg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/45",
+      "title": "[6.2] Authenticate and choose a Codex model"
+    },
+    "6.3": {
+      "number": 46,
+      "id": 6364927177,
+      "node_id": "I_kwDOVsliWc8AAAABe2EUyQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/46",
+      "title": "[6.3] Execute a bounded Codex action"
+    },
+    "6.4": {
+      "number": 47,
+      "id": 6364927395,
+      "node_id": "I_kwDOVsliWc8AAAABe2EVow",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/47",
+      "title": "[6.4] Capture exposed Codex activity safely"
+    },
+    "6.5": {
+      "number": 48,
+      "id": 6364927675,
+      "node_id": "I_kwDOVsliWc8AAAABe2EWuw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/48",
+      "title": "[6.5] Interrupt and reconcile Codex actions"
+    },
+    "7.1": {
+      "number": 49,
+      "id": 6364927916,
+      "node_id": "I_kwDOVsliWc8AAAABe2EXrA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/49",
+      "title": "[7.1] Determine Claude integration methods"
+    },
+    "7.2": {
+      "number": 50,
+      "id": 6364928131,
+      "node_id": "I_kwDOVsliWc8AAAABe2EYgw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/50",
+      "title": "[7.2] Authenticate and choose a Claude model"
+    },
+    "7.3": {
+      "number": 51,
+      "id": 6364928386,
+      "node_id": "I_kwDOVsliWc8AAAABe2EZgg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/51",
+      "title": "[7.3] Execute a bounded Claude action"
+    },
+    "7.4": {
+      "number": 52,
+      "id": 6364928584,
+      "node_id": "I_kwDOVsliWc8AAAABe2EaSA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/52",
+      "title": "[7.4] Capture exposed Claude activity safely"
+    },
+    "7.5": {
+      "number": 53,
+      "id": 6364928854,
+      "node_id": "I_kwDOVsliWc8AAAABe2EbVg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/53",
+      "title": "[7.5] Interrupt and reconcile Claude actions"
+    },
+    "8.1": {
+      "number": 54,
+      "id": 6364929093,
+      "node_id": "I_kwDOVsliWc8AAAABe2EcRQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/54",
+      "title": "[8.1] Define remote execution and supervision"
+    },
+    "8.2": {
+      "number": 55,
+      "id": 6364929289,
+      "node_id": "I_kwDOVsliWc8AAAABe2EdCQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/55",
+      "title": "[8.2] Reserve compute across projects"
+    },
+    "8.3": {
+      "number": 56,
+      "id": 6364929531,
+      "node_id": "I_kwDOVsliWc8AAAABe2Ed-w",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/56",
+      "title": "[8.3] Execute a baseline on one GPU"
+    },
+    "8.4": {
+      "number": 57,
+      "id": 6364929790,
+      "node_id": "I_kwDOVsliWc8AAAABe2Ee_g",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/57",
+      "title": "[8.4] Execute a committed candidate"
+    },
+    "8.5": {
+      "number": 58,
+      "id": 6364930069,
+      "node_id": "I_kwDOVsliWc8AAAABe2EgFQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/58",
+      "title": "[8.5] Enforce protected research boundaries"
+    },
+    "8.6": {
+      "number": 59,
+      "id": 6364930258,
+      "node_id": "I_kwDOVsliWc8AAAABe2Eg0g",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/59",
+      "title": "[8.6] Execute across multiple GPUs"
+    },
+    "8.7": {
+      "number": 60,
+      "id": 6364930489,
+      "node_id": "I_kwDOVsliWc8AAAABe2EhuQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/60",
+      "title": "[8.7] Bound stuck execution and non-training phases"
+    },
+    "9.1": {
+      "number": 61,
+      "id": 6364930735,
+      "node_id": "I_kwDOVsliWc8AAAABe2Eirw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/61",
+      "title": "[9.1] Define evaluation and ranking details"
+    },
+    "9.2": {
+      "number": 62,
+      "id": 6364930967,
+      "node_id": "I_kwDOVsliWc8AAAABe2Ejlw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/62",
+      "title": "[9.2] Select eligible training checkpoints"
+    },
+    "9.3": {
+      "number": 63,
+      "id": 6364931253,
+      "node_id": "I_kwDOVsliWc8AAAABe2EktQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/63",
+      "title": "[9.3] Evaluate selected checkpoints after training"
+    },
+    "9.4": {
+      "number": 64,
+      "id": 6364931473,
+      "node_id": "I_kwDOVsliWc8AAAABe2ElkQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/64",
+      "title": "[9.4] Compare a candidate with the incumbent"
+    },
+    "9.5": {
+      "number": 65,
+      "id": 6364931688,
+      "node_id": "I_kwDOVsliWc8AAAABe2EmaA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/65",
+      "title": "[9.5] Record separate test assessments"
+    },
+    "9.6": {
+      "number": 66,
+      "id": 6364932017,
+      "node_id": "I_kwDOVsliWc8AAAABe2EnsQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/66",
+      "title": "[9.6] Build agent-safe research context"
+    },
+    "10.1": {
+      "number": 67,
+      "id": 6364932252,
+      "node_id": "I_kwDOVsliWc8AAAABe2EonA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/67",
+      "title": "[10.1] Define stopping timing and failure handling"
+    },
+    "10.2": {
+      "number": 68,
+      "id": 6364932478,
+      "node_id": "I_kwDOVsliWc8AAAABe2Epfg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/68",
+      "title": "[10.2] Create committed candidates from hypotheses"
+    },
+    "10.3": {
+      "number": 69,
+      "id": 6364932740,
+      "node_id": "I_kwDOVsliWc8AAAABe2EqhA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/69",
+      "title": "[10.3] Continue research autonomously"
+    },
+    "10.4": {
+      "number": 70,
+      "id": 6364932966,
+      "node_id": "I_kwDOVsliWc8AAAABe2ErZg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/70",
+      "title": "[10.4] Handle failed attempts and repairs"
+    },
+    "10.5": {
+      "number": 71,
+      "id": 6364933217,
+      "node_id": "I_kwDOVsliWc8AAAABe2EsYQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/71",
+      "title": "[10.5] Apply stopping expressions and counters"
+    },
+    "10.6": {
+      "number": 72,
+      "id": 6364933465,
+      "node_id": "I_kwDOVsliWc8AAAABe2EtWQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/72",
+      "title": "[10.6] Test training-only data strategies"
+    },
+    "11.1": {
+      "number": 73,
+      "id": 6364933673,
+      "node_id": "I_kwDOVsliWc8AAAABe2EuKQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/73",
+      "title": "[11.1] Define lifecycle and recovery precedence"
+    },
+    "11.2": {
+      "number": 74,
+      "id": 6364933892,
+      "node_id": "I_kwDOVsliWc8AAAABe2EvBA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/74",
+      "title": "[11.2] Pause after the current experiment"
+    },
+    "11.3": {
+      "number": 75,
+      "id": 6364934191,
+      "node_id": "I_kwDOVsliWc8AAAABe2EwLw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/75",
+      "title": "[11.3] Finish a run permanently"
+    },
+    "11.4": {
+      "number": 76,
+      "id": 6364934449,
+      "node_id": "I_kwDOVsliWc8AAAABe2ExMQ",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/76",
+      "title": "[11.4] Stop immediately and resume fresh"
+    },
+    "11.5": {
+      "number": 77,
+      "id": 6364934626,
+      "node_id": "I_kwDOVsliWc8AAAABe2Ex4g",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/77",
+      "title": "[11.5] Pause remotely after controller loss"
+    },
+    "11.6": {
+      "number": 78,
+      "id": 6364934859,
+      "node_id": "I_kwDOVsliWc8AAAABe2Eyyw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/78",
+      "title": "[11.6] Reconcile after restart or reconnection"
+    },
+    "11.7": {
+      "number": 79,
+      "id": 6364935138,
+      "node_id": "I_kwDOVsliWc8AAAABe2Ez4g",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/79",
+      "title": "[11.7] Pause before confirmed application exit"
+    },
+    "11.8": {
+      "number": 80,
+      "id": 6364935355,
+      "node_id": "I_kwDOVsliWc8AAAABe2E0uw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/80",
+      "title": "[11.8] Resume on different hardware"
+    },
+    "12.1": {
+      "number": 81,
+      "id": 6364935672,
+      "node_id": "I_kwDOVsliWc8AAAABe2E1-A",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/81",
+      "title": "[12.1] Show run states and pending controls"
+    },
+    "12.2": {
+      "number": 82,
+      "id": 6364935831,
+      "node_id": "I_kwDOVsliWc8AAAABe2E2lw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/82",
+      "title": "[12.2] Display live agent activity"
+    },
+    "12.3": {
+      "number": 83,
+      "id": 6364936012,
+      "node_id": "I_kwDOVsliWc8AAAABe2E3TA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/83",
+      "title": "[12.3] Display training progress and live metrics"
+    },
+    "12.4": {
+      "number": 84,
+      "id": 6364936314,
+      "node_id": "I_kwDOVsliWc8AAAABe2E4eg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/84",
+      "title": "[12.4] Display assigned compute observations"
+    },
+    "12.5": {
+      "number": 85,
+      "id": 6364936655,
+      "node_id": "I_kwDOVsliWc8AAAABe2E5zw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/85",
+      "title": "[12.5] Explain stopped research and cloud resources"
+    },
+    "13.1": {
+      "number": 86,
+      "id": 6364936842,
+      "node_id": "I_kwDOVsliWc8AAAABe2E6ig",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/86",
+      "title": "[13.1] Define aggregation and log retention"
+    },
+    "13.2": {
+      "number": 87,
+      "id": 6364937096,
+      "node_id": "I_kwDOVsliWc8AAAABe2E7iA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/87",
+      "title": "[13.2] Retain experiment and run records locally"
+    },
+    "13.3": {
+      "number": 88,
+      "id": 6364937375,
+      "node_id": "I_kwDOVsliWc8AAAABe2E8nw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/88",
+      "title": "[13.3] Inspect individual experiments"
+    },
+    "13.4": {
+      "number": 89,
+      "id": 6364937622,
+      "node_id": "I_kwDOVsliWc8AAAABe2E9lg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/89",
+      "title": "[13.4] Inspect whole-run progress"
+    },
+    "13.5": {
+      "number": 90,
+      "id": 6364937996,
+      "node_id": "I_kwDOVsliWc8AAAABe2E_DA",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/90",
+      "title": "[13.5] Compare runs within a project"
+    },
+    "13.6": {
+      "number": 91,
+      "id": 6364938259,
+      "node_id": "I_kwDOVsliWc8AAAABe2FAEw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/91",
+      "title": "[13.6] Apply activity retention and expose gaps"
+    },
+    "14.1": {
+      "number": 92,
+      "id": 6364938442,
+      "node_id": "I_kwDOVsliWc8AAAABe2FAyg",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/92",
+      "title": "[14.1] Define model packaging and retention"
+    },
+    "14.2": {
+      "number": 93,
+      "id": 6364938742,
+      "node_id": "I_kwDOVsliWc8AAAABe2FB9g",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/93",
+      "title": "[14.2] Retain selected models safely"
+    },
+    "14.3": {
+      "number": 94,
+      "id": 6364938990,
+      "node_id": "I_kwDOVsliWc8AAAABe2FC7g",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/94",
+      "title": "[14.3] Retrieve selected models locally"
+    },
+    "14.4": {
+      "number": 95,
+      "id": 6364939252,
+      "node_id": "I_kwDOVsliWc8AAAABe2FD9A",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/95",
+      "title": "[14.4] Expose retained models as new run sources"
+    },
+    "14.5": {
+      "number": 96,
+      "id": 6364939443,
+      "node_id": "I_kwDOVsliWc8AAAABe2FEsw",
+      "html_url": "https://github.com/igrgin/autoresearch-lab/issues/96",
+      "title": "[14.5] Clean up removable weights safely"
+    }
+  },
+  "parents": [
+    "1.1",
+    "1.2",
+    "1.3",
+    "1.4",
+    "1.5",
+    "1.6",
+    "1.7",
+    "2.1",
+    "2.2",
+    "2.3",
+    "2.4",
+    "2.5",
+    "3.1",
+    "3.2",
+    "3.3",
+    "3.4",
+    "3.5",
+    "3.6",
+    "3.7",
+    "4.1",
+    "4.2",
+    "4.3",
+    "4.4",
+    "4.5",
+    "5.1",
+    "5.2",
+    "5.3",
+    "5.4",
+    "5.5",
+    "6.1",
+    "6.2",
+    "6.3",
+    "6.4",
+    "6.5",
+    "7.1",
+    "7.2",
+    "7.3",
+    "7.4",
+    "7.5",
+    "8.1",
+    "8.2",
+    "8.3",
+    "8.4",
+    "8.5",
+    "8.6",
+    "8.7",
+    "9.1",
+    "9.2",
+    "9.3",
+    "9.4",
+    "9.5",
+    "9.6",
+    "10.1",
+    "10.2",
+    "10.3",
+    "10.4",
+    "10.5",
+    "10.6",
+    "11.1",
+    "11.2",
+    "11.3",
+    "11.4",
+    "11.5",
+    "11.6",
+    "11.7",
+    "11.8",
+    "12.1",
+    "12.2",
+    "12.3",
+    "12.4",
+    "12.5",
+    "13.1",
+    "13.2",
+    "13.3",
+    "13.4",
+    "13.5",
+    "13.6",
+    "14.1",
+    "14.2",
+    "14.3",
+    "14.4",
+    "14.5"
+  ],
+  "blockers": [
+    "1.1>1.3",
+    "1.1>1.4",
+    "1.4>1.5",
+    "1.2>1.5",
+    "1.5>1.6",
+    "1.3>1.7",
+    "1.4>1.7",
+    "1.2>1.7",
+    "1.5>2.2",
+    "2.1>2.2",
+    "2.2>2.3",
+    "6.3>2.3",
+    "2.3>2.4",
+    "2.4>2.5",
+    "2.1>3.1",
+    "1.6>3.2",
+    "2.4>3.2",
+    "3.1>3.2",
+    "3.2>3.3",
+    "3.3>3.4",
+    "6.3>3.4",
+    "9.3>3.4",
+    "3.3>3.5",
+    "9.3>3.5",
+    "6.3>3.5",
+    "3.3>3.6",
+    "14.4>3.6",
+    "3.5>3.7",
+    "4.3>3.7",
+    "4.1>4.2",
+    "1.7>4.2",
+    "4.2>4.3",
+    "8.2>4.3",
+    "3.2>4.3",
+    "4.2>4.4",
+    "4.3>4.5",
+    "4.4>4.5",
+    "5.1>5.2",
+    "1.7>5.2",
+    "5.2>5.3",
+    "8.2>5.3",
+    "3.2>5.3",
+    "5.2>5.4",
+    "5.3>5.5",
+    "5.4>5.5",
+    "6.1>6.2",
+    "1.7>6.2",
+    "6.2>6.3",
+    "9.6>6.3",
+    "8.7>6.3",
+    "6.3>6.4",
+    "13.6>6.4",
+    "6.4>6.5",
+    "7.1>7.2",
+    "1.7>7.2",
+    "7.2>7.3",
+    "9.6>7.3",
+    "8.7>7.3",
+    "7.3>7.4",
+    "13.6>7.4",
+    "7.4>7.5",
+    "1.2>8.1",
+    "1.5>8.2",
+    "11.1>8.2",
+    "3.7>8.3",
+    "8.3>8.4",
+    "10.2>8.4",
+    "2.4>8.5",
+    "8.4>8.6",
+    "8.1>8.7",
+    "10.1>8.7",
+    "1.7>8.7",
+    "1.2>9.1",
+    "2.1>9.1",
+    "9.1>9.2",
+    "14.1>9.2",
+    "9.2>9.3",
+    "8.5>9.3",
+    "9.3>9.4",
+    "9.3>9.5",
+    "9.1>9.6",
+    "13.2>9.6",
+    "9.1>10.1",
+    "11.1>10.1",
+    "3.3>10.2",
+    "6.3>10.2",
+    "10.4>10.3",
+    "11.3>10.3",
+    "11.4>10.3",
+    "11.5>10.3",
+    "8.4>10.4",
+    "6.5>10.4",
+    "9.4>10.5",
+    "10.3>10.6",
+    "1.2>11.1",
+    "8.4>11.2",
+    "10.5>11.2",
+    "11.2>11.3",
+    "14.2>11.3",
+    "8.4>11.4",
+    "10.5>11.4",
+    "8.4>11.5",
+    "9.4>11.5",
+    "11.3>11.6",
+    "11.4>11.6",
+    "11.5>11.6",
+    "6.5>11.6",
+    "4.5>11.6",
+    "11.6>11.7",
+    "11.6>11.8",
+    "4.3>11.8",
+    "11.3>12.1",
+    "11.4>12.1",
+    "6.4>12.2",
+    "8.3>12.3",
+    "4.4>12.4",
+    "8.2>12.4",
+    "11.3>12.5",
+    "11.4>12.5",
+    "14.3>12.5",
+    "4.5>12.5",
+    "13.1>13.2",
+    "1.5>13.2",
+    "1.7>13.2",
+    "8.4>13.3",
+    "9.4>13.3",
+    "9.5>13.3",
+    "6.4>13.3",
+    "8.4>13.4",
+    "10.5>13.4",
+    "13.4>13.5",
+    "13.2>13.6",
+    "1.2>14.1",
+    "3.1>14.1",
+    "9.4>14.2",
+    "14.2>14.3",
+    "4.3>14.3",
+    "14.3>14.4",
+    "14.4>14.5"
+  ],
+  "labels": [
+    "epic",
+    "spike",
+    "implementation"
+  ],
+  "verified": true
+}
