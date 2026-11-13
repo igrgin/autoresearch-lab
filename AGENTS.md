@@ -2,7 +2,7 @@
 
 Before planning, reviewing, or changing product behavior, read the [concepts brief](./docs/designs/concepts_brief.md). It is the approved source for scope, decisions, success criteria, and design follow-ups. Use the [design sitemap](./docs/designs/SITEMAP.md) to locate approved specifications.
 
-Use [README.md](./README.md) to locate project records. The setup notes and earlier reviews contain superseded proposals; the concepts brief takes precedence where they differ.
+Use the [design sitemap](./docs/designs/SITEMAP.md) to locate specifications and supporting project records. The setup notes and earlier reviews contain superseded proposals; the concepts brief takes precedence where they differ.
 
 Preserve archived review inputs, raw reviewer responses, and captured source files. Record corrections separately and put new reviews in new artifacts.
 
