@@ -1,0 +1,26 @@
+[
+  {
+    "run_url": "https://github.com/igrgin/autoresearch-lab/actions/runs/43531091694",
+    "head_sha": "92383f2070cf3ea00895d33e7775890e601e6b9c",
+    "conclusion": "failure",
+    "steps": [],
+    "runner_name": "",
+    "artifact_count": 0,
+    "annotations": [
+      "The job was not started because your account is locked due to a billing issue.",
+      "Due to capacity constraints, jobs targeting macOS arm64 runners may experience longer queue times."
+    ]
+  },
+  {
+    "run_url": "https://github.com/igrgin/autoresearch-lab/actions/runs/43531111842",
+    "head_sha": "be569aeb20aa4d2d74c79b697e8b0c4e48dc5f40",
+    "conclusion": "failure",
+    "steps": [],
+    "runner_name": "",
+    "artifact_count": 0,
+    "annotations": [
+      "The job was not started because your account is locked due to a billing issue.",
+      "Due to capacity constraints, jobs targeting macOS arm64 runners may experience longer queue times."
+    ]
+  }
+]

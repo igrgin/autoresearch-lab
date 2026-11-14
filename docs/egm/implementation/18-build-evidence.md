@@ -64,7 +64,7 @@ This is confined to the test harness and does not alter the user's environment.
 
 Removed the previous generated output from the build path, ran a fresh
 `npm ci` (619 packages installed), and reran `npm run build`: both passed.
-Live CI success/failure evidence will be appended after execution. Build commands and output paths are documented in
+CI attempts and their external blocker are recorded below. Build commands and output paths are documented in
 [BUILD.md](../../BUILD.md).
 
 ## Limits
@@ -82,3 +82,37 @@ Current official setup references consulted:
 [GitHub arm64 runner labels](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 Installed Forge 8 configuration/source and SQLite 13 platform exports were also
 inspected to verify the exact pinned behavior instead of relying on old templates.
+
+## Live CI attempts and remaining acceptance checks
+
+The [initial implementation run](https://github.com/igrgin/autoresearch-lab/actions/runs/43531091694)
+and [deliberate failure-probe run](https://github.com/igrgin/autoresearch-lab/actions/runs/43531111842)
+both concluded failure **before any job steps ran**. GitHub's check annotations
+state: **"The job was not started because your account is locked due to a billing
+issue."** Each job had an empty steps array, no assigned runner and zero artifacts.
+The runner-capacity notice is secondary; the billing lock is the explicit blocker.
+Selected API evidence is preserved in [18-ci-attempts.json](18-ci-attempts.json).
+No account, billing or provider resource settings were changed.
+
+The temporary probe commit `be569aeb20aa4d2d74c79b697e8b0c4e48dc5f40`
+introduced `export const deliberateBuildFailure: string = 18;` in a separate
+source file. With prior build output moved out of the build path, local
+`npm run build` rejected it with TypeScript **TS2322**, exit code **2**, before
+Forge packaging; `out/make` did not exist. The probe was reverted in a separate
+commit. This proves local failure propagation only; a pre-run account failure
+cannot prove the CI build-error path or successful artifact upload.
+
+Acceptance status:
+
+- Clean dependency install, documented build and packaged macOS launch: **passed
+  locally**, including navigation, native SQLite, isolation and empty-workspace
+  native close/reopen/quit. CI's clean checkout could not execute.
+- CI successful build with intended output: **blocked by GitHub account billing**.
+- CI deliberately broken build fails at compilation and skips artifact upload:
+  **blocked by the same billing issue**, despite the probe being submitted.
+
+After the GitHub account is unlocked, rerun the current valid PR build and check
+its ZIP plus smoke evidence. Repeat the temporary-error procedure in
+[BUILD.md](../../BUILD.md), confirm TS2322 in the build step and zero artifacts,
+revert the probe and finish with a green build. The issue stays open and the PR
+is not merged; these two CI acceptance checks must not be marked passed yet.
