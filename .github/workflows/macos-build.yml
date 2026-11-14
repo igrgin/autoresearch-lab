@@ -1,0 +1,40 @@
+name: macOS build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: macOS arm64 build
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify native runner
+        run: test "$(uname -m)" = arm64
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check and build app and ZIP
+        run: npm run build
+      - name: Verify distributable integrity
+        run: unzip -tq "out/make/zip/darwin/arm64/Autoresearch Lab-darwin-arm64-0.1.0.zip"
+      - name: Launch packaged app and check navigation
+        run: npm run smoke
+      - name: Upload internal macOS build
+        uses: actions/upload-artifact@v4
+        with:
+          name: autoresearch-lab-macos-arm64
+          path: |
+            out/make/zip/darwin/arm64/*.zip
+            out/smoke/
+          if-no-files-found: error
+          retention-days: 7
