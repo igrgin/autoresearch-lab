@@ -1,9 +1,0 @@
-- **Functionality: 8.5/10.** Creation, search, sorting, reopening and current-project feedback are clearly represented. Compared with the previous images, every saved row now exposes its folder identifier, making duplicate project names easier to distinguish, and “Open project” is more explicit. The screenshots cannot establish whether these controls work or how errors are handled.
-- **Appearance: 8.5/10.** The layout is calm and consistent, with a clear distinction between the saved list and the contextual panel. The aligned path disclosures and consistent row structure improve scanning, though the repeated controls make the list somewhat busy.
-
-Observed issues, in order of importance:
-
-1. **The two identically named projects still require close reading to distinguish.** Their folder identifiers help, but the differentiating suffix is small and visually subordinate. Give the folder identifier slightly more prominence, particularly where names match.
-2. **The opened-project panel gives Finder the strongest action, while Git actions are hidden.** The repository-ready message is visible, but users looking to work with Git must discover the disclosure. Consider making the most useful Git action visible alongside the repository status, if one is central to reopening.
-3. **“Show full path” is repeated in every row and competes with recency.** The lighter treatment improves the previous version, but the disclosure sits in a separate visual column with considerable space around it. A more compact placement near the folder identifier could make the relationship clearer.
-4. **The creation panel’s “Project folder” and “Git repository root” labels look like two separate lines of metadata.** Combine them into a single clear label, such as “Project folder · Git repository root,” matching the opened state.

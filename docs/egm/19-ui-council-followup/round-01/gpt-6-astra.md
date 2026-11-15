@@ -1,9 +1,0 @@
-- **Functionality: 8.5/10.** Creation, search, sorting and reopening have clear controls. The highlighted Current row and adjacent project panel communicate selection well, and Finder access is prominent. Compared with the previous screenshots, scanning is easier, though location and timestamp detail now require more inspection. Screenshots establish visible design only, not runtime reliability.
-- **Appearance: 8.8/10.** Consistent typography, restrained color, clear hierarchy and comfortable spacing. The compact current-project heading and shortened paths substantially improve balance: the opened-project panel now fits comfortably without the previous scrollbar.
-
-Specific issues and improvements, ordered by importance:
-
-1. **Git repository access is less discoverable than file access.** “Local Git repository connected” supplies status, while “Project ID & Git path” hides the relevant location alongside technical metadata. Give repository details a clearer label and expose an explicit repository-location action.
-2. **Saved rows no longer show any location context.** Removing folder names reduces clutter but makes similarly named projects harder to distinguish without opening “Show full path.” Show a short folder hint when names collide, preserving the clean default.
-3. **Every visible timestamp reads “Opened just now.”** This makes the recently opened ordering less informative than the previous precise timestamps. Keep relative times, but provide exact date and time on hover or focus.
-4. **Rows retain substantial empty space after their content was simplified.** Slightly reduce vertical padding to improve list density while retaining comfortable Open buttons and clear separation.

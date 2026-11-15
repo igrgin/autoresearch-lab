@@ -1,9 +1,0 @@
-- **Functionality: 8.3/10.** Creation, search, sorting, reopening and current-project selection have clear controls. The opened state provides useful feedback and a prominent Finder action. Compared with the previous images, the simplified rows are easier to scan, though hiding their folder names reduces immediate project identification. Screenshots establish interaction clarity, not runtime correctness.
-- **Appearance: 8.8/10.** Cohesive typography, restrained colors, consistent spacing and a clear two-panel hierarchy. The compact current-project heading and shortened paths substantially improve balance; the current opened-project panel fits comfortably without the previous screenshot’s scrolling.
-
-Specific issues and improvements, ordered by importance:
-
-1. **Git repository access is less discoverable than file access.** “Local Git repository connected” communicates status, while “Project ID & Git path” looks like secondary metadata. Expose a clearly labeled Git path or repository action beside that status.
-2. **Saved projects have fewer visible distinguishing details.** All three currently say “Opened just now,” and their folder names have disappeared. For matching or similar project names, show a compact distinguishing location, at least when names collide, while retaining full-path inspection.
-3. **The creation location’s editability is unclear.** “Edit folder name” is explicit, but the parent folder appears as static abbreviated text. Clarify whether that destination is fixed; if selectable, provide a clearly labeled “Change location” control.
-4. **Path disclosure labels are ambiguous.** In the creation panel, “Show full path” sits under “Parent folder,” leaving its target uncertain. Use “Show full project path” or “Show full parent path,” according to what it reveals.
