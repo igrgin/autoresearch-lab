@@ -11,4 +11,5 @@ export interface ShellBridge {
   createProject(input: CreateProject): Promise<ProjectReply<ProjectRecord>>;
   openProject(projectId: string): Promise<ProjectReply<ProjectRecord>>;
   recoverProject(projectId: string): Promise<ProjectReply<ProjectRecord>>;
+  revealProject(projectId: string): Promise<ProjectReply<null>>;
 }

@@ -49,6 +49,7 @@ try {
   const first = firstReply.value.projects[0].project;
   assert.equal((await stat(first.repository)).isDirectory(), true);
   await writeFile(path.join(first.location, 'research.py'), '# retained source file\n');
+  await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Second research');
   await page.getByRole('button', { name: 'Create project', exact: true }).click();
   await details.getByRole('heading', { name: 'Second research', exact: true }).waitFor();
@@ -59,6 +60,7 @@ try {
   assert.notEqual(first.repository, second.repository);
   assert.equal((await stat(second.repository)).isDirectory(), true);
   // A conflict must preserve the first project's source and expose an error.
+  await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
   await page.getByLabel('Folder name', { exact: true }).fill('first-research');
   await page.getByRole('button', { name: 'Create project', exact: true }).click();
@@ -66,7 +68,7 @@ try {
   assert.equal(await readFile(path.join(first.location, 'research.py'), 'utf8'), '# retained source file\n');
   await mkdir('out/smoke', { recursive: true });
   await page.getByRole('button', { name: 'Create project', exact: true }).waitFor();
-  await page.locator('button.primary:not(:disabled)').waitFor();
+  await page.getByRole('button', { name: 'Create project', exact: true }).waitFor();
   await page.screenshot({ path: 'out/smoke/workspace.png' });
   // Exercise the native close path, then macOS activation/reopen, then normal quit.
   const closing = page.waitForEvent('close');
@@ -91,7 +93,25 @@ try {
   await restarted.getByRole('heading', { name: 'First research', exact: true }).waitFor();
   const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
   await firstCard.getByRole('button', { name: 'Open', exact: true }).click();
-  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByText(first.projectId, { exact: true }).waitFor();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  // UI-only filtering and ordering never change the saved project catalog.
+  await restarted.getByRole('searchbox', { name: 'Search projects', exact: true }).fill('Second');
+  assert.equal(await restarted.getByRole('article').count(), 1);
+  await restarted.getByRole('searchbox', { name: 'Search projects', exact: true }).fill('absent-project');
+  await restarted.getByRole('heading', { name: 'No matching projects', exact: true }).waitFor();
+  await restarted.getByRole('button', { name: 'Clear search', exact: true }).click();
+  assert.equal(await restarted.getByRole('article').count(), 2);
+  // Stub only the native Finder dispatch in this test; catalog validation still runs.
+  await application.evaluate(({ app, shell }) => {
+    app.revealedProjectPaths = [];
+    shell.openPath = async (location) => { app.revealedProjectPaths.push(location); return ''; };
+  });
+  await restarted.getByRole('button', { name: 'Show files in Finder', exact: true }).click();
+  await restarted.getByText('Project folder opened in Finder.', { exact: true }).waitFor({ state: 'attached' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location]);
+  const invalidReveal = await restarted.evaluate(() => window.lab.revealProject('not-a-project'));
+  assert.equal(invalidReveal.ok, false);
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location]);
   const openedReply = await restarted.evaluate((id) => window.lab.openProject(id), first.projectId);
   assert.deepEqual(openedReply, { ok: true, value: first });
   assert.equal(await readFile(path.join(first.location, 'research.py'), 'utf8'), '# retained source file\n');
@@ -104,12 +124,12 @@ try {
   await assert.rejects(stat(first.location), { code: 'ENOENT' });
   await rename(`${first.location}-temporarily-unavailable`, first.location);
   await firstCard.getByRole('button', { name: 'Open', exact: true }).click();
-  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByText(first.projectId, { exact: true }).waitFor();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
   await application.close();
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
+  const report = { projectFilter: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {

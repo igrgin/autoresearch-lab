@@ -7,5 +7,6 @@ const bridge: ShellBridge = {
   createProject: (input) => ipcRenderer.invoke('projects:create', input),
   openProject: (projectId) => ipcRenderer.invoke('projects:open', projectId),
   recoverProject: (projectId) => ipcRenderer.invoke('projects:recover', projectId),
+  revealProject: (projectId) => ipcRenderer.invoke('projects:reveal', projectId),
 };
 contextBridge.exposeInMainWorld('lab', bridge);

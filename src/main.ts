@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, utilityProcess } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { CreateProject, ProjectReply, ProjectRequest, ProjectRecord, WorkspaceProjects } from './projects';
@@ -119,6 +119,20 @@ if (!app.requestSingleInstanceLock()) {
         return requestProjects({ kind, operationId: randomUUID(), projectId });
       });
     }
+    ipcMain.handle('projects:reveal', async (event, projectId: string) => {
+      admit(event);
+      const operationId = randomUUID();
+      const reply = await requestProjects({ kind: 'open', operationId, projectId });
+      if (!reply.ok) return reply;
+      // Resolve and validate through the catalog; the renderer never supplies a path.
+      if (!('projectId' in reply.value)) throw new Error('Invalid project response.');
+      try {
+        const failure = await shell.openPath(reply.value.location);
+        if (!failure) return { ok: true, value: null };
+      } catch { /* Only a safe host error crosses the bridge. */ }
+      return { ok: false, error: { code: 'unavailable', origin: 'project_catalog', operationId,
+        message: 'Finder could not open this project folder. Restore folder access and retry.', effect: 'none', retry: 'same_key' } };
+    });
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       { role: 'appMenu' }, { role: 'editMenu' },
       { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }] },
