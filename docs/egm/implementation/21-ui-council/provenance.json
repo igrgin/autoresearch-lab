@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-11-15T20:04:09.686909+00:00",
+  "base": {
+    "commit": "acfdada4d42d06f556dc0b96e6d3e282eadf85ac",
+    "tree": "7d9088a07fa8c3c8189840066d3c5fb462de1606",
+    "runUrl": "https://github.com/igrgin/autoresearch-lab/actions/runs/43741488909",
+    "artifact": {
+      "digest": "sha256:219542426b1795485fd198b5aa053a5be584e737e9769ccf8038ecca69da7e27",
+      "id": 14172940568,
+      "name": "autoresearch-lab-macos-arm64",
+      "workflow_run": {
+        "head_branch": "main",
+        "head_repository_id": 1456038489,
+        "head_sha": "acfdada4d42d06f556dc0b96e6d3e282eadf85ac",
+        "id": 43741488909,
+        "repository_id": 1456038489
+      }
+    },
+    "innerAppZipSha256": "b02e4b75048c7aae827bf7b3eaf14228bd19210fd78bac54ed88b048a28bdfeb",
+    "appAsarSha256": "86672982a698aa2703ece0969e1befb6cdd8ab78216307b0af626edc7e9842e9"
+  },
+  "beforeImage": "before-pr-base.png",
+  "afterImages": "round-10/capture.json",
+  "afterBuild": "Local unmodified packaged Electron app from the source files committed with these captures",
+  "appAsarSha256": "f2bba90a29983c94b2a57cd9bb4b7a4037be597b2966cb8bdde66821acb2ad93",
+  "sourceFiles": {
+    "src/renderer/credential-entry.tsx": "47595baf68bc4edce48388399f73affbd8e6eef622119f96614e46563d4d46c2",
+    "src/renderer/credential-entry.css": "ce3fc8f91cc7dfb682d2e651ca367042b7e5d6825a8b43e98a074799978c6a05",
+    "src/main.ts": "b5b9096c29cd467cf2d813c3fa128303be00c254f5bb7c4823362830a3de33e7",
+    "src/credential-preload.ts": "50c5aa058e282caa536168b5262ab566016296e51526fda1ebe7edcae0eaae07",
+    "src/security/entry-contract.ts": "e2e2fe2dee6ad46e380ed8cbcca97e66a9071d3d3de79b4713cb545e47676d2b",
+    "src/security/credentials.ts": "c4ee92f194ed5795fc3d854ce8450a5240c1dbc01acb15b428d2c03869e8098c",
+    "scripts/smoke.mjs": "45535071522b5b577dbd1540c46f50c381542f4b33f16110ed4bf96db71ccbc5",
+    "scripts/test-security.mjs": "ee72e8a623443cc2c2c25f07289d8384447948d7f8e51f97ee699219635fc51d"
+  },
+  "privacy": "Fresh disposable profiles; synthetic credentials only; all credential inputs empty in captured images; no image retouching.",
+  "beforeImageSha256": "43f6bb804af9baeca2e7a3d979e659714b4209c7817c4e3626b6e544fab8c6f9"
+}

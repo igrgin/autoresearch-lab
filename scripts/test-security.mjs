@@ -313,3 +313,12 @@ test('permitted agent task/code/acceptance records retain useful content with sy
   assert.ok(JSON.stringify(context).includes(REDACTED));
   await assertAbsent(f,ids);
 });
+
+test('replacement metadata persists its safe version relationship without duplicating current credentials', async () => {
+  const f=await fixture(); const replacement=await f.credentials.replace(f.entry.id,'synthetic-version-replacement');
+  const second=new CredentialService(f.vaultFiles,f.crypto,new Sanitizer()); await second.initialize();
+  const items=second.list(); const old=items.find(entry=>entry.id===f.entry.id);
+  assert.equal(old.supersededById,replacement.id); assert.equal(old.status,'revoked'); assert.ok(Number.isFinite(Date.parse(old.replacedAt)));
+  assert.equal(items.filter(entry=>!entry.supersededById).length,1);
+  const s=scope(); await assert.rejects(second.bindAdapter({component:'runpod_adapter',purpose:'inspect',accountId:old.accountId,credentialId:old.id,scope:s},async()=>true).execute(s),{code:'authentication_required'});
+});

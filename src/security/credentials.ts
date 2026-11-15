@@ -19,7 +19,7 @@ export interface Encryption {
   encrypt(value: string): Promise<Buffer>;
   decrypt(value: Buffer): Promise<string>;
 }
-export interface CredentialMetadata { id: string; category: Category; accountId: string; label: string; status: 'active' | 'revoked' }
+export interface CredentialMetadata { id: string; category: Category; accountId: string; label: string; status: 'active' | 'revoked'; supersededById?: string; replacedAt?: string }
 interface Entry extends CredentialMetadata { value: string }
 interface Vault { version: 1; entries: Entry[] }
 export interface AdapterBinding { component: Component; accountId: string; credentialId: string; purpose: Purpose; scope: Scope }
@@ -50,6 +50,10 @@ export class CredentialService {
           assertId(entry.id); assertId(entry.accountId);
           if (ids.has(entry.id) || !Object.values(access).some(a => a.category === entry.category) ||
               !['active', 'revoked'].includes(entry.status) || typeof entry.label !== 'string' || typeof entry.value !== 'string') throw new Error();
+          if (entry.supersededById) {
+            assertId(entry.supersededById);
+            if (entry.status !== 'revoked' || !entry.replacedAt || !/^\d{4}-\d{2}-\d{2}T[0-9:.]+Z$/.test(entry.replacedAt)) throw new Error();
+          }
           ids.add(entry.id); this.matcher.register(entry.id, entry.value);
           if (entry.status === 'revoked') this.#revoked.add(entry.id);
         }
@@ -97,15 +101,16 @@ export class CredentialService {
       this.requireReady();
       const previous = this.#vault.entries.find(entry => entry.id === id);
       if (!previous) throw new SecurityError('permission_denied');
-      const replacement: Entry = { ...previous, id: newId(), value, status: 'active' };
+      const replacement: Entry = { id: newId(), category: previous.category, accountId: previous.accountId, label: previous.label, value, status: 'active' };
       try { this.matcher.register(replacement.id, value); } catch { throw new SecurityError('invalid_input'); }
-      await this.save({ version: 1, entries: [...this.#vault.entries.map(entry => entry.id === id ? { ...entry, status: 'revoked' as const } : entry), replacement] });
+      await this.save({ version: 1, entries: [...this.#vault.entries.map(entry => entry.id === id ? { ...entry, status: 'revoked' as const, supersededById: replacement.id, replacedAt: new Date().toISOString() } : entry), replacement] });
       return this.metadata(replacement);
     });
   }
   private metadata(entry: Entry): CredentialMetadata {
     return { id: entry.id, category: entry.category, accountId: entry.accountId,
-      label: this.matcher.text(entry.label).value, status: this.#revoked.has(entry.id) ? 'revoked' : entry.status };
+      label: this.matcher.text(entry.label).value, status: this.#revoked.has(entry.id) ? 'revoked' : entry.status,
+      ...(entry.supersededById ? { supersededById: entry.supersededById, replacedAt: entry.replacedAt } : {}) };
   }
   list(): CredentialMetadata[] { this.requireReady(); return this.#vault.entries.map(entry => this.metadata(entry)); }
   async revoke(id: string): Promise<void> {
