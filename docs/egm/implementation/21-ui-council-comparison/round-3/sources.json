@@ -1,0 +1,5 @@
+{
+  "src/renderer/credential-entry.tsx": "be5934ae8caffdf25263f199f2d5d317576ca4cc421ba9aba168ed11144b14c7",
+  "src/renderer/credential-entry.css": "fb8456e270c9c292d8b4f024391b25f991685279c33aae01c19ba40bc0bf4a77",
+  "scripts/smoke.mjs": "f6635a85a89c2ebd3885babb1bcc38650766a99336362421635a57bf8a9872b4"
+}

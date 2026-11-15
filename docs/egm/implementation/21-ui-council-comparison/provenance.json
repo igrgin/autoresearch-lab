@@ -1,0 +1,27 @@
+{
+  "createdAt": "2026-11-15T21:14:13.757649+00:00",
+  "priorHead": "25a6cf8e54183a293c4dec47352c9c1aae3f5917",
+  "sourceFiles": {
+    "src/renderer/credential-entry.tsx": "a63990f3e873685de577d9a2c8ce026baf0bdca9ff8d8d74ef0e6be2b130e831",
+    "src/renderer/credential-entry.css": "463477ac44676b89ec0309f90211b5689573f953b7e5d0f2b3e68e220063f025",
+    "src/main.ts": "14c8147516254614c341b0fb8e1106ee81e2b3ab968d26e6608b31c2d9d3ad91",
+    "src/credential-preload.ts": "5fb20dc42f19ed12262d9af79fa4dcc0e357f291acd29ebe0d915fadd998a6bd",
+    "scripts/smoke.mjs": "5654bccdce7e7954cb74379a9011601c601b0bf1082a47dc216e4394cabe62e0",
+    "src/security/entry-contract.ts": "e2e2fe2dee6ad46e380ed8cbcca97e66a9071d3d3de79b4713cb545e47676d2b",
+    "src/security/credentials.ts": "c4ee92f194ed5795fc3d854ce8450a5240c1dbc01acb15b428d2c03869e8098c"
+  },
+  "packagedAppAsarSha256": "e1291cc2aa519cb19a18deb45079c294ad1018f2f53c0dae91e680008c1234d8",
+  "captureConditions": {
+    "profiles": "Disposable profiles, removed after each capture; synthetic credentials and labels only; password inputs empty at capture.",
+    "native": "Direct Playwright screenshots of packaged Electron UI, no pixel editing or compositing.",
+    "viewport": "Main windows 960x800; short-window history 740x650; some full-page captures include overflow. Exact dimensions in per-round metadata.",
+    "faults": "Corrupt only disposable vault, restore before retry; browser failures injected by stubbing shell.openExternal.",
+    "clipboard": "From round 7, copy-address receipts exercise real sender-validated IPC with clipboard.writeText stubbed. No system clipboard was read or changed.",
+    "deletion": "All new comparison-series PNGs deleted after round 10 by explicit user instruction; none archived."
+  },
+  "validation": {
+    "build": "Passed npm run build: TypeScript, lint, 47 security tests, webpack/native packaging and arm64 ZIP.",
+    "smoke": "Passed expanded npm run smoke: cross-integration selection, validation, revoke/cancel/Escape/focus, replacement/history, storage failure/retry, isolated browser failure/retry, simultaneous errors, fixed URL copy and unauthorized copy denial, 740x650 containment and visible Close, stable address width after copy feedback.",
+    "limits": "Public browser/clipboard side effects stubbed. No live provider/SDK/SSH/model/GPU adapter, signed-update/clean-Mac Keychain or remote/native-history remediation qualification."
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "sourceTreeDiff": "working issue branch; see round record",
+  "viewport": [
+    960,
+    800
+  ],
+  "images": [
+    {
+      "file": "01-add.png",
+      "sha256": "9cdb405f110c59bebb0555120195f2d581c4dc5b647560f1703e4191ce662700",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "07-required-field.png",
+      "sha256": "1fcd3b9ccc93ff11ce58c4d89afa3af4a4ef25b2a2593d580adeefe0fecb3927",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "06-saved.png",
+      "sha256": "d2136b6c4b936a9a8495c3d0e8dc8abadd5d80e418a42bd36b92b7f6c8df79ea",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "02-manage.png",
+      "sha256": "29dc12d9c6080a0bcc990213ad7523358c1342e187532eb2fe77d4c2a818633a",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "03-confirm-revoke.png",
+      "sha256": "146976b5fa7e0e00f4046137584e02d0ebdb35ba6dc8814bca65a1a7434df2d4",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "04-revoked.png",
+      "sha256": "e86abf584b45c26a4049bc3808b418c3ac79b212c3bd1391ba875c034a85f912",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "05-storage-error.png",
+      "sha256": "7e04b0cd496c4db5479aa495ef446ca812e7773a9d07c3db423e988230139f32",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "08-replacement-saved.png",
+      "sha256": "3a9836b0d1456c49728f45a5549425ae2fee9a12834dd73b775e131117f5f524",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "09-expanded-history.png",
+      "sha256": "6b59b7af9ac84a4a2576b3e83055908e0dcb00a625dc9b5b0711ced97ec5ccd2",
+      "width": 960,
+      "height": 800
+    }
+  ],
+  "credentials": "Synthetic value used between captures only; all password inputs empty in PNGs.",
+  "fault": "05 corrupts disposable synthetic vault before Refresh."
+}

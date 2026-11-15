@@ -1,0 +1,46 @@
+Review the CURRENT UI using the previous and current screenshots below. This is read-only and screenshot-only: view only the listed images. Do not inspect source code, repository instructions, other files, discussions or prior reviews; do not browse, run the app, or start agents.
+
+Application: Autoresearch Lab is a personal desktop app for autonomous ML research.
+Task: This change provides credential settings to save, select, replace and revoke this app’s integration access while keeping stored credential values hidden.
+
+Already changed: Separate entry and saved credentials, masked entry, validation, confirmed app revocation, recovery, and bounded history. Current changes name the previously saved value in the retention consequence, remove redundant entry guidance, tighten management spacing, restore explicit copy-and-open instructions, separate removal-timeframe limits, and add a scroll-edge shadow only when more history content remains below.
+
+Grade the CURRENT design independently on two requirements, 1–10 (decimals allowed):
+- UI functionality: clarity of visible controls, tasks, flow, feedback, privacy cues and failure/recovery states. Judge only what the screenshots demonstrate.
+- UI appearance: hierarchy, layout, typography, spacing, contrast, consistency and visual polish.
+
+Scale: 1 = unusable or incoherent; 10 = exemplary, clear and polished throughout.
+
+Return both numerical grades and concise reasons, plus specific visible issues and concrete improvements. Distinguish visible evidence from behavior the images cannot establish. The previous screenshots provide comparison; grade the current design on its own merits.
+
+PREVIOUS screenshots:
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/01-add.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/07-required-field.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/06-saved.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/02-manage.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/14-retention-before-replacement.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/03-confirm-revoke.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/04-revoked.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/05-storage-error.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/12-storage-and-browser-error.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/08-replacement-saved.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/09-expanded-history.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/10-history-link-error.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/13-copy-address-confirmation.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-8/11-short-window-history.png
+
+CURRENT screenshots:
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/01-add.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/07-required-field.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/06-saved.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/02-manage.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/14-retention-before-replacement.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/03-confirm-revoke.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/04-revoked.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/05-storage-error.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/12-storage-and-browser-error.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/08-replacement-saved.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/09-expanded-history.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/10-history-link-error.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/13-copy-address-confirmation.png
+/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-810e39ef/docs/egm/implementation/21-ui-council-comparison/round-9/11-short-window-history.png

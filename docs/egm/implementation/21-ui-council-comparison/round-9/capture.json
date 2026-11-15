@@ -1,0 +1,95 @@
+{
+  "sourceTreeDiff": "working issue branch; see round record",
+  "viewport": [
+    960,
+    800
+  ],
+  "images": [
+    {
+      "file": "01-add.png",
+      "sha256": "391e6f25acba0399cb100b0b9574fe39257d6360009ff17e7e3c66f58ea1586d",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "07-required-field.png",
+      "sha256": "ebe6ae05f71f73c62dc47ab9d126fdbf9dc983821e3b580d09a9e254b71feec4",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "06-saved.png",
+      "sha256": "0631a4a3104f7f6927f323964017f44d65e46259f9ec7eb45cbfad00ab114a64",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "02-manage.png",
+      "sha256": "ebf20931ea0dafce4a597bc81680b003da084cd209bb9c4a1d7ea0d4480c5b22",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "14-retention-before-replacement.png",
+      "sha256": "4e3dc07c942d3110d7a6fba349f30621f7bdb040ad100e4f6644fd4b02a31ce7",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "03-confirm-revoke.png",
+      "sha256": "306eb7a6f853c754146f9fa8f655a69826ef36a00ba565017e31af4919c2a248",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "04-revoked.png",
+      "sha256": "fb3165b5524f9770ea962be203afa343b44152f53939ba98cef4e740c907a744",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "05-storage-error.png",
+      "sha256": "8b2b1378d8add882141bf7fdefab6d43c1abdc3620cf5e1af715e581576f5de0",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "12-storage-and-browser-error.png",
+      "sha256": "3063f1651ca8a070189ac6946c10458484fdfe68b3f4ff0f3146cd4c23f531ab",
+      "width": 945,
+      "height": 897
+    },
+    {
+      "file": "08-replacement-saved.png",
+      "sha256": "9221fe3cf422c67ead189b8bb594299947d844ef2e0ad4397268117541296a7b",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "09-expanded-history.png",
+      "sha256": "acedb0d22ed23dd1d5a651ea7b516d6cdc0a61270300d250d76869cbfbffdc52",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "10-history-link-error.png",
+      "sha256": "6493511f16073198bdc104251ad72fa06d665de9e607937089177a69e1e6f034",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "13-copy-address-confirmation.png",
+      "sha256": "55736102ba4894e040b7dbb90ec065e6c535cdc05636d0d0eca8732ba31c7060",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "11-short-window-history.png",
+      "sha256": "eb4e998c72be415e90f924f61ed1781c5b472f242b98766c5f0811e31f9b71ae",
+      "width": 740,
+      "height": 650
+    }
+  ],
+  "credentials": "Synthetic value used between captures only; all password inputs empty in PNGs.",
+  "fault": "05 corrupts disposable synthetic vault before Refresh."
+}

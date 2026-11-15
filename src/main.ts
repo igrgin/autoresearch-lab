@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import path from 'node:path';
 import type { ShellStatus } from './shell';
 import { createSecurityHost } from './security/electron-vault';
@@ -117,6 +117,15 @@ if (!app.requestSingleInstanceLock()) {
       if (!trustedEntry(event)) return [];
       try { await security.initialize(); return security.credentials.list().filter(entry => ENTRY_CATEGORIES.includes(entry.category as typeof ENTRY_CATEGORIES[number])); } catch { throw new Error('Unlock credential storage and try again.'); }
     });
+    ipcMain.handle('credentials:copy-help', (event, category: unknown) => {
+      if (!trustedEntry(event) || typeof category !== 'string' || !ENTRY_CATEGORIES.includes(category as typeof ENTRY_CATEGORIES[number])) {
+        return { ok: false, message: 'This credential request is not authorized.' };
+      }
+      const url = CREDENTIAL_HELP[category as typeof ENTRY_CATEGORIES[number]].url;
+      if (!url) return { ok: false, message: 'No credential page address is available.' };
+      try { clipboard.writeText(url); return { ok: true, message: 'Address copied.' }; }
+      catch { return { ok: false, message: 'Could not copy the address. Select and copy it manually.' }; }
+    });
     ipcMain.handle('credentials:replace', async (event, input: { id?: unknown; value?: unknown }) => {
       if (!trustedEntry(event)) return { ok: false, message: 'This credential request is not authorized.' };
       try {
@@ -125,7 +134,7 @@ if (!app.requestSingleInstanceLock()) {
         await security.initialize();
         if (!userCredential(input.id)) throw new Error();
         await security.credentials.replace(input.id, input.value);
-        return { ok: true, message: 'Replacement saved. The new value is available to this app. Revoke the replaced credential with its issuing service separately.' };
+        return { ok: true, message: 'Replacement saved. This app can use the new value.' };
       } catch { return { ok: false, message: 'Replacement failed. Unlock credential storage and try again.' }; }
     });
     ipcMain.handle('credentials:revoke', async (event, id: unknown) => {

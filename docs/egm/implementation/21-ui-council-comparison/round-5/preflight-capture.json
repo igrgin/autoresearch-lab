@@ -1,0 +1,71 @@
+{
+  "sourceTreeDiff": "working issue branch; see round record",
+  "viewport": [
+    960,
+    800
+  ],
+  "images": [
+    {
+      "file": "01-add.png",
+      "sha256": "5bc298718f3639c7e3565a42aaf2feb70df3c59f27b3ac096144f606424ea572",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "07-required-field.png",
+      "sha256": "5587e41a2e9b423fa4603783a414deca4aede53ee0813334e91236da712d48d4",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "06-saved.png",
+      "sha256": "0d0245c868303da749a0d393e1348a0234353d0fd458f22768fd640ce7ffecab",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "02-manage.png",
+      "sha256": "a358ccfba3c4d5bfdac0533483f5c1cf20d69eba0dc6c4262cf17ca33a59ec2f",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "03-confirm-revoke.png",
+      "sha256": "671bc3a301675d07c6e90f5ad68b0399e8c3b817256cec2df9569ce487e5974d",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "04-revoked.png",
+      "sha256": "7aaabb516dc6b15095f6841b99620607346930e7d62497182394e119cb6946e9",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "05-storage-error.png",
+      "sha256": "dfc0b858cfffefc1c4b3d33b06271fd35243de7dc0003abfd4f1a32eb76425e3",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "08-replacement-saved.png",
+      "sha256": "050828a6ac30c7c306a16524f278113d0af06fc7b0ca1fda57984147f77cfb0e",
+      "width": 960,
+      "height": 800
+    },
+    {
+      "file": "09-expanded-history.png",
+      "sha256": "e6692da955ece4a7a091e3162a6a6e93bd18887e5020344f284834179ec82a95",
+      "width": 945,
+      "height": 806
+    },
+    {
+      "file": "10-history-link-error.png",
+      "sha256": "c28da5ae525f305fc7fe3f9c3e12e87f20bd7fe56bcd442b500609a75aba6c18",
+      "width": 960,
+      "height": 800
+    }
+  ],
+  "credentials": "Synthetic value used between captures only; all password inputs empty in PNGs.",
+  "fault": "05 corrupts disposable synthetic vault before Refresh."
+}
