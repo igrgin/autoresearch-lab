@@ -133,6 +133,16 @@ if (!app.requestSingleInstanceLock()) {
           message: 'The workspace path could not be copied. Select and copy the displayed path instead.', effect: 'none', retry: 'same_key' } };
       }
     });
+    ipcMain.handle('projects:copy-location', async (event, projectId: string) => {
+      admit(event);
+      const operationId = randomUUID();
+      const reply = await requestProjects({ kind: 'open', operationId, projectId });
+      if (!reply.ok) return reply;
+      if (!('projectId' in reply.value)) throw new Error('Invalid project response.');
+      try { clipboard.writeText(reply.value.location); return { ok: true, value: null }; }
+      catch { return { ok: false, error: { code: 'unavailable', origin: 'project_catalog', operationId,
+        message: 'The project path could not be copied. Select and copy its full path instead.', effect: 'none', retry: 'same_key' } }; }
+    });
     ipcMain.handle('projects:reveal', async (event, projectId: string) => {
       admit(event);
       const operationId = randomUUID();

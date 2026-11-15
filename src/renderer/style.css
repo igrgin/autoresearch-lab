@@ -119,8 +119,8 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 .panel-description { font-size: 14px; line-height: 1.65; color: #56635c; }
 .create-panel .panel-description { margin-bottom: 22px; }
 .destination { margin-top: 20px; }
-.destination > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.destination > div > span { color: #5f6e64; font-size: 13px; }
+.destination > .destination-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.destination > .destination-header > span { color: #5f6e64; font-size: 13px; }
 .destination p { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: #54645a; }
 .destination .text-button { font-size: 12px; padding: 2px; }
 .folder-customization { margin-bottom: 18px; }
@@ -144,3 +144,16 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 .future-navigation .nav-label { font-size: 11px; margin: 18px 12px 9px; color: #65776c; }
 .future-navigation button { width: 100%; justify-content: flex-start; gap: 12px; color: #617467; padding: 12px 14px; font-weight: 450; }
 .future-navigation button[aria-current] { background: #eef3ef; }
+
+.folder-location { margin: 8px 0 16px; min-width: 0; }
+.folder-basename { display: block; font-size: 14px; font-weight: 550; color: #294b37; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.folder-location > p { margin: 7px 0 10px; color: #56695c; font-size: 13px; line-height: 1.6; }
+.folder-location > p code { font-size: 12px; }
+.path-actions { display: flex; gap: 8px; }
+.path-actions .secondary { padding: 5px 9px; font-size: 12px; min-height: 32px; }
+.folder-location > p.absolute-path { padding: 10px; margin-top: 10px; border: 1px solid #dce5df; border-radius: 6px; background: #f7faf8; overflow-x: auto; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; user-select: text; }
+.destination .folder-location { margin-bottom: 0; }
+.destination > .destination-header .text-button, .workspace-location .text-button { padding: 4px 8px; border: 1px solid #d7e2da; border-radius: 5px; background: #fff; font-size: 12px; min-height: 30px; }
+.workspace-path-toggle > span { padding: 3px 6px; border: 1px solid #d7e2da; border-radius: 5px; background: #fff; }
+.viewing-status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 550; color: #36724f; white-space: nowrap; }
+.future-navigation .soon-label { margin-left: auto; font-size: 11px; background: #f6f9f7; color: #607568; }

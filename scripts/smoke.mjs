@@ -62,7 +62,7 @@ try {
   // A conflict must preserve the first project's source and expose an error.
   await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
-  await page.getByRole('button', { name: 'Customize', exact: true }).click();
+  await page.getByRole('button', { name: 'Customize folder', exact: true }).click();
   await page.getByLabel('Folder name', { exact: true }).fill('../invalid');
   assert.equal(await page.getByRole('button', { name: 'Create project', exact: true }).isDisabled(), true);
   assert.equal(await page.getByRole('button', { name: 'Done', exact: true }).isDisabled(), true);
@@ -127,6 +127,12 @@ try {
   await restarted.getByRole('button', { name: 'Copy path', exact: true }).click();
   await restarted.getByRole('button', { name: 'Copied', exact: true }).waitFor();
   assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location)]);
+  await restarted.getByRole('button', { name: 'Copy project path', exact: true }).click();
+  await restarted.getByText('Project path copied.', { exact: true }).waitFor({ state: 'attached' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location]);
+  const invalidCopy = await restarted.evaluate(() => window.lab.copyProjectLocation('not-a-project'));
+  assert.equal(invalidCopy.ok, false);
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location]);
   const invalidReveal = await restarted.evaluate(() => window.lab.revealProject('not-a-project'));
   assert.equal(invalidReveal.ok, false);
   assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location]);
@@ -147,7 +153,7 @@ try {
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
+  const report = { persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {

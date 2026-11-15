@@ -50,13 +50,13 @@ try {
   page = await launch();
   await page.getByRole('heading', { name: 'Image research demo', exact: true }).waitFor();
   await page.getByLabel('Project name', { exact: true }).fill('Tabular research');
-  await page.getByText(/\/tabular-research$/, { exact: false }).waitFor();
+  await page.getByText('tabular-research', { exact: true }).waitFor();
   await capture(page, 'create-list.png');
   await page.getByRole('article', { name: 'Image research demo', exact: true }).getByRole('button', { name: 'Open', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Open project', exact: true });
   await panel.getByRole('heading', { name: 'Image research demo', exact: true }).waitFor();
   await capture(page, 'open.png');
-  await panel.getByText('Project details', { exact: true }).click();
+  await panel.getByText('Project ID & Git path', { exact: true }).click();
   await panel.getByText(first.projectId, { exact: true }).waitFor();
   assert.deepEqual(await page.evaluate((id) => window.lab.openProject(id), first.projectId), { ok: true, value: first });
   await capture(page, 'open-details.png');
