@@ -23,12 +23,15 @@ function Icon({ name, size = 20 }: { name: 'folder' | 'plus' | 'search' | 'refre
 const folderSuggestion = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 const validFolder = (name: string) => /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(name);
 
-function FolderLocation({ location, copied, onCopy, copyLabel = 'Copy project path' }: { location: string; copied?: boolean; onCopy?: () => void; copyLabel?: string }) {
+function PathText({ value }: { value: string }) {
+  return <>{value.split('/').map((part, index, all) => <React.Fragment key={index}><span className="path-segment">{part}{index < all.length - 1 ? '/' : ''}</span><wbr /></React.Fragment>)}</>;
+}
+function FolderLocation({ location, copied, onCopy, copyLabel = 'Copy project path', showParentFull = false }: { location: string; copied?: boolean; onCopy?: () => void; copyLabel?: string; showParentFull?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const segments = location.split('/');
   const folder = segments.pop() || 'your-project';
-  const parent = segments.filter(Boolean).slice(-2).join('/');
-  return <div className="folder-location"><code className="folder-basename" title={folder}>{folder}</code><p>Inside <code>…/{parent}</code></p>
+  const parent = showParentFull ? segments.join('/') : `…/${segments.filter(Boolean).slice(-2).join('/')}`;
+  return <div className="folder-location"><dl className="folder-parts"><dt>Folder</dt><dd className="folder-basename" title={folder}>{folder}</dd><dt>Parent folder</dt><dd className="folder-parent"><PathText value={parent} /></dd></dl>
     <div className="path-actions"><button type="button" className="secondary" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? 'Hide full path' : 'Show full path'}</button>{onCopy && <button type="button" className="secondary" aria-label={copyLabel} onClick={onCopy}>{copied ? 'Copied' : 'Copy path'}</button>}</div>
     {expanded && <p className="absolute-path" tabIndex={0}>{location}</p>}
   </div>;
@@ -47,11 +50,10 @@ function readRecency(): Record<string, number> {
   } catch { return {}; }
 }
 function openedLabel(time?: number) {
-  if (!time) return 'No recent activity recorded';
-  const elapsed = Date.now() - time;
-  if (elapsed < 60_000) return 'Last opened just now';
-  if (elapsed < 3_600_000) return `Last opened ${Math.floor(elapsed / 60_000)} min ago`;
-  return `Last opened ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(time)}`;
+  if (!time) return 'No recent activity';
+  const today = new Date(time).toDateString() === new Date().toDateString();
+  const display = new Intl.DateTimeFormat(undefined, today ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric' }).format(time);
+  return `Last opened ${today ? 'today, ' : ''}${display}`;
 }
 
 function Projects() {
@@ -66,6 +68,7 @@ function Projects() {
   const [creating, setCreating] = useState(true);
   const [copied, setCopied] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [expandedRow, setExpandedRow] = useState<string>();
   const [projectPathCopied, setProjectPathCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -124,39 +127,39 @@ function Projects() {
 
   return <>
     <header className="page-header"><div><p className="eyebrow">Workspace / Projects</p><h1>Your research projects</h1><p>Create a project for your next idea, or reopen saved work.</p></div>
-      {showCreate ? opened && <button className="secondary" onClick={() => { setCreating(false); setError(''); }} disabled={busy}>Cancel creation</button> : <button className="primary" onClick={newProject} disabled={busy}><Icon name="plus" size={18} />New project</button>}
     </header>
     <div className="sr-only" aria-live="polite">{message}</div>
     {error && <div className="error" role="alert"><strong>Unable to complete that action</strong><p>{error}</p><button onClick={() => setError('')}>Dismiss</button></div>}
     <div className="project-layout" aria-busy={busy}>
       <section aria-label="Saved projects" className="saved-projects">
-        <div className="section-heading"><h2>Saved projects <span className="count">{entries.length}</span></h2><button className="icon-button" aria-label="Refresh projects" title="Refresh projects" disabled={busy || refreshing} onClick={async () => {
+        <div className="section-heading"><h2>Saved projects <span className="count">{entries.length}</span></h2><div className="list-actions">{showCreate ? opened && <button className="secondary" onClick={() => { setCreating(false); setError(''); }} disabled={busy}>Cancel creation</button> : <button className="primary" onClick={newProject} disabled={busy}><Icon name="plus" size={16} />New project</button>}<button className="icon-button" aria-label="Refresh projects" title="Refresh projects" disabled={busy || refreshing} onClick={async () => {
           setRefreshing(true); setError('');
           try { await refresh(); setMessage('Project list refreshed.'); } catch (reason) { setError((reason as Error).message); } finally { setRefreshing(false); }
-        }}><Icon name="refresh" size={16} />{refreshing ? 'Refreshing…' : 'Refresh'}</button></div>
+        }}><Icon name="refresh" size={16} />{refreshing ? 'Refreshing…' : 'Refresh'}</button></div></div>
         <div className="list-tools"><label className="search-field"><span className="sr-only">Search projects</span><Icon name="search" size={18} /><input type="search" placeholder="Search projects" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
           <label className="sort-field"><span className="sr-only">Sort projects</span><select aria-label="Sort projects" value={sort} onChange={(event) => setSort(event.target.value)}><option value="recent">Recently opened</option><option value="name">Name A–Z</option><option value="newest">Newest first</option></select></label></div>
         {!workspace ? <div className="list-empty"><p>Loading your projects…</p></div> : !entries.length ? <div className="list-empty"><span className="empty-icon"><Icon name="folder" size={28} /></span><h3>No projects yet</h3><p>Give your research a home.<br />Create a project using the form beside this list.</p></div> : !filtered.length ? <div className="list-empty"><h3>No matching projects</h3><p>Try another project name or folder.</p><button className="secondary" onClick={() => setQuery('')}>Clear search</button></div> :
           <div className="project-list">{filtered.map(({ project, availability, problem }) => {
             const current = opened?.projectId === project.projectId;
             return <article className={`project-row${current ? ' is-current' : ''}`} key={project.projectId} aria-label={project.name}>
-              <span className="project-symbol"><Icon name="folder" size={22} /></span><div className="project-summary"><div className="project-title"><h3>{project.name}</h3></div><p className="recency" title={project.location}><span className="folder-identifier">…/projects/{project.location.split('/').pop()}</span><span aria-hidden="true"> · </span><span>{openedLabel(recency[project.projectId])}</span></p>
+              <span className="project-symbol"><Icon name="folder" size={22} /></span><div className="project-summary"><div className="project-title"><h3>{project.name}</h3></div><button className="row-location" title={project.location} aria-label={`Show folder path for ${project.name}`} aria-expanded={expandedRow === project.projectId} onClick={() => setExpandedRow(expandedRow === project.projectId ? undefined : project.projectId)}><span>{project.location.split('/').pop()}</span><span aria-hidden="true">⌄</span></button>
                 {availability !== 'ready' && <p className="project-problem">{availability === 'incomplete' ? 'Creation incomplete' : 'Project unavailable'}</p>}
                 {problem && <p className="project-recovery">{problem}</p>}</div>
-              {current && !showCreate ? <span className="viewing-status"><Icon name="check" size={16} />Viewing</span> : <button className="open-button" disabled={busy} onClick={() => void act(() => availability === 'incomplete' ? window.lab.recoverProject(project.projectId) : window.lab.openProject(project.projectId))}>{availability === 'incomplete' ? 'Retry creation' : <>Open<Icon name="arrow" size={16} /></>}</button>}
+              <div className="row-action">{current && !showCreate ? <span className="viewing-status"><Icon name="check" size={16} />Current</span> : <button className="open-button" disabled={busy} onClick={() => void act(() => availability === 'incomplete' ? window.lab.recoverProject(project.projectId) : window.lab.openProject(project.projectId))}>{availability === 'incomplete' ? 'Retry creation' : <>Open<Icon name="arrow" size={16} /></>}</button>}<p className="row-recency">{openedLabel(recency[project.projectId])}</p></div>
+              {expandedRow === project.projectId && <p className="row-full-path" tabIndex={0}>{project.location}</p>}
             </article>;
           })}</div>}
-        <div className="workspace-location"><div className="workspace-location-heading"><Icon name="folder" size={16} /><strong>Projects folder</strong></div>{workspace && <FolderLocation location={workspace.projectsFolder} copied={copied} copyLabel="Copy workspace path" onCopy={async () => {
+        <details className="workspace-location"><summary><Icon name="folder" size={16} /><strong>Projects folder and location</strong></summary>{workspace && <FolderLocation location={workspace.projectsFolder} copied={copied} copyLabel="Copy workspace path" onCopy={async () => {
           try { const reply = await window.lab.copyWorkspaceLocation(); if (!reply.ok) throw new Error(reply.error.message); setCopied(true); setMessage('Workspace location copied.'); }
           catch { setError('The workspace path could not be copied. Reveal the full path and copy its text instead.'); }
-        }} />}</div>
+        }} />}</details>
       </section>
       {!showCreate && opened ? <section className="detail-panel" aria-label="Open project">
         <div className="panel-eyebrow"><span className="status-dot" />Current project</div>
         <span className="large-project-symbol"><Icon name="folder" size={30} /></span><h2>{opened.name}</h2>
         <p className="panel-description">Browse or edit this project’s files in Finder. Research setup and runs are coming later.</p>
         <button className="primary show-files" disabled={busy} onClick={() => void showFiles()}><Icon name="folder" size={18} />Show files in Finder</button>
-        <div className="project-facts"><span>Project folder</span><FolderLocation location={opened.location} copied={projectPathCopied} onCopy={async () => {
+        <div className="project-facts"><FolderLocation location={opened.location} copied={projectPathCopied} onCopy={async () => {
           try { const reply = await window.lab.copyProjectLocation(opened.projectId); if (!reply.ok) throw new Error(reply.error.message); setProjectPathCopied(true); setMessage('Project path copied.'); }
           catch { setError('The project path could not be copied. Reveal its full path and copy the text instead.'); }
         }} /><span>Repository</span><p><span className="status-dot" />Local Git repository connected</p></div>
@@ -168,7 +171,7 @@ function Projects() {
             setName(event.target.value); setRequestId(crypto.randomUUID());
             if (!folderEdited) setFolderName(folderSuggestion(event.target.value));
           }} /><span className="sr-only" id="name-hint">A display name to recognize your project.</span>
-          <div className="destination"><div className="destination-header"><span>Save location</span><button type="button" className="text-button" aria-expanded={customizeFolder} disabled={busy || (customizeFolder && !validFolder(folderName))} onClick={() => setCustomizeFolder(!customizeFolder)}>{customizeFolder ? 'Done' : 'Customize folder'}</button></div><FolderLocation location={`${workspace?.projectsFolder || '/workspace/projects'}/${folderName || 'your-project'}`} /></div>
+          <div className="destination"><div className="destination-header"><span>Save location</span><button type="button" className="text-button" aria-expanded={customizeFolder} disabled={busy || (customizeFolder && !validFolder(folderName))} onClick={() => setCustomizeFolder(!customizeFolder)}>{customizeFolder ? 'Done' : 'Customize folder'}</button></div><FolderLocation location={`${workspace?.projectsFolder || '/workspace/projects'}/${folderName || 'your-project'}`} showParentFull /></div>
           {!customizeFolder && name.trim() && !folderName && <p className="field-hint invalid-hint">Choose Customize to set a folder name for this project.</p>}
           {customizeFolder && <div className="folder-customization"><div className="field-label"><label htmlFor="folder-name">Folder name</label><span>{folderEdited ? 'Custom' : 'Suggested'}</span></div><input id="folder-name" required maxLength={80} pattern="[a-zA-Z0-9]([a-zA-Z0-9_]|-)*" value={folderName} disabled={busy} aria-describedby="folder-hint" aria-invalid={!!folderName && !validFolder(folderName)} onChange={(event) => {
             setFolderEdited(true); setFolderName(event.target.value); setRequestId(crypto.randomUUID());

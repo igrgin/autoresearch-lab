@@ -172,3 +172,29 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 .folder-location > p.absolute-path { font-size: 13px; }
 .destination { border: 0; border-top: 1px solid #e5ebe7; border-bottom: 1px solid #e5ebe7; border-radius: 0; background: transparent; padding: 15px 0; }
 .destination > .destination-header .text-button { min-height: 34px; font-size: 13px; }
+
+.list-actions { display: flex; gap: 8px; align-items: center; }
+.list-actions > .primary, .list-actions > .secondary { font-size: 12px; padding: 6px 9px; }
+.project-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; }
+.row-action { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
+.row-recency { margin: 0; font-size: 11px; color: #526159; white-space: nowrap; }
+.row-location { display: flex; justify-content: flex-start; max-width: 100%; padding: 5px 0 0; gap: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #52675a; font-weight: 400; line-height: 1.5; }
+.row-location > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.row-location:hover { color: #245947; background: transparent; text-decoration: underline; }
+.row-full-path { grid-column: 1 / -1; margin: 6px 0 0; padding: 10px; background: #f3f7f4; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; overflow-x: auto; user-select: text; }
+.folder-parts { margin: 0 0 14px; }
+.folder-parts dt { margin: 10px 0 5px; font-size: 12px; font-weight: 450; color: #68776d; }
+.folder-parts dd { margin: 0; }
+.folder-parts .folder-basename { font-size: 14px; }
+.folder-parts .folder-parent { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.8; color: #43584a; overflow-x: auto; overflow-wrap: normal; }
+.path-segment { display: inline-block; white-space: nowrap; }
+.workspace-location > summary { display: flex; align-items: center; gap: 7px; padding: 4px 0; font-size: 13px; color: #5b7162; }
+.workspace-location > summary::after { content: '⌄'; margin-left: 3px; }
+.project-facts { margin-top: 18px; padding-top: 15px; }
+.technical-details summary { padding: 10px 0; }
+@media (max-width: 1080px) { .project-row { grid-template-columns: minmax(0, 1fr) auto; } .row-recency { font-size: 10px; } .list-actions > .primary { font-size: 11px; } }
+
+.row-recency { font-size: 13px; color: #4b5b50; }
+.viewing-status { min-height: 36px; align-items: center; }
+.project-row { min-height: 106px; }
+.folder-parts .folder-parent { font-size: 13px; }

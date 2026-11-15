@@ -1,0 +1,19 @@
+{
+  "issue": 19,
+  "pr": "https://github.com/igrgin/autoresearch-lab/pull/105",
+  "branch": "19-create-reopen-projects",
+  "publishedHead": "0096e6aa0d7ae2a2576acb166109140e4f0960f1",
+  "currentRound": 8,
+  "round8Status": "UI implementation and capture preflight; not delegated yet",
+  "models": [
+    "gpt-6.1-sol",
+    "gpt-6-astra",
+    "gpt-6.1-terra"
+  ],
+  "reasoningEffort": "high",
+  "reviewerContext": "Fresh task, fixed brief/rubric and two current UI images; user requested a short factual cumulative change list beginning with round 5. No prior scores, reports, tests, code or extra context.",
+  "lastCompletedRound": 7,
+  "conditionMet": false,
+  "beforeImage": "docs/egm/implementation/19-ui-evidence/before.png",
+  "remaining": "Finish grading/improvement loop. Update active build docs. Preserve all raw reports/images. Publish latest images and council table in PR body. Push then immediately link PR. Verify image URLs serve exact PNG bytes. No merge, issue closure or PR watch."
+}
