@@ -1,0 +1,51 @@
+{
+  "name": "autoresearch-lab",
+  "productName": "Autoresearch Lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal desktop workspace for autonomous PyTorch research",
+  "author": "igrgin",
+  "license": "UNLICENSED",
+  "main": ".webpack/main/index.cjs",
+  "engines": {
+    "node": ">=24.22.3 <25"
+  },
+  "scripts": {
+    "start": "electron-forge start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src scripts *.cjs",
+    "check": "npm run typecheck && npm run lint",
+    "package": "electron-forge package --platform=darwin --arch=arm64",
+    "make": "electron-forge make --platform=darwin --arch=arm64",
+    "build": "npm run check && npm run make",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.1.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "8.0.1",
+    "@electron-forge/maker-zip": "8.0.1",
+    "@electron-forge/plugin-auto-unpack-natives": "8.0.1",
+    "@electron-forge/plugin-webpack": "8.0.1",
+    "@eslint/js": "10.0.1",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vercel/webpack-asset-relocator-loader": "1.11.0",
+    "css-loader": "7.1.5",
+    "electron": "45.3.2",
+    "eslint": "10.15.0",
+    "globals": "17.14.0",
+    "node-loader": "2.1.0",
+    "playwright": "1.65.1",
+    "style-loader": "4.0.0",
+    "ts-loader": "9.6.2",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.2",
+    "webpack": "5.112.2"
+  }
+}
