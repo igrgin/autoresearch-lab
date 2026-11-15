@@ -42,7 +42,7 @@ GitHub CLI reads succeeded. No issue comments, lifecycle changes, merges or issu
 
 Validation executed on 2026-11-15 in the isolated issue worktree with Node
 24.22.3: `npm ci` passed; `npm run build` passed, including TypeScript, lint,
-**45 security tests**, webpack/native packaging and arm64 ZIP creation;
+**46 security tests**, webpack/native packaging and arm64 ZIP creation;
 `npm run smoke` passed with actual Keychain-backed synthetic storage and IPC
 isolation; ZIP integrity, local documentation links and `git diff --check` passed.
 CI and review status are reported separately on the draft PR.

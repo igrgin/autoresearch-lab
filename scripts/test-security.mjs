@@ -300,3 +300,16 @@ test('incident propagation fence applies synchronously before asynchronous journ
   const pending=f.recording.incident(s,{recordIds:[],sessionIds:[],reach:'unknown',destinations:['unknown'],reason:'unsafe_capture'});
   assert.throws(()=>f.recording.assertCanAct(s),{code:'capture_failed'}); await pending;
 });
+test('permitted agent task/code/acceptance records retain useful content with synthetic credentials removed', async () => {
+  const f=await fixture(); const s=scope(); const ids=[];
+  for (const [kind,source,body] of [
+    ['task','file_content',{instruction:`Use the approved dataset. Omit this credential: ${secret}`}],
+    ['code','file_content',{path:'train.py',content:`# synthetic fixture ${secret}\nprint(1)`}],
+    ['acceptance','tool_result',{decisionId:newId(),resultId:newId(),status:'kept',explanation:`Validation improved. Credential: ${secret}`}],
+  ]) ids.push((await f.recording.capture(meta(s,source,kind),body)).envelope.eventId);
+  const context=await f.recording.project(ids,'agent',s);
+  assert.equal(context.length,3); assert.deepEqual(context.map(record=>record.envelope.kind),['task','code','acceptance']);
+  assert.ok(JSON.stringify(context).includes('Validation improved'));
+  assert.ok(JSON.stringify(context).includes(REDACTED));
+  await assertAbsent(f,ids);
+});
