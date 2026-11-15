@@ -95,6 +95,9 @@ cannot retrieve stored values. Replacement does not revoke the old credential at
 its provider: complete issuer-side revocation before resuming affected work.
 Locked/unavailable Keychain storage fails without a plaintext fallback.
 
-The [issue 21 implementation record](./egm/implementation/21-credentials-and-safe-recording.md)
-describes the shared credential/admission ports, synthetic coverage, and adapter,
-isolation, incident-remediation and signed-distribution qualification still required.
+Integrations must use [scoped credential handles](../src/security/credentials.ts)
+and [safe-record admission](../src/security/recording.ts) before persistence,
+display or model delivery. Retired-value removal requires verified containment
+and a completed rescan; saving a replacement alone is insufficient. Live adapters,
+OS isolation, remote/native-history remediation and signed-update distribution
+still require integration and qualification.

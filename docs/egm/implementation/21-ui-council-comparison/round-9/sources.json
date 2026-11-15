@@ -1,7 +1,0 @@
-{
-  "src/renderer/credential-entry.tsx": "30ecc74a27e12e0d9cf6925c225a1954aadde2aca3640449513f3a42d7181d18",
-  "src/renderer/credential-entry.css": "a6d3e24cee0f6d18f2ed813c8b1b479638f4fa064ced48cce05af57dbed7bb2c",
-  "src/main.ts": "14c8147516254614c341b0fb8e1106ee81e2b3ab968d26e6608b31c2d9d3ad91",
-  "scripts/smoke.mjs": "4ab6428ba64bdd14aeff6ffdfc3f65f16d1ad6bd57f1ecd693a165c1f167cf7b",
-  "packagedAppAsar": "6bb1c3416af3d15d38866f4dd9b2b6dd9e56e4c468a70d056fcc1909a8651c4a"
-}

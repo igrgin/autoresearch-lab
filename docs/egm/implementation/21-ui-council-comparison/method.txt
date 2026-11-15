@@ -1,1 +1,0 @@
-New comparison series: up to ten rounds, stopping if all six current-design grades are >=9.5. Previous and current screenshot sets supplied to each fresh member; no target or stopping condition disclosed. Delete every image created during this series at its end per user instruction. Preserve review text, capture metadata/hashes, old PR screenshots and earlier archive.
