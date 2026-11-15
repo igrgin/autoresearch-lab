@@ -2,19 +2,15 @@
   "issue": 19,
   "pr": "https://github.com/igrgin/autoresearch-lab/pull/105",
   "branch": "19-create-reopen-projects",
-  "publishedHead": "0096e6aa0d7ae2a2576acb166109140e4f0960f1",
-  "currentRound": 8,
-  "round8Status": "Starting fresh screenshot council",
-  "models": [
-    "gpt-6.1-sol",
-    "gpt-6-astra",
-    "gpt-6.1-terra"
-  ],
-  "reasoningEffort": "high",
-  "reviewerContext": "Fresh task, fixed brief/rubric and two current UI images; user requested a short factual cumulative change list beginning with round 5. No prior scores, reports, tests, code or extra context.",
-  "lastCompletedRound": 7,
+  "maximumRounds": 10,
+  "completedRounds": 10,
+  "membersPerRound": 3,
   "conditionMet": false,
-  "beforeImage": "docs/egm/implementation/19-ui-evidence/before.png",
-  "remaining": "Stop after round 10 even if threshold unmet, or earlier on unanimous >=9.5 for both dimensions. Then clean redundant unsubmitted image captures, preserve submitted inputs/raw reports, update PR images and all scores, push immediately followed by link, verify PNG URLs, and give final report. No merge/closure/watch.",
-  "maximumRounds": 10
+  "stopReason": "User-requested cap of 10 rounds reached.",
+  "reviewedProductSourceCommit": "3e40fb818f0fdbe696658005729055038be8e8e6",
+  "reviewerContext": "Fresh brief/rubric/two current UI images; short factual cumulative change list added from round 5 at user request. No prior scores, reports, code or tests.",
+  "lastCompletedRound": 10,
+  "currentRound": 10,
+  "phase": "Stopped at user cap; final artifacts complete",
+  "furtherCouncilWork": "None authorized beyond round 10."
 }

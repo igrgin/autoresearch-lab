@@ -1,6 +1,6 @@
 {
   "threshold": 9.5,
-  "rule": "Every member must score both functionality and appearance at least 9.5 in the same fresh round.",
+  "rule": "Every member must score both functionality and appearance at least 9.5 in one fresh round.",
   "rounds": [
     {
       "round": 1,
@@ -211,6 +211,98 @@
         }
       },
       "conditionMet": false
+    },
+    {
+      "round": 8,
+      "members": {
+        "gpt-6.1-sol": {
+          "functionality": 9.0,
+          "appearance": 9.1,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A6474f43d-33e1-4807-8741-f5d771506baa",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A6474f43d-33e1-4807-8741-f5d771506baa",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A6474f43d-33e1-4807-8741-f5d771506baa>",
+          "report": "round-08/gpt-6.1-sol.json"
+        },
+        "gpt-6-astra": {
+          "functionality": 9.0,
+          "appearance": 9.1,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A8fb6c834-0d2d-4a37-b1b0-d93fbba6aeaf",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A8fb6c834-0d2d-4a37-b1b0-d93fbba6aeaf",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A8fb6c834-0d2d-4a37-b1b0-d93fbba6aeaf>",
+          "report": "round-08/gpt-6-astra.json"
+        },
+        "gpt-6.1-terra": {
+          "functionality": 8.4,
+          "appearance": 8.8,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A726f537f-faba-4fd0-a72e-07d306d639a3",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A726f537f-faba-4fd0-a72e-07d306d639a3",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A726f537f-faba-4fd0-a72e-07d306d639a3>",
+          "report": "round-08/gpt-6.1-terra.json"
+        }
+      },
+      "conditionMet": false
+    },
+    {
+      "round": 9,
+      "members": {
+        "gpt-6.1-sol": {
+          "functionality": 9.0,
+          "appearance": 9.0,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A8aef520f-c2e2-4251-b12a-427b50826860",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A8aef520f-c2e2-4251-b12a-427b50826860",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A8aef520f-c2e2-4251-b12a-427b50826860>",
+          "report": "round-09/gpt-6.1-sol.json"
+        },
+        "gpt-6-astra": {
+          "functionality": 9.1,
+          "appearance": 9.0,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3Acbf0bb64-6379-4e5d-a177-1b9146df5979",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3Acbf0bb64-6379-4e5d-a177-1b9146df5979",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3Acbf0bb64-6379-4e5d-a177-1b9146df5979>",
+          "report": "round-09/gpt-6-astra.json"
+        },
+        "gpt-6.1-terra": {
+          "functionality": 8.5,
+          "appearance": 8.5,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A7cf65f3f-4241-42b8-b040-8e148268e268",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A7cf65f3f-4241-42b8-b040-8e148268e268",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A7cf65f3f-4241-42b8-b040-8e148268e268>",
+          "report": "round-09/gpt-6.1-terra.json"
+        }
+      },
+      "conditionMet": false
+    },
+    {
+      "round": 10,
+      "members": {
+        "gpt-6.1-sol": {
+          "functionality": 9.2,
+          "appearance": 9.0,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A6573d6d4-b95f-4a50-a2a9-99af7543905b",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A6573d6d4-b95f-4a50-a2a9-99af7543905b",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A6573d6d4-b95f-4a50-a2a9-99af7543905b>",
+          "report": "round-10/gpt-6.1-sol.json"
+        },
+        "gpt-6-astra": {
+          "functionality": 9.0,
+          "appearance": 9.0,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A0de36712-779e-4a4e-9b86-04c988a17cbc",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A0de36712-779e-4a4e-9b86-04c988a17cbc",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3A0de36712-779e-4a4e-9b86-04c988a17cbc>",
+          "report": "round-10/gpt-6-astra.json"
+        },
+        "gpt-6.1-terra": {
+          "functionality": 8.5,
+          "appearance": 8.5,
+          "taskId": "node:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3Aa290d009-1e8f-4cf0-8385-73372f139565",
+          "childThreadId": "thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3Aa290d009-1e8f-4cf0-8385-73372f139565",
+          "link": "<t3-thread://v2/b7effdb9-63d5-499d-a31f-776b21196b9d/thread:delegated-task:command%3Amcp%3A4b3c7317-ae0f-429b-bd6a-3c73686f6683%3Adelegate-task%3Aa290d009-1e8f-4cf0-8385-73372f139565>",
+          "report": "round-10/gpt-6.1-terra.json"
+        }
+      },
+      "conditionMet": false
     }
-  ]
+  ],
+  "conditionMet": false,
+  "stopReason": "User-requested cap of 10 rounds reached."
 }
