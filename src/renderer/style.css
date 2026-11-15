@@ -198,3 +198,12 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 .viewing-status { min-height: 36px; align-items: center; }
 .project-row { min-height: 106px; }
 .folder-parts .folder-parent { font-size: 13px; }
+
+.row-folder { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; margin-top: 7px; }
+.row-folder > code { font-size: 13px; color: #405447; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-folder > button { padding: 4px 8px; min-height: 30px; font-size: 12px; }
+.folder-parts dt { font-size: 13px; color: #52665a; margin-top: 8px; }
+.folder-parts .folder-parent { font-size: 13px; line-height: 1.65; }
+.destination { margin-top: 16px; padding: 12px 0; }
+.destination .folder-location { margin-top: 4px; }
+.destination .folder-parts { margin-bottom: 10px; }

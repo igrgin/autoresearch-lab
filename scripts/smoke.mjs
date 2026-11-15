@@ -62,7 +62,7 @@ try {
   // A conflict must preserve the first project's source and expose an error.
   await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
-  await page.getByRole('button', { name: 'Customize folder', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit folder name', exact: true }).click();
   await page.getByLabel('Folder name', { exact: true }).fill('../invalid');
   assert.equal(await page.getByRole('button', { name: 'Create project', exact: true }).isDisabled(), true);
   assert.equal(await page.getByRole('button', { name: 'Done', exact: true }).isDisabled(), true);
@@ -126,7 +126,7 @@ try {
     app.copiedWorkspacePaths = [];
     clipboard.writeText = (location) => { app.copiedWorkspacePaths.push(location); };
   });
-  await restarted.getByText('Projects folder and location', { exact: true }).click();
+  await restarted.getByText('Where projects are saved', { exact: true }).click();
   await restarted.getByRole('button', { name: 'Copy workspace path', exact: true }).click();
   await restarted.getByText('Workspace location copied.', { exact: true }).waitFor({ state: 'attached' });
   assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location)]);

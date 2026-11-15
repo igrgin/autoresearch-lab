@@ -4,7 +4,7 @@
   "branch": "19-create-reopen-projects",
   "publishedHead": "0096e6aa0d7ae2a2576acb166109140e4f0960f1",
   "currentRound": 8,
-  "round8Status": "UI implementation and capture preflight; not delegated yet",
+  "round8Status": "Starting fresh screenshot council",
   "models": [
     "gpt-6.1-sol",
     "gpt-6-astra",
@@ -15,5 +15,6 @@
   "lastCompletedRound": 7,
   "conditionMet": false,
   "beforeImage": "docs/egm/implementation/19-ui-evidence/before.png",
-  "remaining": "Finish grading/improvement loop. Update active build docs. Preserve all raw reports/images. Publish latest images and council table in PR body. Push then immediately link PR. Verify image URLs serve exact PNG bytes. No merge, issue closure or PR watch."
+  "remaining": "Stop after round 10 even if threshold unmet, or earlier on unanimous >=9.5 for both dimensions. Then clean redundant unsubmitted image captures, preserve submitted inputs/raw reports, update PR images and all scores, push immediately followed by link, verify PNG URLs, and give final report. No merge/closure/watch.",
+  "maximumRounds": 10
 }
