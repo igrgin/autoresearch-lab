@@ -157,3 +157,18 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 .workspace-path-toggle > span { padding: 3px 6px; border: 1px solid #d7e2da; border-radius: 5px; background: #fff; }
 .viewing-status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 550; color: #36724f; white-space: nowrap; }
 .future-navigation .soon-label { margin-left: auto; font-size: 11px; background: #f6f9f7; color: #607568; }
+
+.sort-field select { max-width: 145px; min-width: 145px; font-size: 13px; }
+.project-row { padding-top: 21px; padding-bottom: 21px; }
+.project-summary > p.recency { font-size: 13px; color: #3e4c43; }
+.workspace-location { padding-top: 18px; }
+.workspace-location-heading { display: flex; align-items: center; gap: 7px; }
+.workspace-location .folder-location { margin-top: 12px; }
+.workspace-location .path-actions { justify-content: flex-start; }
+.workspace-location .path-actions button { margin-left: 0; }
+.path-actions .secondary { min-height: 36px; padding: 7px 10px; font-size: 13px; }
+.folder-location > p { font-size: 14px; color: #46584b; }
+.folder-location > p code { font-size: 13px; }
+.folder-location > p.absolute-path { font-size: 13px; }
+.destination { border: 0; border-top: 1px solid #e5ebe7; border-bottom: 1px solid #e5ebe7; border-radius: 0; background: transparent; padding: 15px 0; }
+.destination > .destination-header .text-button { min-height: 34px; font-size: 13px; }

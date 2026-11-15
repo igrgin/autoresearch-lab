@@ -36,7 +36,7 @@ async function capture(page, filename) {
 }
 try {
   let page = await launch();
-  for (const name of ['Image research demo', 'Audio research demo']) {
+  for (const name of ['Image research demo', 'Audio research demo', 'Signal research demo']) {
     await page.getByLabel('Project name', { exact: true }).fill(name);
     await page.getByRole('button', { name: 'Create project', exact: true }).click();
     await page.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name, exact: true }).waitFor();
@@ -44,7 +44,7 @@ try {
   }
   const created = await page.evaluate(() => window.lab.listProjects());
   assert.equal(created.ok, true);
-  assert.equal(created.value.projects.length, 2);
+  assert.equal(created.value.projects.length, 3);
   const first = created.value.projects.find((entry) => entry.project.name === 'Image research demo').project;
   await application.close();
   page = await launch();

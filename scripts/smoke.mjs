@@ -100,7 +100,7 @@ try {
   await firstCard.getByText('Last opened just now', { exact: true }).waitFor();
   await firstCard.getByRole('button', { name: 'Open', exact: true }).click();
   await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
-  await restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) }).getByText('Current', { exact: true }).waitFor();
+  await restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) }).getByText('Viewing', { exact: true }).waitFor();
   await restarted.getByRole('button', { name: 'New project', exact: true }).click();
   await restarted.getByLabel('Project name', { exact: true }).fill('Cancelled draft');
   await restarted.getByRole('button', { name: 'Cancel creation', exact: true }).click();
@@ -124,8 +124,8 @@ try {
     app.copiedWorkspacePaths = [];
     clipboard.writeText = (location) => { app.copiedWorkspacePaths.push(location); };
   });
-  await restarted.getByRole('button', { name: 'Copy path', exact: true }).click();
-  await restarted.getByRole('button', { name: 'Copied', exact: true }).waitFor();
+  await restarted.getByRole('button', { name: 'Copy workspace path', exact: true }).click();
+  await restarted.getByText('Workspace location copied.', { exact: true }).waitFor({ state: 'attached' });
   assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location)]);
   await restarted.getByRole('button', { name: 'Copy project path', exact: true }).click();
   await restarted.getByText('Project path copied.', { exact: true }).waitFor({ state: 'attached' });
