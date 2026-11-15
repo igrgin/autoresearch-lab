@@ -1,5 +1,9 @@
 # Autoresearch Lab
 
+Before starting work, read
+`~/Documents/home-repo/docs/agent-workflow.md`
+for shared skills, GitHub conventions, and delegated project work.
+
 Before planning, reviewing, or changing product behavior, read the [concepts brief](./docs/designs/concepts_brief.md). It is the approved source for scope, decisions, success criteria, and design follow-ups. Use the [design sitemap](./docs/designs/SITEMAP.md) to locate approved specifications.
 
 Use the [design sitemap](./docs/designs/SITEMAP.md) to locate specifications and supporting project records. The setup notes and earlier reviews contain superseded proposals; the concepts brief takes precedence where they differ.
