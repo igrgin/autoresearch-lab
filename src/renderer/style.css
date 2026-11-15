@@ -21,3 +21,22 @@ header > p:last-child { color: #637084; font-size: 14px; line-height: 1.6; }
 h2 { font-size: 18px; font-weight: 600; margin: 24px 0 10px; }
 .empty-state p { color: #687486; font-size: 13px; line-height: 1.6; max-width: 350px; margin: 0; }
 @media (max-width: 850px) { aside { width: 220px; } main { padding: 32px 26px; } }
+.project-form, .project-details, .project-card { margin-top: 26px; padding: 24px; border: 1px solid #e0e5e9; border-radius: 12px; background: #fff; }
+.project-form h2, .project-details h2, .list-header h2 { margin-top: 0; }
+.form-fields { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; }
+label { display: grid; gap: 8px; flex: 1; font-size: 13px; }
+input { min-width: 150px; width: 100%; padding: 11px; font: inherit; border: 1px solid #aeb8c6; border-radius: 6px; }
+.primary { background: #234b43; color: #fff; }
+.primary:hover { background: #173c35; }
+button:disabled { opacity: .55; cursor: wait; }
+.location, dd { overflow-wrap: anywhere; font-size: 12px; line-height: 1.6; }
+.form-hint, .project-card p, .project-details p { font-size: 13px; line-height: 1.6; color: #556174; }
+.error { border: 1px solid #c98570; background: #fff2ed; padding: 16px; border-radius: 8px; line-height: 1.6; }
+.saved-projects { margin-top: 32px; }
+.list-header, .project-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.list-header h2 { margin: 0; }
+.project-card { margin-top: 12px; }
+.project-card h3 { margin-top: 0; }
+.project-card button { background: #e7f0ec; flex-shrink: 0; }
+dt { font-size: 12px; font-weight: 600; margin-top: 12px; }
+dd { margin: 4px 0; }
