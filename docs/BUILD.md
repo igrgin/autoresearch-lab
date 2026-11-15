@@ -69,8 +69,6 @@ To verify the negative path on a review branch, temporarily introduce a TypeScri
 error under `src/`, push it to the PR, and confirm the build job fails at checking
 and skips upload (the run's artifact list must be empty). Revert the error and
 verify a new successful run with the ZIP. Do not merge the deliberate failure.
-Issue #18's actual runs and local evidence are recorded in
-[its implementation evidence](egm/implementation/18-build-evidence.md).
 
 ## Host boundaries and follow-up work
 
