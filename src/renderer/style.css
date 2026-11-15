@@ -133,3 +133,14 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 .project-facts p { font-size: 13px; color: #384f41; }
 .technical-details summary { font-size: 13px; }
 .brand small { font-size: 11px; }
+
+.project-summary > p.recency { font-size: 13px; color: #4e5d53; }
+.folder-identifier { color: #384f41; }
+.workspace-path-toggle { display: flex; width: 100%; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 9px 0 0; border-radius: 0; text-align: left; }
+.workspace-path-toggle code { min-width: 0; overflow-wrap: anywhere; white-space: normal; font-size: 13px; color: #4e5f53; font-weight: 400; line-height: 1.7; }
+.workspace-path-toggle > span { font-size: 12px; color: #356549; flex-shrink: 0; padding-top: 2px; }
+.destination .resolved-destination, .project-facts .resolved-project-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 1.7; color: #3c4f42; overflow-wrap: anywhere; }
+.future-navigation { margin-top: 24px; padding-top: 2px; border-top: 1px solid #e8eee9; }
+.future-navigation .nav-label { font-size: 11px; margin: 18px 12px 9px; color: #65776c; }
+.future-navigation button { width: 100%; justify-content: flex-start; gap: 12px; color: #617467; padding: 12px 14px; font-weight: 450; }
+.future-navigation button[aria-current] { background: #eef3ef; }

@@ -30,6 +30,7 @@ async function launch() {
 }
 async function capture(page, filename) {
   await page.locator('.project-layout[aria-busy="false"]').waitFor();
+  await page.mouse.move(260, 125);
   const bytes = await page.screenshot({ path: path.join(destination, filename), scale: 'css' });
   captures.push({ filename, width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), sha256: createHash('sha256').update(bytes).digest('hex') });
 }
@@ -49,7 +50,7 @@ try {
   page = await launch();
   await page.getByRole('heading', { name: 'Image research demo', exact: true }).waitFor();
   await page.getByLabel('Project name', { exact: true }).fill('Tabular research');
-  await page.getByText('projects/tabular-research', { exact: true }).waitFor();
+  await page.getByText(/\/tabular-research$/, { exact: false }).waitFor();
   await capture(page, 'create-list.png');
   await page.getByRole('article', { name: 'Image research demo', exact: true }).getByRole('button', { name: 'Open', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Open project', exact: true });

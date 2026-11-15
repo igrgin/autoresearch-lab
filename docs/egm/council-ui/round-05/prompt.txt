@@ -1,0 +1,27 @@
+Evaluate the UI shown in the two images below, independently and candidly.
+
+Brief: Autoresearch Lab is a personal desktop workspace for autonomous machine-learning research. This change lets users create projects, see saved projects, and reopen a project.
+
+Changes already made during the council improvements:
+- Kept saved projects and project panels side by side with persistent navigation.
+- Reduced creation to one required name, with optional folder customization and a resolved save location.
+- Added search, recent-first ordering, folder identifiers and last-opened cues.
+- Added a Current badge, an explicit Show details action, Finder access and workspace-path copy/reveal.
+- Enlarged supporting text, shortened duplicate copy and grouped future navigation separately.
+
+Grade each requirement from 1 to 10 (decimals allowed):
+1. Functionality: the visible interaction design for creating, finding, and reopening saved projects, including clarity of controls, feedback and navigation.
+2. Appearance: visual hierarchy, layout, spacing, typography, readability, consistency and overall polish.
+
+Scale: 1–3 blocks basic use; 4–6 substantial friction; 7–8 solid with notable refinements needed; 9 excellent with minor issues; 9.5–10 polished, with no material usability or visual issues for this purpose. Score the design shown honestly. Screenshots cannot prove unseen runtime behavior; do not invent such proof or turn that limitation into a backend-code review.
+
+Use the image-view tool to inspect only these images:
+- Creation and saved projects: /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-1802b954/docs/egm/council-ui/round-05/create-list.png
+- Reopened project: /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-1802b954/docs/egm/council-ui/round-05/open.png
+
+Do not read any other files, source, repository guidance, past conversations or reports. Do not browse, run the application, modify anything, or start agents. The brief, change list, rubric and these images are your entire grading context.
+
+Return:
+- Functionality: <number>/10, with a short rationale.
+- Appearance: <number>/10, with a short rationale.
+- Specific observed issues and concrete improvements, ordered by importance. Stay within this UI's stated purpose.
