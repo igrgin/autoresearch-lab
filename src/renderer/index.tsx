@@ -30,6 +30,8 @@ function Projects() {
   const [folderEdited, setFolderEdited] = useState(false);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [opened, setOpened] = useState<ProjectRecord>();
+  const [creating, setCreating] = useState(true);
+  const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -51,7 +53,7 @@ function Projects() {
     try {
       const reply = await action();
       if (reply.ok) {
-        setOpened(reply.value);
+        setOpened(reply.value); setCreating(false);
         setMessage(`${reply.value.name} is open.`);
       } else setError(reply.error.message);
       await refresh();
@@ -60,7 +62,7 @@ function Projects() {
   }
 
   function newProject() {
-    setOpened(undefined); setName(''); setFolderName(''); setFolderEdited(false);
+    setCreating(true); setName(''); setFolderName(''); setFolderEdited(false);
     setRequestId(crypto.randomUUID()); setError(''); setMessage('');
     requestAnimationFrame(() => nameInput.current?.focus());
   }
@@ -78,15 +80,16 @@ function Projects() {
 
   const entries = workspace?.projects || [];
   const filtered = entries.filter(({ project }) => `${project.name} ${project.location.split('/').pop()}`.toLowerCase().includes(query.toLowerCase().trim())).sort((a, b) => sort === 'newest' ? b.project.createdAt.localeCompare(a.project.createdAt) || a.project.name.localeCompare(b.project.name) : a.project.name.localeCompare(b.project.name));
+  const showCreate = creating || !opened;
   const canCreate = !!name.trim() && validFolder(folderName) && !!workspace && !busy;
 
   return <>
     <header className="page-header"><div><p className="eyebrow">Workspace / Projects</p><h1>Your research projects</h1><p>Create a workspace for your next idea, or pick up where you left off.</p></div>
-      <button className="primary" onClick={newProject} disabled={busy}><Icon name="plus" size={18} />New project</button>
+      {showCreate ? opened && <button className="secondary" onClick={() => { setCreating(false); setError(''); }} disabled={busy}>Cancel creation</button> : <button className="primary" onClick={newProject} disabled={busy}><Icon name="plus" size={18} />New project</button>}
     </header>
     <div className="sr-only" aria-live="polite">{message}</div>
     {error && <div className="error" role="alert"><strong>Unable to complete that action</strong><p>{error}</p><button onClick={() => setError('')}>Dismiss</button></div>}
-    <div className="project-layout">
+    <div className="project-layout" aria-busy={busy}>
       <section aria-label="Saved projects" className="saved-projects">
         <div className="section-heading"><h2>Saved projects <span className="count">{entries.length}</span></h2><button className="icon-button" aria-label="Refresh projects" title="Refresh projects" disabled={busy || refreshing} onClick={async () => {
           setRefreshing(true); setError('');
@@ -98,15 +101,18 @@ function Projects() {
           <div className="project-list">{filtered.map(({ project, availability, problem }) => {
             const current = opened?.projectId === project.projectId;
             return <article className={`project-row${current ? ' is-current' : ''}`} key={project.projectId} aria-label={project.name}>
-              <span className="project-symbol"><Icon name="folder" size={22} /></span><div className="project-summary"><div className="project-title"><h3>{project.name}</h3>{current && <span className="current-label">Current</span>}</div><p title={project.location}>projects/{project.location.split('/').pop()}</p>
+              <span className="project-symbol"><Icon name="folder" size={22} /></span><div className="project-summary"><div className="project-title"><h3>{project.name}</h3></div><p title={project.location}>projects/{project.location.split('/').pop()}</p>
                 {availability !== 'ready' && <p className="project-problem">{availability === 'incomplete' ? 'Creation incomplete' : 'Project unavailable'}</p>}
                 {problem && <p className="project-recovery">{problem}</p>}</div>
-              <button className={current ? 'opened-button' : 'open-button'} disabled={busy || current} onClick={() => void act(() => availability === 'incomplete' ? window.lab.recoverProject(project.projectId) : window.lab.openProject(project.projectId))}>{current ? <><Icon name="check" size={16} />Open</> : availability === 'incomplete' ? 'Retry creation' : <>Open<Icon name="arrow" size={16} /></>}</button>
+              {current ? <span className="opened-status"><Icon name="check" size={16} />Opened</span> : <button className="open-button" disabled={busy} onClick={() => void act(() => availability === 'incomplete' ? window.lab.recoverProject(project.projectId) : window.lab.openProject(project.projectId))}>{availability === 'incomplete' ? 'Retry creation' : <>Open<Icon name="arrow" size={16} /></>}</button>}
             </article>;
           })}</div>}
-        <div className="workspace-note"><Icon name="folder" size={16} /><span>Saved locally in your workspace</span><details><summary>Location</summary><p>{workspace?.projectsFolder || 'Opening workspace…'}</p></details></div>
+        <div className="workspace-location"><div><Icon name="folder" size={16} /><strong>Workspace location</strong><button className="text-button" disabled={!workspace} onClick={async () => {
+          try { const reply = await window.lab.copyWorkspaceLocation(); if (!reply.ok) throw new Error(reply.error.message); setCopied(true); setMessage('Workspace location copied.'); }
+          catch { setError('The workspace path could not be copied. You can select and copy the displayed path.'); }
+        }}>{copied ? 'Copied' : 'Copy path'}</button></div><p>{workspace?.projectsFolder || 'Opening workspace…'}</p></div>
       </section>
-      {opened ? <section className="detail-panel" aria-label="Open project">
+      {!showCreate && opened ? <section className="detail-panel" aria-label="Open project">
         <div className="panel-eyebrow"><span className="status-dot" />Current project</div>
         <span className="large-project-symbol"><Icon name="folder" size={30} /></span><h2>{opened.name}</h2>
         <p className="project-ready"><Icon name="check" size={16} />Project opened successfully</p>
@@ -115,7 +121,6 @@ function Projects() {
         <div className="project-facts"><span>Project folder</span><p title={opened.location}>projects/{opened.location.split('/').pop()}</p><span>Repository</span><p><span className="status-dot" />Local Git repository connected</p></div>
         <details className="technical-details"><summary>Project details</summary><dl><dt>Project identity</dt><dd>{opened.projectId}</dd><dt>Files</dt><dd>{opened.location}</dd><dt>Git repository</dt><dd>{opened.repository}</dd></dl></details>
         <div className="scope-note">Task setup and research runs will be available in a future update.</div>
-        <button className="text-button" disabled={busy} onClick={newProject}><Icon name="plus" size={16} />Create another project</button>
       </section> : <section className="create-panel" aria-label="Create project">
         <div className="panel-eyebrow">A home for your research</div><h2>Create a project</h2><p className="panel-description">Each project has its own folder and Git repository.</p>
         <form onSubmit={(event) => { event.preventDefault(); if (canCreate) void act(() => window.lab.createProject({ requestId, name, folderName })); }}>
@@ -153,7 +158,7 @@ function App() {
     <aside className="workspace-sidebar">
       <div className="brand"><span className="brand-mark">A</span><div>Autoresearch Lab<small>Personal research workspace</small></div></div>
       <p className="nav-label">WORKSPACE</p><nav aria-label="Workspace">{(Object.keys(pages) as (keyof typeof pages)[]).map((name) =>
-        <button key={name} aria-current={page === name ? 'page' : undefined} onClick={() => setPage(name)}><Icon name={name === 'Projects' ? 'folder' : name === 'Runs' ? 'runs' : 'compute'} size={19} />{name}</button>)}</nav>
+        <button key={name} aria-current={page === name ? 'page' : undefined} onClick={() => setPage(name)}><Icon name={name === 'Projects' ? 'folder' : name === 'Runs' ? 'runs' : 'compute'} size={19} />{name}{name !== 'Projects' && <span className="soon-label" aria-hidden="true">Soon</span>}</button>)}</nav>
       <div className="workspace-status" role="status"><span className="status-dot" />{status}</div>
     </aside>
     <main>{page === 'Projects' ? <Projects /> : <><header className="page-header"><div><p className="eyebrow">Workspace / {page}</p><h1>{content.title}</h1><p>{content.description}</p></div></header><section className="empty-state" aria-label={page}><span className="empty-icon"><Icon name={page === 'Runs' ? 'runs' : 'compute'} size={28} /></span><h2>{content.empty}</h2><p>{content.hint}</p></section></>}</main>

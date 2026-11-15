@@ -29,7 +29,7 @@ async function launch() {
   return page;
 }
 async function capture(page, filename) {
-  await page.locator('.page-header .primary:not(:disabled)').waitFor();
+  await page.locator('.project-layout[aria-busy="false"]').waitFor();
   const bytes = await page.screenshot({ path: path.join(destination, filename), scale: 'css' });
   captures.push({ filename, width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), sha256: createHash('sha256').update(bytes).digest('hex') });
 }

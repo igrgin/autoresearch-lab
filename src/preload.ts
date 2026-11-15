@@ -8,5 +8,6 @@ const bridge: ShellBridge = {
   openProject: (projectId) => ipcRenderer.invoke('projects:open', projectId),
   recoverProject: (projectId) => ipcRenderer.invoke('projects:recover', projectId),
   revealProject: (projectId) => ipcRenderer.invoke('projects:reveal', projectId),
+  copyWorkspaceLocation: () => ipcRenderer.invoke('projects:copy-workspace-location'),
 };
 contextBridge.exposeInMainWorld('lab', bridge);

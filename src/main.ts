@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell, clipboard, utilityProcess } from 'electron';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { CreateProject, ProjectReply, ProjectRequest, ProjectRecord, WorkspaceProjects } from './projects';
@@ -119,6 +119,20 @@ if (!app.requestSingleInstanceLock()) {
         return requestProjects({ kind, operationId: randomUUID(), projectId });
       });
     }
+    ipcMain.handle('projects:copy-workspace-location', async (event) => {
+      admit(event);
+      const operationId = randomUUID();
+      const reply = await requestProjects({ kind: 'list', operationId });
+      if (!reply.ok) return reply;
+      if (!('projectsFolder' in reply.value)) throw new Error('Invalid workspace response.');
+      try {
+        clipboard.writeText(reply.value.projectsFolder);
+        return { ok: true, value: null };
+      } catch {
+        return { ok: false, error: { code: 'unavailable', origin: 'project_catalog', operationId,
+          message: 'The workspace path could not be copied. Select and copy the displayed path instead.', effect: 'none', retry: 'same_key' } };
+      }
+    });
     ipcMain.handle('projects:reveal', async (event, projectId: string) => {
       admit(event);
       const operationId = randomUUID();

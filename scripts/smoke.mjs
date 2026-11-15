@@ -94,6 +94,11 @@ try {
   const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
   await firstCard.getByRole('button', { name: 'Open', exact: true }).click();
   await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  await restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) }).getByText('Opened', { exact: true }).waitFor();
+  await restarted.getByRole('button', { name: 'New project', exact: true }).click();
+  await restarted.getByLabel('Project name', { exact: true }).fill('Cancelled draft');
+  await restarted.getByRole('button', { name: 'Cancel creation', exact: true }).click();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
   // UI-only filtering and ordering never change the saved project catalog.
   await restarted.getByRole('searchbox', { name: 'Search projects', exact: true }).fill('Second');
   assert.equal(await restarted.getByRole('article').count(), 1);
@@ -109,6 +114,13 @@ try {
   await restarted.getByRole('button', { name: 'Show files in Finder', exact: true }).click();
   await restarted.getByText('Project folder opened in Finder.', { exact: true }).waitFor({ state: 'attached' });
   assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location]);
+  await application.evaluate(({ app, clipboard }) => {
+    app.copiedWorkspacePaths = [];
+    clipboard.writeText = (location) => { app.copiedWorkspacePaths.push(location); };
+  });
+  await restarted.getByRole('button', { name: 'Copy path', exact: true }).click();
+  await restarted.getByRole('button', { name: 'Copied', exact: true }).waitFor();
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location)]);
   const invalidReveal = await restarted.evaluate(() => window.lab.revealProject('not-a-project'));
   assert.equal(invalidReveal.ok, false);
   assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location]);
@@ -129,7 +141,7 @@ try {
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { projectFilter: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
+  const report = { projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {

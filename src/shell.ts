@@ -12,4 +12,5 @@ export interface ShellBridge {
   openProject(projectId: string): Promise<ProjectReply<ProjectRecord>>;
   recoverProject(projectId: string): Promise<ProjectReply<ProjectRecord>>;
   revealProject(projectId: string): Promise<ProjectReply<null>>;
+  copyWorkspaceLocation(): Promise<ProjectReply<null>>;
 }
