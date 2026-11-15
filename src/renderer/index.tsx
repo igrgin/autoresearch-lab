@@ -47,7 +47,7 @@ function readRecency(): Record<string, number> {
   } catch { return {}; }
 }
 function openedLabel(time?: number) {
-  if (!time) return 'Not opened on this device';
+  if (!time) return 'No recent activity recorded';
   const elapsed = Date.now() - time;
   if (elapsed < 60_000) return 'Last opened just now';
   if (elapsed < 3_600_000) return `Last opened ${Math.floor(elapsed / 60_000)} min ago`;

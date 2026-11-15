@@ -105,7 +105,7 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 @media (max-width: 880px) { .workspace-sidebar { width: 170px; padding: 24px 12px; } .brand { white-space: normal; } .brand small { display: none; } main { padding: 24px 18px; } .project-layout { grid-template-columns: 1fr; } .create-panel, .detail-panel { grid-row: 1; } .page-header { gap: 12px; align-items: flex-start; } h1 { font-size: 24px; } .page-header > .primary { padding: 8px; font-size: 14px; } }
 
 .workspace-location { margin-top: 22px; padding-top: 16px; border-top: 1px solid #e0e7e2; color: #5c7162; }
-.workspace-location > div { display: flex; align-items: center; gap: 7px; }
+.workspace-location > .workspace-location-heading { display: flex; align-items: center; gap: 7px; }
 .workspace-location strong { font-size: 14px; font-weight: 550; }
 .workspace-location button { margin-left: auto; padding: 4px 0; }
 .workspace-location p { margin: 7px 0 0; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; user-select: text; }
