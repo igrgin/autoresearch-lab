@@ -1,0 +1,38 @@
+{
+  "nativeContentSize": [
+    1180,
+    838
+  ],
+  "rendererErrors": [],
+  "syntheticProjects": true,
+  "restartedBeforeAfterCaptures": true,
+  "captures": [
+    {
+      "filename": "before.png",
+      "caption": "Before: base shell has an empty Projects view and no creation controls.",
+      "viewport": {
+        "width": 1180,
+        "height": 838
+      },
+      "sha256": "b144b82018bcb356c9cd63b9a5c3336457828c9a0759d3569255a2728af2a763"
+    },
+    {
+      "filename": "after-create-list.png",
+      "caption": "After: creation controls and two independent saved projects, loaded after an application restart.",
+      "viewport": {
+        "width": 1180,
+        "height": 838
+      },
+      "sha256": "c68c1c2850eddce13a3a9c4a13986f24431759ba5f3b951f1a25fb988657326b"
+    },
+    {
+      "filename": "after-open.png",
+      "caption": "After: reopening the saved project displays its unchanged identity, files folder and Git repository.",
+      "viewport": {
+        "width": 1180,
+        "height": 838
+      },
+      "sha256": "1063978dfd6c4f0d6a0dfc4136a47b6347015880e94bc47b8ef1f609a44304a5"
+    }
+  ]
+}
