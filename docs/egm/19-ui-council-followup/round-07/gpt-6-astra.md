@@ -1,0 +1,9 @@
+- **Functionality: 8.6/10.** Creating, searching, sorting and reopening projects have clear controls. Duplicate-name folder hints and varied recency improve identification. Moving confirmation into the current-project panel makes feedback easier to associate with the action. Screenshots establish visible design only; runtime behavior remains unverified.
+- **Appearance: 8.8/10.** Strong hierarchy, readable typography, restrained colors and comfortable spacing. The current version improves utility-button consistency and separates the primary Finder action from secondary controls. The opened-project panel remains somewhat dense.
+
+Observed issues and improvements, ordered by importance:
+
+1. **Git controls emphasize internal metadata.** The Git section’s path, copy action and Finder action target `.git`. Although the explanation helps, accessing the repository itself is less explicit. Label the project folder as the repository root, and group `.git` utilities under a secondary “Repository metadata” disclosure.
+2. **Duplicate projects remain easy to confuse at a glance.** Their folder hints distinguish them, but the current-project heading and confirmation repeat only the shared name. Add the distinguishing folder name directly beneath the heading so users can immediately verify which project opened.
+3. **Path disclosures still use inconsistent wording and presentation.** List rows use inline “View path,” while the detail and creation panels use bordered “Show full path.” Standardize the wording and disclosure treatment across these locations.
+4. **The opened-project panel gives substantial space to secondary utilities.** Repeated paths, copy controls, metadata explanation and Project ID extend it nearly to the screen bottom. Collapsing advanced metadata details would keep project identity, open confirmation and file access visually dominant.

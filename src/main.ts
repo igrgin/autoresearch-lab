@@ -133,17 +133,17 @@ if (!app.requestSingleInstanceLock()) {
           message: 'The workspace path could not be copied. Select and copy the displayed path instead.', effect: 'none', retry: 'same_key' } };
       }
     });
-    ipcMain.handle('projects:copy-location', async (event, projectId: string) => {
+    for (const kind of ['location', 'repository'] as const) ipcMain.handle(`projects:copy-${kind}`, async (event, projectId: string) => {
       admit(event);
       const operationId = randomUUID();
       const reply = await requestProjects({ kind: 'open', operationId, projectId });
       if (!reply.ok) return reply;
       if (!('projectId' in reply.value)) throw new Error('Invalid project response.');
-      try { clipboard.writeText(reply.value.location); return { ok: true, value: null }; }
+      try { clipboard.writeText(reply.value[kind]); return { ok: true, value: null }; }
       catch { return { ok: false, error: { code: 'unavailable', origin: 'project_catalog', operationId,
-        message: 'The project path could not be copied. Select and copy its full path instead.', effect: 'none', retry: 'same_key' } }; }
+        message: 'The requested project path could not be copied. Select and copy its full path instead.', effect: 'none', retry: 'same_key' } }; }
     });
-    ipcMain.handle('projects:reveal', async (event, projectId: string) => {
+    for (const kind of ['location', 'repository'] as const) ipcMain.handle(kind === 'location' ? 'projects:reveal' : 'projects:reveal-repository', async (event, projectId: string) => {
       admit(event);
       const operationId = randomUUID();
       const reply = await requestProjects({ kind: 'open', operationId, projectId });
@@ -151,11 +151,11 @@ if (!app.requestSingleInstanceLock()) {
       // Resolve and validate through the catalog; the renderer never supplies a path.
       if (!('projectId' in reply.value)) throw new Error('Invalid project response.');
       try {
-        const failure = await shell.openPath(reply.value.location);
+        const failure = await shell.openPath(reply.value[kind]);
         if (!failure) return { ok: true, value: null };
       } catch { /* Only a safe host error crosses the bridge. */ }
       return { ok: false, error: { code: 'unavailable', origin: 'project_catalog', operationId,
-        message: 'Finder could not open this project folder. Restore folder access and retry.', effect: 'none', retry: 'same_key' } };
+        message: 'Finder could not open the requested project folder. Restore folder access and retry.', effect: 'none', retry: 'same_key' } };
     });
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       { role: 'appMenu' }, { role: 'editMenu' },

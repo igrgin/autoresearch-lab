@@ -1,0 +1,28 @@
+{
+  "preFollowupHead": "c811e7f5859ea132c491a39373bf611ece24e925",
+  "prBase": "acfdada4d42d06f556dc0b96e6d3e282eadf85ac",
+  "sourceFiles": {
+    "docs/egm/19-ui-council-followup/capture.mjs": "927263c7fc79f93a4029d442cac92564617aa3f9275dc2690f2e87dc57d43104",
+    "scripts/smoke.mjs": "7ee3a1f983324d75dd2e9ddd4702fff023387ea4c62f563fd3561842b60ca4b4",
+    "src/catalog/catalog.ts": "5a01b9876f2c1d0b53c8ed883400ead5639869dd736cc551e29f1f519d94904c",
+    "src/catalog/git.ts": "c18a15e0391ecb71e9d51332dc3c89f9d20cc714d301a9a874b52f2e234533db",
+    "src/catalog/storage.ts": "164f6fdbcea51a0364660a58848521a3b727b6cc1d5b55ee1784cd33cc1088f1",
+    "src/coordinator.ts": "9cbf831ef25d6eb2e32ec71af2d172d566651ea258fdbebadf785720bba57ab7",
+    "src/main.ts": "fa238d3981c2088e3af601e1691c2d15143f9a4ef5bf599bc0286f3c5206afac",
+    "src/preload.ts": "3b4702471f7b935908c3f0377caec098c15e4cfe268f1483b80138e38553b72b",
+    "src/projects.ts": "a4ca0850576108f9290e266ea05125d869d8d2ba12452653ca7c596856641cfb",
+    "src/renderer/index.tsx": "990276b797224012645fe04d2f2291fb24d5b9adfe7966f0e09f368d052e3af6",
+    "src/renderer/style.css": "8def6348c6404aa34fc2af13b876aa31737a4c90923519cbce604ad5db5eda13",
+    "src/shell.ts": "f9f10507044f8a4f2f7411510c5f278af71b9d92b76fe7db86138104a56dffa4"
+  },
+  "appAsarSha256": "f71fc9e4765617b377b2a482ae2c46678d315a8751b52280c24f4a300346f52b",
+  "zipSha256": "b6a66ec3907212451205c09203d7ba7f72935006c5890dcf4c529b358c4bbcbd",
+  "viewport": [
+    1180,
+    838
+  ],
+  "synthetic": true,
+  "pixelsEdited": false,
+  "recencyFixtureFromRound": 7,
+  "recencyFixture": "Only disposable renderer navigation preferences seeded at 30 min, 2 hr, 1 day; not claimed real past activity."
+}

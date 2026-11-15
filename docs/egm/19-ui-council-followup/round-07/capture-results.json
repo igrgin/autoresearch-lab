@@ -1,0 +1,27 @@
+{
+  "synthetic": true,
+  "recencyFixture": "Disposable UI preferences seeded at 30 min, 2 hr and 1 day; not real past activity.",
+  "duplicateNames": true,
+  "restartReopen": "passed",
+  "errors": [],
+  "captures": [
+    {
+      "filename": "create-list.png",
+      "width": 1180,
+      "height": 838,
+      "sha256": "63fb1e4c8bd20ac39821223457fffad25748d3477efdbf09c8ad36a10c7a7940"
+    },
+    {
+      "filename": "open.png",
+      "width": 1180,
+      "height": 838,
+      "sha256": "bd3e523d3a406229d7519262b4c2f1e870696ac920015681d1759c324ce878da"
+    },
+    {
+      "filename": "open-details.png",
+      "width": 1180,
+      "height": 838,
+      "sha256": "b452f20318036453c093b00946757e957fe6207a8ae206ad17379111be6fcf1f"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+- **Functionality: 8.5/10.** Creation, search, sorting, reopening, and the current-project state are easy to find. The new success message makes opening feedback explicit, and the Git metadata label is clearer than before. The screenshots show the controls, but cannot establish whether they work or how error and copy-confirmation states behave.
+- **Appearance: 8.5/10.** The two-panel layout has a clear hierarchy, consistent spacing, and readable typography. The current project is well distinguished. The improvements retain the previous design’s polish, though some secondary controls remain small and visually crowded.
+
+Observed issues, in order of importance:
+
+1. **The success message sits well below the project list.** It is separated from both the selected row and the detail panel, so it may be missed after opening a project. Place transient feedback nearer the action or at the top of the current-project panel.
+2. **Path disclosures and copy actions are crowded.** The small underlined links and tiny chevrons in the detail panel are harder to scan and target than the primary buttons. Give each action a clearly sized click area and more separation, while keeping the disclosure cue aligned with its label.
+3. **The Git section requires interpretation.** “Git metadata folder (.git)” is more precise than the previous label, but users seeking their repository may not immediately understand why they would open that folder. Add a brief explanation that the project folder contains the working files and `.git` contains repository metadata.
+4. **The recency labels do not distinguish the examples shown.** Every row says “Opened just now,” so the current screenshots do not demonstrate how useful sorting is across different times. Show more varied recency in a representative review state; the duplicate-name hint is likewise not visible here.

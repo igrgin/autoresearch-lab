@@ -1,0 +1,5 @@
+
+> autoresearch-lab@0.1.0 smoke
+> node scripts/smoke.mjs
+
+{"persistedRecency":"passed","projectFilter":"passed","nativeWorkspaceCopy":"passed","validatedProjectCopy":"passed","validatedGitCopy":"passed","validatedGitFinderDispatch":"passed","validatedFinderDispatch":"passed","projectCreation":"passed","projectConflict":"passed","projectRestartReopen":"passed","unavailableFolderRecovery":"passed","packagedLaunch":"passed","navigation":"passed","rendererIsolation":"passed","nativeCloseReopenQuit":"passed","coordinator":"ready","sqliteVersion":"3.54.1"}

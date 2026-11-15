@@ -110,10 +110,10 @@ keep their original identity.
 
 Reopening validates the saved identity, history schema and Git repository. A
 missing, inaccessible or substituted project remains listed as unavailable;
-restoring its original files and choosing **Open** retries validation. The app
+restoring its original files and choosing **Open project** retries validation. The app
 does not recreate missing files for a previously ready project. Open preserves the saved list beside the current-project panel. Folder locations
 can be inspected before opening. The current panel provides Finder access,
-validated project-path copying and an identity/Git-path disclosure. A code editor
+validated project/Git-path copying and a disclosure for Git metadata and project identity. The project folder is also the Git working repository; Git metadata utilities are secondary. A code editor
 and task setup are separate work.
 
 Stores use versioned, checksummed SQL initialization, WAL, FULL synchronization,
@@ -128,14 +128,14 @@ The project list supports search and sorting by recently opened, name or creatio
 time. Last-opened times are disposable local UI preferences, stored in the
 renderer profile. They are not research history or authoritative project records;
 clearing that UI cache loses recency cues without affecting projects or their
-identities. Copy feedback is scoped to the project whose location was copied.
+identities. Copy feedback is scoped to the project whose location or Git path was copied.
 
 ## Host boundaries and follow-up work
 
 The React renderer has no Node access; a sandboxed preload exposes status and
-four typed catalog operations (list/create/open/recover) and three narrow native
-actions (reveal a validated project folder, copy its validated path, and copy the
-known workspace projects path). Main validates the
+four typed catalog operations (list/create/open/recover) and five narrow native
+actions (reveal validated project or Git folders, copy either validated path, and
+copy the known workspace projects path). Main validates the
 requesting window/frame and owns native windows and utility-process lifecycle.
 Main resolves native-action locations through the catalog; the renderer never
 supplies an arbitrary native path or clipboard payload. The utility coordinator
