@@ -207,3 +207,13 @@ dd { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; margin: 4px 0; 
 .destination { margin-top: 16px; padding: 12px 0; }
 .destination .folder-location { margin-top: 4px; }
 .destination .folder-parts { margin-bottom: 10px; }
+
+.row-folder { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.row-folder > button.secondary { border-color: transparent; background: transparent; padding: 4px 0 4px 6px; color: #37684b; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.row-folder > button.secondary:hover { background: #edf4ef; }
+button.open-button { background: #e8f2ec; border-color: #b7cebf; color: #245947; }
+.row-action { min-width: 154px; }
+.row-recency { font-size: 12px; font-variant-numeric: tabular-nums; color: #526159; }
+.folder-parts .folder-parent { padding: 8px; border: 1px solid #e2e9e4; border-radius: 5px; background: #f7faf8; }
+.folder-parts dt { margin-top: 6px; }
+.large-project-symbol { width: 44px; height: 44px; margin: 4px 0 12px; }

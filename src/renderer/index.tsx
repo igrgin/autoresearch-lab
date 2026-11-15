@@ -26,13 +26,13 @@ const validFolder = (name: string) => /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(na
 function PathText({ value }: { value: string }) {
   return <>{value.split('/').map((part, index, all) => <React.Fragment key={index}><span className="path-segment">{part}{index < all.length - 1 ? '/' : ''}</span><wbr /></React.Fragment>)}</>;
 }
-function FolderLocation({ location, copied, onCopy, copyLabel = 'Copy project path', showParentFull = false }: { location: string; copied?: boolean; onCopy?: () => void; copyLabel?: string; showParentFull?: boolean }) {
+function FolderLocation({ location, copied, onCopy, copyLabel = 'Copy project path', showParentFull = false, pathLabel = 'Show full path' }: { location: string; copied?: boolean; onCopy?: () => void; copyLabel?: string; showParentFull?: boolean; pathLabel?: string }) {
   const [expanded, setExpanded] = useState(false);
   const segments = location.split('/');
   const folder = segments.pop() || 'your-project';
   const parent = showParentFull ? segments.join('/') : `…/${segments.filter(Boolean).slice(-2).join('/')}`;
   return <div className="folder-location"><dl className="folder-parts"><dt>Folder</dt><dd className="folder-basename" title={folder}>{folder}</dd><dt>Parent folder</dt><dd className="folder-parent"><PathText value={parent} /></dd></dl>
-    <div className="path-actions"><button type="button" className="secondary" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? 'Hide full path' : 'Show full path'}</button>{onCopy && <button type="button" className="secondary" aria-label={copyLabel} onClick={onCopy}>{copied ? 'Copied' : 'Copy path'}</button>}</div>
+    <div className="path-actions"><button type="button" className="secondary" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? pathLabel.replace('Show', 'Hide') : pathLabel}</button>{onCopy && <button type="button" className="secondary" aria-label={copyLabel} onClick={onCopy}>{copied ? 'Copied' : 'Copy path'}</button>}</div>
     {expanded && <p className="absolute-path" tabIndex={0}>{location}</p>}
   </div>;
 }
@@ -52,8 +52,8 @@ function readRecency(): Record<string, number> {
 function openedLabel(time?: number) {
   if (!time) return 'No recent activity';
   const today = new Date(time).toDateString() === new Date().toDateString();
-  const display = new Intl.DateTimeFormat(undefined, today ? { hour: '2-digit', minute: '2-digit' } : { month: 'short', day: 'numeric' }).format(time);
-  return `Last opened ${today ? 'today, ' : ''}${display}`;
+  const display = new Intl.DateTimeFormat(undefined, today ? { hour: '2-digit', minute: '2-digit', second: '2-digit' } : { month: 'short', day: 'numeric' }).format(time);
+  return `Opened ${today ? 'today, ' : ''}${display}`;
 }
 
 function Projects() {
@@ -69,7 +69,7 @@ function Projects() {
   const [copied, setCopied] = useState(false);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string>();
-  const [projectPathCopied, setProjectPathCopied] = useState(false);
+  const [copiedProjectId, setCopiedProjectId] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -91,7 +91,7 @@ function Projects() {
     try {
       const reply = await action();
       if (reply.ok) {
-        setOpened(reply.value); setCreating(false); setDetailsExpanded(false); setProjectPathCopied(false);
+        setOpened(reply.value); setCreating(false); setDetailsExpanded(false); setCopiedProjectId(undefined);
         const nextRecency = { ...recency, [reply.value.projectId]: Date.now() };
         setRecency(nextRecency);
         // Disposable navigation preference; never an authoritative project/history record.
@@ -159,8 +159,8 @@ function Projects() {
         <span className="large-project-symbol"><Icon name="folder" size={30} /></span><h2>{opened.name}</h2>
         <p className="panel-description">Browse or edit this project’s files in Finder. Research setup and runs are coming later.</p>
         <button className="primary show-files" disabled={busy} onClick={() => void showFiles()}><Icon name="folder" size={18} />Show files in Finder</button>
-        <div className="project-facts"><FolderLocation location={opened.location} copied={projectPathCopied} onCopy={async () => {
-          try { const reply = await window.lab.copyProjectLocation(opened.projectId); if (!reply.ok) throw new Error(reply.error.message); setProjectPathCopied(true); setMessage('Project path copied.'); }
+        <div className="project-facts"><FolderLocation location={opened.location} showParentFull copied={copiedProjectId === opened.projectId} onCopy={async () => {
+          try { const reply = await window.lab.copyProjectLocation(opened.projectId); if (!reply.ok) throw new Error(reply.error.message); setCopiedProjectId(opened.projectId); setMessage('Project path copied.'); }
           catch { setError('The project path could not be copied. Reveal its full path and copy the text instead.'); }
         }} /><span>Repository</span><p><span className="status-dot" />Local Git repository connected</p></div>
         <details className="technical-details" open={detailsExpanded} onToggle={(event) => setDetailsExpanded(event.currentTarget.open)}><summary>Project ID &amp; Git path</summary><dl><dt>Project identity</dt><dd>{opened.projectId}</dd><dt>Files</dt><dd>{opened.location}</dd><dt>Git repository</dt><dd>{opened.repository}</dd></dl></details>
@@ -171,7 +171,7 @@ function Projects() {
             setName(event.target.value); setRequestId(crypto.randomUUID());
             if (!folderEdited) setFolderName(folderSuggestion(event.target.value));
           }} /><span className="sr-only" id="name-hint">A display name to recognize your project.</span>
-          <div className="destination"><div className="destination-header"><span>Save location</span><button type="button" className="text-button" aria-expanded={customizeFolder} disabled={busy || (customizeFolder && !validFolder(folderName))} onClick={() => setCustomizeFolder(!customizeFolder)}>{customizeFolder ? 'Done' : 'Edit folder name'}</button></div><FolderLocation location={`${workspace?.projectsFolder || '/workspace/projects'}/${folderName || 'your-project'}`} showParentFull /></div>
+          <div className="destination"><div className="destination-header"><span>Save location</span><button type="button" className="text-button" aria-expanded={customizeFolder} disabled={busy || (customizeFolder && !validFolder(folderName))} onClick={() => setCustomizeFolder(!customizeFolder)}>{customizeFolder ? 'Done' : 'Edit folder name'}</button></div><FolderLocation location={`${workspace?.projectsFolder || '/workspace/projects'}/${folderName || 'your-project'}`} showParentFull pathLabel="Show full project path" /></div>
           {!customizeFolder && name.trim() && !folderName && <p className="field-hint invalid-hint">Choose Customize to set a folder name for this project.</p>}
           {customizeFolder && <div className="folder-customization"><div className="field-label"><label htmlFor="folder-name">Folder name</label><span>{folderEdited ? 'Custom' : 'Suggested'}</span></div><input id="folder-name" required maxLength={80} pattern="[a-zA-Z0-9]([a-zA-Z0-9_]|-)*" value={folderName} disabled={busy} aria-describedby="folder-hint" aria-invalid={!!folderName && !validFolder(folderName)} onChange={(event) => {
             setFolderEdited(true); setFolderName(event.target.value); setRequestId(crypto.randomUUID());

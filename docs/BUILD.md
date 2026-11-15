@@ -79,8 +79,11 @@ verify a new successful run with the ZIP. Do not merge the deliberate failure.
 
 The utility coordinator stores `registry.sqlite` under Electron's application-data
 folder (`app.getPath('userData')`) and creates projects under its
-`workspace/projects/` folder. The form displays this projects location. Project
-names are separate from folder names and opaque UUID identities. Folder names
+`workspace/projects/` folder. The creation panel shows the destination folder and its parent; the shared projects
+folder remains available from “Where projects are saved.” Project
+names are separate from folder names and opaque UUID identities. Creation needs
+only a name; Edit folder name exposes the suggested folder name and validation
+rules when customization is needed. Folder names
 are single path components; existing files, folders and symlinks are rejected,
 including empty folders. Repository import and relocation UI are outside this
 issue.
@@ -108,9 +111,10 @@ keep their original identity.
 Reopening validates the saved identity, history schema and Git repository. A
 missing, inaccessible or substituted project remains listed as unavailable;
 restoring its original files and choosing **Open** retries validation. The app
-does not recreate missing files for a previously ready project. Open displays the
-project identity, files location and repository location; a code editor and task
-setup are separate work.
+does not recreate missing files for a previously ready project. Open preserves the saved list beside the current-project panel. Folder locations
+can be inspected before opening. The current panel provides Finder access,
+validated project-path copying and an identity/Git-path disclosure. A code editor
+and task setup are separate work.
 
 Stores use versioned, checksummed SQL initialization, WAL, FULL synchronization,
 foreign keys and a bounded busy timeout. A newer/unknown schema is rejected
@@ -120,12 +124,22 @@ local storage only: network and sync-folder operation, power-loss durability,
 and moving/backup UX remain unqualified. SIGKILL recovery tests do not prove
 power-loss or disk-full safety.
 
+The project list supports search and sorting by recently opened, name or creation
+time. Last-opened times are disposable local UI preferences, stored in the
+renderer profile. They are not research history or authoritative project records;
+clearing that UI cache loses recency cues without affecting projects or their
+identities. Copy feedback is scoped to the project whose location was copied.
+
 ## Host boundaries and follow-up work
 
 The React renderer has no Node access; a sandboxed preload exposes status and
-four typed catalog operations (list/create/open/recover). Main validates the
+four typed catalog operations (list/create/open/recover) and three narrow native
+actions (reveal a validated project folder, copy its validated path, and copy the
+known workspace projects path). Main validates the
 requesting window/frame and owns native windows and utility-process lifecycle.
-The utility coordinator owns all registry/history, filesystem and Git work,
+Main resolves native-action locations through the catalog; the renderer never
+supplies an arbitrary native path or clipboard payload. The utility coordinator
+owns all registry/history, filesystem and Git work,
 requires actual SQLite 3.51.3 or later, and serializes requests. No raw SQL or
 filesystem operation is exposed through the preload. The project history schema
 currently contains identity only; run history, adapters, credentials, active-run

@@ -97,7 +97,7 @@ try {
   restarted.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
   await restarted.getByRole('heading', { name: 'First research', exact: true }).waitFor();
   const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
-  await firstCard.getByText(/^Last opened/).waitFor();
+  await firstCard.getByText(/^Opened/).waitFor();
   await firstCard.getByRole('button', { name: 'Show folder path for First research', exact: true }).click();
   await firstCard.getByText(first.location, { exact: true }).waitFor();
   await firstCard.getByRole('button', { name: 'Open', exact: true }).click();
