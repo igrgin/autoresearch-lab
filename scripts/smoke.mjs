@@ -62,6 +62,11 @@ try {
   // A conflict must preserve the first project's source and expose an error.
   await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
+  await page.getByRole('button', { name: 'Customize', exact: true }).click();
+  await page.getByLabel('Folder name', { exact: true }).fill('../invalid');
+  assert.equal(await page.getByRole('button', { name: 'Create project', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'Done', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByLabel('Folder name', { exact: true }).getAttribute('aria-invalid'), 'true');
   await page.getByLabel('Folder name', { exact: true }).fill('first-research');
   await page.getByRole('button', { name: 'Create project', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'already exists' }).waitFor();
@@ -92,9 +97,10 @@ try {
   restarted.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
   await restarted.getByRole('heading', { name: 'First research', exact: true }).waitFor();
   const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
+  await firstCard.getByText('Last opened just now', { exact: true }).waitFor();
   await firstCard.getByRole('button', { name: 'Open', exact: true }).click();
   await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
-  await restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) }).getByText('Opened', { exact: true }).waitFor();
+  await restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) }).getByText('Current', { exact: true }).waitFor();
   await restarted.getByRole('button', { name: 'New project', exact: true }).click();
   await restarted.getByLabel('Project name', { exact: true }).fill('Cancelled draft');
   await restarted.getByRole('button', { name: 'Cancel creation', exact: true }).click();
@@ -141,7 +147,7 @@ try {
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
+  const report = { persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {

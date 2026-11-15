@@ -1,0 +1,25 @@
+{
+  "synthetic": true,
+  "restartReopen": "passed",
+  "errors": [],
+  "captures": [
+    {
+      "filename": "create-list.png",
+      "width": 1180,
+      "height": 838,
+      "sha256": "d8ddb92dd8747ece871dd9d43b48900e19073750af1165940a8011fa4535d1a8"
+    },
+    {
+      "filename": "open.png",
+      "width": 1180,
+      "height": 838,
+      "sha256": "d0d87659737a34412caa6dedbe633ecb2ebf05d45ec1194f6120e7a80edcd3fd"
+    },
+    {
+      "filename": "open-details.png",
+      "width": 1180,
+      "height": 838,
+      "sha256": "42025fa59bd6d0a6cb437730c205a28f447a7716d9f51e120783d5274c42ab64"
+    }
+  ]
+}

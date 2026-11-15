@@ -49,7 +49,7 @@ try {
   page = await launch();
   await page.getByRole('heading', { name: 'Image research demo', exact: true }).waitFor();
   await page.getByLabel('Project name', { exact: true }).fill('Tabular research');
-  assert.equal(await page.getByLabel('Folder name', { exact: true }).inputValue(), 'tabular-research');
+  await page.getByText('projects/tabular-research', { exact: true }).waitFor();
   await capture(page, 'create-list.png');
   await page.getByRole('article', { name: 'Image research demo', exact: true }).getByRole('button', { name: 'Open', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Open project', exact: true });

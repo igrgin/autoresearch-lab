@@ -23,11 +23,33 @@ function Icon({ name, size = 20 }: { name: 'folder' | 'plus' | 'search' | 'refre
 const folderSuggestion = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 const validFolder = (name: string) => /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(name);
 
+const recencyKey = 'lab.project-recency.v1';
+function readRecency(): Record<string, number> {
+  try {
+    const value = JSON.parse(localStorage.getItem(recencyKey) || '{}');
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    const valid: Record<string, number> = {};
+    for (const [id, time] of Object.entries(value)) {
+      if (/^[a-f0-9-]{36}$/i.test(id) && typeof time === 'number' && Number.isFinite(time) && time > 0 && time <= Date.now()) valid[id] = time;
+    }
+    return valid;
+  } catch { return {}; }
+}
+function openedLabel(time?: number) {
+  if (!time) return 'Not opened on this device';
+  const elapsed = Date.now() - time;
+  if (elapsed < 60_000) return 'Last opened just now';
+  if (elapsed < 3_600_000) return `Last opened ${Math.floor(elapsed / 60_000)} min ago`;
+  return `Last opened ${new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(time)}`;
+}
+
 function Projects() {
   const [workspace, setWorkspace] = useState<WorkspaceProjects>();
   const [name, setName] = useState('');
   const [folderName, setFolderName] = useState('');
   const [folderEdited, setFolderEdited] = useState(false);
+  const [customizeFolder, setCustomizeFolder] = useState(false);
+  const [recency, setRecency] = useState<Record<string, number>>(readRecency);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [opened, setOpened] = useState<ProjectRecord>();
   const [creating, setCreating] = useState(true);
@@ -36,7 +58,7 @@ function Projects() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState('name');
+  const [sort, setSort] = useState('recent');
   const [message, setMessage] = useState('');
   const nameInput = useRef<HTMLInputElement>(null);
 
@@ -54,6 +76,10 @@ function Projects() {
       const reply = await action();
       if (reply.ok) {
         setOpened(reply.value); setCreating(false);
+        const nextRecency = { ...recency, [reply.value.projectId]: Date.now() };
+        setRecency(nextRecency);
+        // Disposable navigation preference; never an authoritative project/history record.
+        try { localStorage.setItem(recencyKey, JSON.stringify(nextRecency)); } catch { /* Projects remain usable without the UI cache. */ }
         setMessage(`${reply.value.name} is open.`);
       } else setError(reply.error.message);
       await refresh();
@@ -62,7 +88,7 @@ function Projects() {
   }
 
   function newProject() {
-    setCreating(true); setName(''); setFolderName(''); setFolderEdited(false);
+    setCreating(true); setName(''); setFolderName(''); setFolderEdited(false); setCustomizeFolder(false);
     setRequestId(crypto.randomUUID()); setError(''); setMessage('');
     requestAnimationFrame(() => nameInput.current?.focus());
   }
@@ -79,12 +105,12 @@ function Projects() {
   }
 
   const entries = workspace?.projects || [];
-  const filtered = entries.filter(({ project }) => `${project.name} ${project.location.split('/').pop()}`.toLowerCase().includes(query.toLowerCase().trim())).sort((a, b) => sort === 'newest' ? b.project.createdAt.localeCompare(a.project.createdAt) || a.project.name.localeCompare(b.project.name) : a.project.name.localeCompare(b.project.name));
+  const filtered = entries.filter(({ project }) => `${project.name} ${project.location.split('/').pop()}`.toLowerCase().includes(query.toLowerCase().trim())).sort((a, b) => (sort === 'recent' ? (recency[b.project.projectId] || 0) - (recency[a.project.projectId] || 0) : sort === 'newest' ? b.project.createdAt.localeCompare(a.project.createdAt) : 0) || a.project.name.localeCompare(b.project.name));
   const showCreate = creating || !opened;
   const canCreate = !!name.trim() && validFolder(folderName) && !!workspace && !busy;
 
   return <>
-    <header className="page-header"><div><p className="eyebrow">Workspace / Projects</p><h1>Your research projects</h1><p>Create a workspace for your next idea, or pick up where you left off.</p></div>
+    <header className="page-header"><div><p className="eyebrow">Workspace / Projects</p><h1>Your research projects</h1><p>Create a project for your next idea, or reopen saved work.</p></div>
       {showCreate ? opened && <button className="secondary" onClick={() => { setCreating(false); setError(''); }} disabled={busy}>Cancel creation</button> : <button className="primary" onClick={newProject} disabled={busy}><Icon name="plus" size={18} />New project</button>}
     </header>
     <div className="sr-only" aria-live="polite">{message}</div>
@@ -96,43 +122,42 @@ function Projects() {
           try { await refresh(); setMessage('Project list refreshed.'); } catch (reason) { setError((reason as Error).message); } finally { setRefreshing(false); }
         }}><Icon name="refresh" size={16} />{refreshing ? 'Refreshing…' : 'Refresh'}</button></div>
         <div className="list-tools"><label className="search-field"><span className="sr-only">Search projects</span><Icon name="search" size={18} /><input type="search" placeholder="Search projects" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-          <label className="sort-field"><span className="sr-only">Sort projects</span><select aria-label="Sort projects" value={sort} onChange={(event) => setSort(event.target.value)}><option value="name">Name A–Z</option><option value="newest">Newest first</option></select></label></div>
+          <label className="sort-field"><span className="sr-only">Sort projects</span><select aria-label="Sort projects" value={sort} onChange={(event) => setSort(event.target.value)}><option value="recent">Recent first</option><option value="name">Name A–Z</option><option value="newest">Newest first</option></select></label></div>
         {!workspace ? <div className="list-empty"><p>Loading your projects…</p></div> : !entries.length ? <div className="list-empty"><span className="empty-icon"><Icon name="folder" size={28} /></span><h3>No projects yet</h3><p>Give your research a home.<br />Create a project using the form beside this list.</p></div> : !filtered.length ? <div className="list-empty"><h3>No matching projects</h3><p>Try another project name or folder.</p><button className="secondary" onClick={() => setQuery('')}>Clear search</button></div> :
           <div className="project-list">{filtered.map(({ project, availability, problem }) => {
             const current = opened?.projectId === project.projectId;
             return <article className={`project-row${current ? ' is-current' : ''}`} key={project.projectId} aria-label={project.name}>
-              <span className="project-symbol"><Icon name="folder" size={22} /></span><div className="project-summary"><div className="project-title"><h3>{project.name}</h3></div><p title={project.location}>projects/{project.location.split('/').pop()}</p>
+              <span className="project-symbol"><Icon name="folder" size={22} /></span><div className="project-summary"><div className="project-title"><h3>{project.name}</h3>{current && <span className="current-label">Current</span>}</div><p className="recency">{openedLabel(recency[project.projectId])}</p>
                 {availability !== 'ready' && <p className="project-problem">{availability === 'incomplete' ? 'Creation incomplete' : 'Project unavailable'}</p>}
                 {problem && <p className="project-recovery">{problem}</p>}</div>
-              {current ? <span className="opened-status"><Icon name="check" size={16} />Opened</span> : <button className="open-button" disabled={busy} onClick={() => void act(() => availability === 'incomplete' ? window.lab.recoverProject(project.projectId) : window.lab.openProject(project.projectId))}>{availability === 'incomplete' ? 'Retry creation' : <>Open<Icon name="arrow" size={16} /></>}</button>}
+              <button className="open-button" disabled={busy} onClick={() => void act(() => availability === 'incomplete' ? window.lab.recoverProject(project.projectId) : window.lab.openProject(project.projectId))}>{availability === 'incomplete' ? 'Retry creation' : <>{current ? 'View' : 'Open'}<Icon name="arrow" size={16} /></>}</button>
             </article>;
           })}</div>}
         <div className="workspace-location"><div><Icon name="folder" size={16} /><strong>Workspace location</strong><button className="text-button" disabled={!workspace} onClick={async () => {
           try { const reply = await window.lab.copyWorkspaceLocation(); if (!reply.ok) throw new Error(reply.error.message); setCopied(true); setMessage('Workspace location copied.'); }
           catch { setError('The workspace path could not be copied. You can select and copy the displayed path.'); }
-        }}>{copied ? 'Copied' : 'Copy path'}</button></div><p>{workspace?.projectsFolder || 'Opening workspace…'}</p></div>
+        }}>{copied ? 'Copied' : 'Copy path'}</button></div><p className="workspace-path" title={workspace?.projectsFolder}>{workspace?.projectsFolder || 'Opening workspace…'}</p></div>
       </section>
       {!showCreate && opened ? <section className="detail-panel" aria-label="Open project">
         <div className="panel-eyebrow"><span className="status-dot" />Current project</div>
         <span className="large-project-symbol"><Icon name="folder" size={30} /></span><h2>{opened.name}</h2>
-        <p className="project-ready"><Icon name="check" size={16} />Project opened successfully</p>
-        <p className="panel-description">Your project files and Git repository are ready. You can switch projects from the list.</p>
+        <p className="panel-description">View this project’s local folder in Finder. Task setup and research runs are not available yet.</p>
         <button className="primary show-files" disabled={busy} onClick={() => void showFiles()}><Icon name="folder" size={18} />Show files in Finder</button>
         <div className="project-facts"><span>Project folder</span><p title={opened.location}>projects/{opened.location.split('/').pop()}</p><span>Repository</span><p><span className="status-dot" />Local Git repository connected</p></div>
         <details className="technical-details"><summary>Project details</summary><dl><dt>Project identity</dt><dd>{opened.projectId}</dd><dt>Files</dt><dd>{opened.location}</dd><dt>Git repository</dt><dd>{opened.repository}</dd></dl></details>
-        <div className="scope-note">Task setup and research runs will be available in a future update.</div>
       </section> : <section className="create-panel" aria-label="Create project">
-        <div className="panel-eyebrow">A home for your research</div><h2>Create a project</h2><p className="panel-description">Each project has its own folder and Git repository.</p>
+        <h2>Create a project</h2><p className="panel-description">Start with a name. We’ll create a separate folder and Git repository.</p>
         <form onSubmit={(event) => { event.preventDefault(); if (canCreate) void act(() => window.lab.createProject({ requestId, name, folderName })); }}>
           <div className="field-label"><label htmlFor="project-name">Project name</label><span>Required</span></div><input ref={nameInput} id="project-name" required maxLength={120} placeholder="e.g. Image research" value={name} disabled={busy} aria-describedby="name-hint" onChange={(event) => {
             setName(event.target.value); setRequestId(crypto.randomUUID());
             if (!folderEdited) setFolderName(folderSuggestion(event.target.value));
-          }} /><p className="field-hint" id="name-hint">A display name to recognize your project.</p>
-          <div className="field-label"><label htmlFor="folder-name">Folder name</label><span>{folderEdited ? 'Custom' : 'Auto-suggested'}</span></div><input id="folder-name" required maxLength={80} pattern="[a-zA-Z0-9]([a-zA-Z0-9_]|-)*" placeholder="image-research" value={folderName} disabled={busy} aria-describedby="folder-hint" aria-invalid={!!folderName && !validFolder(folderName)} onChange={(event) => {
+          }} /><span className="sr-only" id="name-hint">A display name to recognize your project.</span>
+          <div className="destination"><div><span>Project folder</span><button type="button" className="text-button" aria-expanded={customizeFolder} disabled={busy || (customizeFolder && !validFolder(folderName))} onClick={() => setCustomizeFolder(!customizeFolder)}>{customizeFolder ? 'Done' : 'Customize'}</button></div><p>projects/<strong>{folderName || 'your-project'}</strong></p></div>
+          {!customizeFolder && name.trim() && !folderName && <p className="field-hint invalid-hint">Choose Customize to set a folder name for this project.</p>}
+          {customizeFolder && <div className="folder-customization"><div className="field-label"><label htmlFor="folder-name">Folder name</label><span>{folderEdited ? 'Custom' : 'Suggested'}</span></div><input id="folder-name" required maxLength={80} pattern="[a-zA-Z0-9]([a-zA-Z0-9_]|-)*" value={folderName} disabled={busy} aria-describedby="folder-hint" aria-invalid={!!folderName && !validFolder(folderName)} onChange={(event) => {
             setFolderEdited(true); setFolderName(event.target.value); setRequestId(crypto.randomUUID());
-          }} /><p className={`field-hint${folderName && !validFolder(folderName) ? ' invalid-hint' : ''}`} id="folder-hint">Suggested from your project name. Edit if needed.<br />Use letters, numbers, hyphens or underscores; start with a letter or number.</p>
-          {folderEdited && <button type="button" className="text-button reset-folder" disabled={busy} onClick={() => { setFolderEdited(false); setFolderName(folderSuggestion(name)); setRequestId(crypto.randomUUID()); }}>Use suggested folder name</button>}
-          <div className="destination"><span>Will be saved in your workspace</span><p>projects/<strong>{folderName || 'your-project'}</strong></p></div>
+          }} /><p className={`field-hint${folderName && !validFolder(folderName) ? ' invalid-hint' : ''}`} id="folder-hint">Use 1–80 letters, numbers, hyphens or underscores. Start with a letter or number.</p>
+          {folderEdited && <button type="button" className="text-button reset-folder" disabled={busy} onClick={() => { setFolderEdited(false); setFolderName(folderSuggestion(name)); setRequestId(crypto.randomUUID()); }}>Use suggested name</button>}</div>}
           <button className="primary create-button" type="submit" disabled={!canCreate}>{busy ? 'Creating project…' : <><Icon name="plus" size={18} />Create project</>}</button>
           <p className="safe-creation"><Icon name="check" size={14} />Existing folders are never overwritten.</p>
         </form>
