@@ -2,8 +2,8 @@
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
 Intel, Windows and Linux builds are not qualified. The shell currently provides
-Projects, Runs and Compute navigation with empty states; project creation,
-provider connections, agents and training are separate implementation tasks.
+Projects, Runs and Compute navigation with empty states and a separate Credential
+settings window; project creation, provider connections, agents and training are separate implementation tasks.
 
 ## Prerequisites
 
@@ -40,7 +40,7 @@ tools. Do not bypass Gatekeeper to install an untrusted download.
 For interactive development, use `npm start`. It uses Forge's local webpack
 development server. Use View → Reload after renderer edits (automatic browser
 HMR injection is disabled for the sandboxed preload). Packaged builds load local files and need no server. Use
-`npm run check` for the fast source checks or `npm run package` for just the app.
+`npm run check` for source checks and synthetic security tests or `npm run package` for just the app.
 
 ## Packaged smoke check and CI
 
@@ -52,8 +52,10 @@ npm run smoke
 
 This launches the actual packaged executable in a temporary user-data directory,
 checks native SQLite loading in the utility coordinator, all three navigation
-pages, renderer isolation, native window close/reopen and normal app quit. It
-writes `out/smoke/result.json` and `out/smoke/workspace.png`, then removes its test
+pages, renderer isolation, native window close/reopen and normal app quit. It also
+saves a synthetic credential through the dedicated settings window, checks
+Keychain-backed ciphertext and input clearing, and rejects an unrelated renderer's
+credential IPC request. It writes `out/smoke/result.json` and `out/smoke/workspace.png`, then removes its test
 profile. Playwright controls Electron directly; no browser install is needed.
 It does not prove active-run Pause or remote recovery, which the shell cannot yet
 exercise.
@@ -76,7 +78,7 @@ The React renderer has no Node access; a sandboxed preload exposes only
 `lab.getStatus()`. Main owns native windows and the utility-process lifecycle.
 The utility coordinator loads `better-sqlite3` and checks the actual SQLite
 runtime is at least 3.51.3, using an in-memory database only. Durable registry and
-per-project history schemas/migrations, adapters, credentials, active-run close
+per-project history schemas/migrations, adapters, active-run close
 handling and remote supervision belong to their dependent tasks; no placeholder
 protocol or outcome rules are imposed here.
 
@@ -86,3 +88,13 @@ and [#16](https://github.com/igrgin/autoresearch-lab/issues/16). The main/preloa
 renderer and coordinator entrypoints stay separate so platform-specific host
 code does not become a renderer or shared integration dependency. Future targets
 still require their own native module, packaging and lifecycle qualification.
+
+Credential settings are available from the application menu. Saving, replacing
+and revoking app access use the separate trusted window; ordinary project views
+cannot retrieve stored values. Replacement does not revoke the old credential at
+its provider: complete issuer-side revocation before resuming affected work.
+Locked/unavailable Keychain storage fails without a plaintext fallback.
+
+The [issue 21 implementation record](./egm/implementation/21-credentials-and-safe-recording.md)
+describes the shared credential/admission ports, synthetic coverage, and adapter,
+isolation, incident-remediation and signed-distribution qualification still required.

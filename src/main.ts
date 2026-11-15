@@ -1,10 +1,17 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, utilityProcess } from 'electron';
 import path from 'node:path';
 import type { ShellStatus } from './shell';
+import { createSecurityHost } from './security/electron-vault';
+import { validEntry } from './security/entry-contract';
+import { assertId, newId } from './security/common';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
+declare const CREDENTIAL_WINDOW_WEBPACK_ENTRY: string;
+declare const CREDENTIAL_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+let credentialWindow: BrowserWindow | null = null;
+let security: ReturnType<typeof createSecurityHost>;
 let window: BrowserWindow | null = null;
 let coordinator: ReturnType<typeof utilityProcess.fork> | null = null;
 let quitting = false;
@@ -40,6 +47,17 @@ function startCoordinator(): Promise<ShellStatus> {
   });
 }
 
+async function openCredentialSettings() {
+  if (credentialWindow) { credentialWindow.focus(); return; }
+  credentialWindow = new BrowserWindow({ width: 560, height: 520, title: 'Credential settings',
+    webPreferences: { preload: CREDENTIAL_WINDOW_PRELOAD_WEBPACK_ENTRY, nodeIntegration: false, contextIsolation: true, sandbox: true, devTools: false } });
+  credentialWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  credentialWindow.webContents.on('will-navigate', event => event.preventDefault());
+  credentialWindow.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
+  credentialWindow.on('closed', () => { credentialWindow = null; });
+  await credentialWindow.loadURL(CREDENTIAL_WINDOW_WEBPACK_ENTRY);
+}
+
 async function createWindow() {
   window = new BrowserWindow({
     width: 1180, height: 780, minWidth: 760, minHeight: 520,
@@ -64,6 +82,42 @@ if (!app.requestSingleInstanceLock()) {
     window?.focus();
   });
   app.whenReady().then(async () => {
+    security = createSecurityHost();
+    ipcMain.handle('credentials:register', async (event, input: unknown) => {
+      if (!credentialWindow || event.sender !== credentialWindow.webContents ||
+          event.senderFrame !== credentialWindow.webContents.mainFrame || !validEntry(input)) {
+        return { ok: false, message: 'This credential request is not authorized.' };
+      }
+      try {
+        await security.initialize();
+        await security.credentials.register(input.category, newId(), input.label, input.value);
+        return { ok: true, message: 'Credential saved on this Mac.' };
+      } catch {
+        return { ok: false, message: 'Credential storage is unavailable or the entry is invalid. Unlock the Keychain and try again.' };
+      }
+    });
+    const trustedEntry = (event: Electron.IpcMainInvokeEvent) => credentialWindow && event.sender === credentialWindow.webContents &&
+      event.senderFrame === credentialWindow.webContents.mainFrame;
+    ipcMain.handle('credentials:list', async event => {
+      if (!trustedEntry(event)) return [];
+      try { await security.initialize(); return security.credentials.list(); } catch { throw new Error('Unlock credential storage and try again.'); }
+    });
+    ipcMain.handle('credentials:replace', async (event, input: { id?: unknown; value?: unknown }) => {
+      if (!trustedEntry(event)) return { ok: false, message: 'This credential request is not authorized.' };
+      try {
+        assertId(input?.id);
+        if (typeof input.value !== 'string' || !input.value || input.value.length > 65536) throw new Error();
+        await security.initialize(); await security.credentials.replace(input.id, input.value);
+        return { ok: true, message: 'Replacement saved. Revoke the old credential with its issuing service before resuming.' };
+      } catch { return { ok: false, message: 'Replacement failed. Unlock credential storage and try again.' }; }
+    });
+    ipcMain.handle('credentials:revoke', async (event, id: unknown) => {
+      if (!trustedEntry(event)) return { ok: false, message: 'This credential request is not authorized.' };
+      try {
+        assertId(id); await security.initialize(); await security.credentials.revoke(id);
+        return { ok: true, message: 'App access revoked. Revoke the credential with its issuing service too.' };
+      } catch { return { ok: false, message: 'App revocation failed. Check credential storage.' }; }
+    });
     const status = await startCoordinator();
     ipcMain.handle('shell:get-status', (event) => {
       if (!window || event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame) {
@@ -72,14 +126,15 @@ if (!app.requestSingleInstanceLock()) {
       return status;
     });
     Menu.setApplicationMenu(Menu.buildFromTemplate([
-      { role: 'appMenu' }, { role: 'editMenu' },
+      { label: app.name, submenu: [{ role: 'about' }, { id: 'credential-settings', label: 'Credential settings…', click: () => { void openCredentialSettings(); } },
+        { type: 'separator' }, { role: 'quit' }] }, { role: 'editMenu' },
       { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggleDevTools' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }] },
       { role: 'windowMenu' },
     ]));
     await createWindow();
     app.on('activate', () => { if (!window) void createWindow(); });
-  }).catch((error: unknown) => {
-    dialog.showErrorBox('Unable to open Autoresearch Lab', error instanceof Error ? error.message : 'Workspace startup failed.');
+  }).catch(() => {
+    dialog.showErrorBox('Unable to open Autoresearch Lab', 'Workspace startup failed. Restart the application.');
     process.exitCode = 1;
     app.quit();
   });

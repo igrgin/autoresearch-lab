@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, writeFile, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { _electron as electron } from 'playwright';
@@ -38,6 +38,33 @@ try {
   assert.equal(preferences.contextIsolation, true);
   assert.equal(preferences.nodeIntegration, false);
   assert.deepEqual(rendererErrors, []);
+  // Ordinary renderer cannot read or enter credentials through its bridge.
+  assert.equal(await page.evaluate(() => typeof window.credentialEntry), 'undefined');
+  const entryOpening = application.waitForEvent('window');
+  await application.evaluate(({ Menu }) => {
+    const item = Menu.getApplicationMenu().getMenuItemById('credential-settings');
+    item.click();
+  });
+  const entryPage = await entryOpening;
+  const synthetic = 'synthetic-packaged-vault-check-4d7a';
+  await entryPage.getByLabel('Label', { exact: true }).fill('Packaged synthetic check');
+  await entryPage.getByLabel('Credential', { exact: true }).fill(synthetic);
+  await entryPage.getByRole('button', { name: 'Save credential', exact: true }).click();
+  await entryPage.getByRole('status').filter({ hasText: 'Credential saved on this Mac.' }).waitFor();
+  assert.equal(await entryPage.getByLabel('Credential', { exact: true }).inputValue(), '');
+  assert.ok(!(await entryPage.locator('body').innerText()).includes(synthetic));
+  const vaultBytes = await readFile(path.join(userData, 'private-credentials', 'credentials.vault'));
+  assert.ok(!vaultBytes.includes(Buffer.from(synthetic)));
+  // A separate renderer with IPC access still cannot impersonate credential-entry.
+  const unauthorized = await application.evaluate(async ({ BrowserWindow }) => {
+    const probe = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true, contextIsolation: false, sandbox: false } });
+    try {
+      await probe.loadURL('data:text/html,<html></html>');
+      return await probe.webContents.executeJavaScript(`require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'})`);
+    } finally { probe.destroy(); }
+  });
+  assert.equal(unauthorized.ok, false);
+  await entryPage.close();
   await mkdir('out/smoke', { recursive: true });
   await page.screenshot({ path: 'out/smoke/workspace.png' });
   // Exercise the native close path, then macOS activation/reopen, then normal quit.
@@ -51,7 +78,7 @@ try {
   await reopened.getByRole('heading', { name: 'No projects yet', exact: true }).waitFor();
   await application.close();
   assert.equal(child.exitCode, 0);
-  const report = { packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
+  const report = { packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', keychainVaultAndEntryIsolation: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {
