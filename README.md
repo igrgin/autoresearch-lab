@@ -11,7 +11,17 @@ Planned capabilities:
 
 ## Getting started
 
-TODO
+On Apple Silicon macOS, install Node 24.22.3 and Apple Command Line Tools, then run:
+
+```sh
+npm ci
+npm run build
+open "out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app"
+```
+
+The initial shell provides Projects, Runs and Compute navigation. See the
+[build instructions](./docs/BUILD.md) for prerequisites, development, packaged
+smoke checks, CI output and current limitations.
 
 ## Documentation
 
