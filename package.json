@@ -18,10 +18,11 @@
     "package": "electron-forge package --platform=darwin --arch=arm64",
     "make": "electron-forge make --platform=darwin --arch=arm64",
     "build": "npm run check && npm run make",
-    "smoke": "node scripts/smoke.mjs && node scripts/smoke-vast.mjs",
+    "smoke": "node scripts/smoke.mjs && node scripts/smoke-vast.mjs && node scripts/smoke-codex.mjs",
     "test": "node scripts/test.mjs && node scripts/test-security.mjs"
   },
   "dependencies": {
+    "@openai/codex-runtime": "npm:@openai/codex@0.169.0-darwin-arm64",
     "better-sqlite3": "13.1.1",
     "react": "19.3.1",
     "react-dom": "19.3.1"

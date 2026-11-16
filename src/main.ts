@@ -1,3 +1,7 @@
+import { CodexHost } from './codex/host';
+import { StdioAuthRpc, stopCodexAuthentication } from './codex/stdio';
+import { CodexFailure } from './codex/errors';
+import type { CodexReply, CodexStoreCommand, CodexStoreValue, ChooseAgent } from './codex/contract';
 import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -24,6 +28,14 @@ let vast: VastConnection;
 let window: BrowserWindow | null = null;
 let coordinator: ReturnType<typeof utilityProcess.fork> | null = null;
 let quitting = false;
+const codexPending = new Map<string, { resolve: (value: CodexStoreValue) => void; reject: (reason: Error) => void; timer: NodeJS.Timeout }>();
+function requestCodexStore(command: CodexStoreCommand): Promise<CodexStoreValue> {
+  return new Promise((resolve, reject) => {
+    const id = randomUUID();
+    const timer = setTimeout(() => { codexPending.delete(id); reject(new CodexFailure('unavailable')); }, 10_000);
+    codexPending.set(id, { resolve, reject, timer }); coordinator?.postMessage({ id, codex: command });
+  });
+}
 let startupFailure = 'Workspace startup failed. Restart the application.';
 type HostValue = ProjectRecord | WorkspaceProjects | ImportRecord[];
 const selections = new Map<string, { paths: string[]; directory: boolean }>();
@@ -116,7 +128,16 @@ function startCoordinator(): Promise<ShellStatus> {
         child.postMessage({ channel: 'research_security', id, ok: !!record, record });
       }).catch(() => child.postMessage({ channel: 'research_security', id, ok: false }));
     });
+    child.on('message', (message: { id?: string; codexReply?: CodexReply<CodexStoreValue> }) => {
+      if (!message?.id || !message.codexReply) return;
+      const waiting = codexPending.get(message.id); if (!waiting) return;
+      clearTimeout(waiting.timer); codexPending.delete(message.id);
+      if (message.codexReply.ok) waiting.resolve(message.codexReply.value);
+      else waiting.reject(new CodexFailure(message.codexReply.error.code));
+    });
     child.once('exit', () => {
+      for (const waiting of codexPending.values()) { clearTimeout(waiting.timer); waiting.reject(new CodexFailure('unavailable')); }
+      codexPending.clear();
       clearTimeout(timer);
       for (const waiting of pending.values()) clearTimeout(waiting.timer);
       pending.clear();
@@ -279,6 +300,20 @@ if (!app.requestSingleInstanceLock()) {
       catch { return vastFailure('authentication_required', newId()); }
     });
     ipcMain.handle('vast:settings', async event => { admit(event); await openCredentialSettings(); });
+    const codexExecutable = app.isPackaged ? path.join(process.resourcesPath, 'codex') :
+      path.join(app.getAppPath(), 'node_modules/@openai/codex-runtime/vendor/aarch64-apple-darwin/bin/codex');
+    const codex = new CodexHost(security, requestCodexStore, signal => StdioAuthRpc.start(codexExecutable, path.join(app.getPath('userData'), 'private-codex'), signal));
+    ipcMain.handle('codex:settings', event => { admit(event); return codex.execute(() => codex.settings()); });
+    ipcMain.handle('codex:credentials', event => { admit(event); return openCredentialSettings(); });
+    ipcMain.handle('codex:authenticate', (event, credentialRef: string) => {
+      admit(event); return codex.execute(async () => { assertId(credentialRef); return codex.catalog(credentialRef); });
+    });
+    ipcMain.handle('codex:models', event => { admit(event); return codex.execute(() => codex.catalog()); });
+    ipcMain.handle('codex:default', (event, choice: ChooseAgent) => { admit(event); return codex.execute(() => codex.saveDefault(choice)); });
+    ipcMain.handle('codex:run-get', (event, projectId: string) => { admit(event); return codex.execute(() => codex.runSelection(projectId)); });
+    ipcMain.handle('codex:run-save', (event, projectId: string, expectedRevision: number, choice: ChooseAgent) => {
+      admit(event); return codex.execute(() => codex.saveRunSelection(projectId, expectedRevision, choice));
+    });
     ipcMain.handle('shell:get-status', (event) => {
       admit(event);
       return status;
@@ -390,6 +425,6 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 // This shell cannot start runs. Active-run close/quit coordination is owned by #73.
-app.on('before-quit', () => { quitting = true; });
+app.on('before-quit', () => { quitting = true; stopCodexAuthentication(); });
 app.on('will-quit', () => { coordinator?.kill(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
