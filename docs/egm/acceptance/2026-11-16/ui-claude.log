@@ -1,0 +1,10 @@
+FAMILY_PROBE_FINISHED:ui-claude
+file:///private/tmp/autoresearch-family-ui/smoke-claude-recovery.mjs:98
+await writeFile('/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/family-verification/ui-claude.json', JSON.stringify({consumer:'Claude settings',cacheBeforeRefresh,cacheAfterRefresh:(await panel.innerText()).includes(model),expected:false,qualification:'actual packaged vault/host/UI; controlled worker'},null,2)); console.log('FAMILY_PROBE_FINISHED:ui-claude'); throw new Error('FAMILY_PROBE_FINISHED');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^
+
+Error: FAMILY_PROBE_FINISHED
+    at checkClaudeRetainedMetadataProtection (file:///private/tmp/autoresearch-family-ui/smoke-claude-recovery.mjs:98:446)
+    at async file:///private/tmp/autoresearch-family-ui/family-claude.mjs:518:3
+
+Node.js v24.22.3

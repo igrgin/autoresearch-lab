@@ -1,0 +1,7 @@
+{
+  "consumer": "Runpod discovery",
+  "cacheBeforeRefresh": true,
+  "cacheAfterRefresh": true,
+  "expected": false,
+  "qualification": "actual packaged HTTPS/vault/UI; controlled HTTP"
+}

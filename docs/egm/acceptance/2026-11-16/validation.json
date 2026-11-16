@@ -1,0 +1,19 @@
+{
+  "implementationValidationHead": "e27fba6aa93bf63852e0f3350db52b2231511761",
+  "restackedEquivalentHead": "d3b419f8bf859dfbe830c37a80ef19c54dc65662",
+  "automatedTests": 421,
+  "nativeTransportCases": 19,
+  "configurationPackagedAssertions": 27,
+  "check": "passed",
+  "make": "passed",
+  "zipIntegrity": "passed",
+  "allFourPackagedSuites": "passed",
+  "newFamilyFailures": "reported; no further behavior patches applied",
+  "services": "controlled fixtures only; no live authentication/inference/GPU qualification",
+  "ci": "main-only after externally merged PR118; absent PR checks are expected",
+  "policy": "per-PR acceptance and targeted repair verification; global two-clean-round requirement superseded",
+  "packagedSourceTree": "2a987b5fd19a4004c9fe9569e68818aa3473959c",
+  "restackedTree": "6f6183ec8091638e7dbe3bdcb054a02da4d222b4",
+  "layerTypechecks": "all 10 passed; frozen Git source exports, no shell worktrees",
+  "lintAfterRestack": "passed"
+}

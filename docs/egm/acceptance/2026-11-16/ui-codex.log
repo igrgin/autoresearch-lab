@@ -1,0 +1,9 @@
+FAMILY_PROBE_FINISHED:ui-codex
+file:///private/tmp/autoresearch-family-ui/smoke-codex.mjs:126
+await writeFile('/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/family-verification/ui-codex.json', JSON.stringify({consumer:'Codex run selection',cacheBeforeRefresh,cacheAfterRefresh,expected:false,qualifications:'packaged native vault/IPC/UI with controlled subprocess; no live services'},null,2)); console.log('FAMILY_PROBE_FINISHED:ui-codex'); throw new Error('FAMILY_PROBE_FINISHED');
+                                                                                                                                                                                                                                                                                                                                                                                                                                               ^
+
+Error: FAMILY_PROBE_FINISHED
+    at file:///private/tmp/autoresearch-family-ui/smoke-codex.mjs:126:432
+
+Node.js v24.22.3

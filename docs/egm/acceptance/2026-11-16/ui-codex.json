@@ -1,0 +1,7 @@
+{
+  "consumer": "Codex run selection",
+  "cacheBeforeRefresh": true,
+  "cacheAfterRefresh": true,
+  "expected": false,
+  "qualifications": "packaged native vault/IPC/UI with controlled subprocess; no live services"
+}

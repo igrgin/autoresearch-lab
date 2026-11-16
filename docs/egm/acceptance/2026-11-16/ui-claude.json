@@ -1,0 +1,7 @@
+{
+  "consumer": "Claude settings",
+  "cacheBeforeRefresh": true,
+  "cacheAfterRefresh": false,
+  "expected": false,
+  "qualification": "actual packaged vault/host/UI; controlled worker"
+}
