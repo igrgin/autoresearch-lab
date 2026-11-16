@@ -6,6 +6,7 @@ import path from 'node:path';
 import { _electron as electron } from 'playwright';
 import { setGlobalDefaults, checkDefaultsBeforeRestart, checkDefaultsAfterRestart } from './smoke-defaults.mjs';
 import { checkPackagedReservations } from './reservation-smoke.mjs';
+import { smokeRunpod } from './smoke-runpod.mjs';
 
 const executablePath = path.resolve('out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app/Contents/MacOS/Autoresearch Lab');
 const userData = await mkdtemp(path.join(os.tmpdir(), 'autoresearch-lab-smoke-'));
@@ -196,12 +197,13 @@ try {
     const probe = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true, contextIsolation: false, sandbox: false } });
     try {
       await probe.loadURL('data:text/html,<html></html>');
-      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('configuration:request', {kind:'global:get',operationId:'00000000-0000-4000-8000-000000000000'}).then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:list', 'not-a-project').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:select', 'directory').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false}))])`);
+      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('configuration:request', {kind:'global:get',operationId:'00000000-0000-4000-8000-000000000000'}).then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:list', 'not-a-project').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:select', 'directory').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:credentials').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:discover', 'synthetic-reference').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:inspect', 'synthetic-reference', 'pod').then(() => ({ok:true}), () => ({ok:false}))])`);
     } finally { probe.destroy(); }
   });
   assert.equal(unauthorized.every(reply => reply.ok === false), true);
   await entryPage.close();
   await setGlobalDefaults(page);
+  await smokeRunpod(application, page);
   // Exercise project creation through the sandboxed UI, then verify real files.
   await page.getByLabel('Project name', { exact: true }).fill('First research');
   await page.getByRole('button', { name: 'Create project', exact: true }).click();
@@ -343,6 +345,7 @@ try {
   const restoredImports = await restarted.evaluate(id => window.lab.listImports(id), second.projectId);
   assert.equal(restoredImports.ok, true);
   assert.deepEqual(restoredImports.value, importReply.value);
+  await smokeRunpod(application, restarted);
   const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
   await firstCard.getByText(/^Opened/).waitFor();
   await firstCard.getByRole('button', { name: 'Show folder path for First research', exact: true }).click();
@@ -423,7 +426,7 @@ try {
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', localDatasetCopyMoveRecoveryConflict: 'passed', datasetOutcomeRestart: 'passed', importSenderIsolation: 'passed', importMetadataAdmission: 'passed', ...status };
+  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', localDatasetCopyMoveRecoveryConflict: 'passed', datasetOutcomeRestart: 'passed', importSenderIsolation: 'passed', importMetadataAdmission: 'passed', runpodDiscoveryFixturesAndIpc: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {
