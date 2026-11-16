@@ -13,13 +13,13 @@
   "scripts": {
     "start": "electron-forge start",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src scripts *.cjs",
+    "lint": "eslint src scripts tests *.cjs",
     "check": "npm run typecheck && npm run lint && npm test",
     "package": "electron-forge package --platform=darwin --arch=arm64",
     "make": "electron-forge make --platform=darwin --arch=arm64",
     "build": "npm run check && npm run make",
     "smoke": "node scripts/smoke.mjs",
-    "test": "node scripts/test-security.mjs"
+    "test": "node scripts/test.mjs && node scripts/test-security.mjs"
   },
   "dependencies": {
     "better-sqlite3": "13.1.1",

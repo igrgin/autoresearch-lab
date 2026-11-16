@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm, mkdir, writeFile, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, writeFile, readFile, rename, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { _electron as electron } from 'playwright';
@@ -18,7 +18,7 @@ async function checkWindowChrome(page, title) {
   await bar.waitFor();
   const bounds = await bar.boundingBox();
   assert.equal(bounds.y, 0);
-  assert.equal(await bar.evaluate(element => getComputedStyle(element).getPropertyValue('-webkit-app-region')), 'drag');
+  assert.equal(await bar.locator('.window-drag-area').evaluate(element => getComputedStyle(element).getPropertyValue('-webkit-app-region')), 'drag');
   assert.ok(await page.locator('button, input, select, a').evaluateAll(elements => elements.every(element => {
     const rect = element.getBoundingClientRect();
     return rect.height === 0 || rect.top >= 46;
@@ -37,13 +37,13 @@ try {
   const page = await application.firstWindow();
   page.setDefaultTimeout(15_000);
   page.setDefaultNavigationTimeout(15_000);
-  page.on('console', (message) => { if (message.type() === 'error') console.error(message.text()); });
+  const consoleErrors = [];
+  page.on('console', (message) => { if (message.type() === 'error') { consoleErrors.push(message.text()); console.error(message.text()); } });
   const rendererErrors = [];
   page.on('pageerror', (error) => { rendererErrors.push(error.message); console.error(error.message); });
   page.on('requestfailed', (request) => console.error(request.url(), request.failure()));
 
-  await page.getByRole('status').filter({ hasText: 'Workspace ready' }).waitFor();
-  await checkWindowChrome(page, 'Autoresearch Lab');
+  await page.getByRole('heading', { name: 'No projects yet', exact: true }).waitFor();
   for (const [name, heading] of [['Projects', 'No projects yet'], ['Runs', 'No runs yet'], ['Compute', 'No connected instances']]) {
     await page.getByRole('button', { name, exact: true }).click();
     await page.getByRole('heading', { name: heading, exact: true }).waitFor();
@@ -52,6 +52,9 @@ try {
   await page.getByRole('button', { name: 'Projects', exact: true }).click();
   const status = await page.evaluate(() => window.lab.getStatus());
   assert.equal(status.coordinator, 'ready');
+  assert.match(status.sqliteVersion, /^\d+\.\d+\.\d+$/);
+  assert.equal(await page.getByText('Workspace ready', { exact: true }).count(), 0);
+  await checkWindowChrome(page, 'Autoresearch Lab');
   assert.equal(await page.evaluate(() => typeof window.require), 'undefined');
   assert.equal(await page.evaluate(() => typeof window.process), 'undefined');
   const preferences = await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
@@ -69,6 +72,7 @@ try {
   const entryPage = await entryOpening;
   await entryPage.getByRole('heading', { name: 'Credential settings', exact: true }).waitFor();
   await checkWindowChrome(entryPage, 'Credential settings');
+  assert.equal(await entryPage.evaluate(() => typeof window.lab), 'undefined');
   await application.evaluate(({ shell }) => {
     globalThis.evidenceDocLinks = [];
     globalThis.originalOpenExternal = shell.openExternal;
@@ -188,12 +192,46 @@ try {
     const probe = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true, contextIsolation: false, sandbox: false } });
     try {
       await probe.loadURL('data:text/html,<html></html>');
-      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod')])`);
+      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false}))])`);
     } finally { probe.destroy(); }
   });
   assert.equal(unauthorized.every(reply => reply.ok === false), true);
   await entryPage.close();
+  // Exercise project creation through the sandboxed UI, then verify real files.
+  await page.getByLabel('Project name', { exact: true }).fill('First research');
+  await page.getByRole('button', { name: 'Create project', exact: true }).click();
+  const details = page.getByRole('region', { name: 'Open project', exact: true });
+  await details.getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  const firstReply = await page.evaluate(() => window.lab.listProjects());
+  assert.equal(firstReply.ok, true);
+  const first = firstReply.value.projects[0].project;
+  assert.equal((await stat(first.repository)).isDirectory(), true);
+  await writeFile(path.join(first.location, 'research.py'), '# retained source file\n');
+  await page.getByRole('button', { name: 'New project', exact: true }).click();
+  await page.getByLabel('Project name', { exact: true }).fill('Second research');
+  await page.getByRole('button', { name: 'Create project', exact: true }).click();
+  await details.getByRole('heading', { name: 'Second research', exact: true }).waitFor();
+  const secondReply = await page.evaluate(() => window.lab.listProjects());
+  assert.equal(secondReply.ok, true);
+  assert.equal(secondReply.value.projects.length, 2);
+  const second = secondReply.value.projects.find((entry) => entry.project.projectId !== first.projectId).project;
+  assert.notEqual(first.repository, second.repository);
+  assert.equal((await stat(second.repository)).isDirectory(), true);
+  // A conflict must preserve the first project's source and expose an error.
+  await page.getByRole('button', { name: 'New project', exact: true }).click();
+  await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
+  await page.getByRole('button', { name: 'Edit folder name', exact: true }).click();
+  await page.getByLabel('Folder name', { exact: true }).fill('../invalid');
+  assert.equal(await page.getByRole('button', { name: 'Create project', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'Done', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByLabel('Folder name', { exact: true }).getAttribute('aria-invalid'), 'true');
+  await page.getByLabel('Folder name', { exact: true }).fill('first-research');
+  await page.getByRole('button', { name: 'Create project', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'already exists' }).waitFor();
+  assert.equal(await readFile(path.join(first.location, 'research.py'), 'utf8'), '# retained source file\n');
   await mkdir('out/smoke', { recursive: true });
+  await page.getByRole('button', { name: 'Create project', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Create project', exact: true }).waitFor();
   await page.screenshot({ path: 'out/smoke/workspace.png' });
   // Exercise the native close path, then macOS activation/reopen, then normal quit.
   const closing = page.waitForEvent('close');
@@ -203,13 +241,114 @@ try {
   const reopening = application.waitForEvent('window');
   await application.evaluate(({ app }) => app.emit('activate'));
   const reopened = await reopening;
-  await reopened.getByRole('heading', { name: 'No projects yet', exact: true }).waitFor();
+  reopened.on('pageerror', (error) => rendererErrors.push(error.message));
+  reopened.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  await reopened.getByRole('heading', { name: 'First research', exact: true }).waitFor();
   await application.close();
   assert.equal(child.exitCode, 0);
-  const report = { packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', keychainVaultAndEntryIsolation: 'passed', ...status };
+  // A new main and coordinator must read the same registry and project identity.
+  application = await electron.launch({ executablePath, args: [`--user-data-dir=${userData}`], env: launchEnv, timeout: 30_000 });
+  child = application.process();
+  const restarted = await application.firstWindow();
+  restarted.setDefaultTimeout(15_000);
+  restarted.on('pageerror', (error) => rendererErrors.push(error.message));
+  restarted.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  await restarted.getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  // The same restart preserves both independent stores and the entry-only bridge.
+  const credentialReopening = application.waitForEvent('window');
+  await application.evaluate(({ Menu }) => Menu.getApplicationMenu().getMenuItemById('credential-settings').click());
+  const restartedEntry = await credentialReopening;
+  await restartedEntry.getByRole('button', { name: 'Unlock saved credentials', exact: true }).click();
+  await restartedEntry.getByRole('button', { name: /Packaged synthetic check Runpod/ }).click();
+  assert.equal(await restartedEntry.getByTestId('saved-label').textContent(), 'Packaged synthetic check');
+  assert.equal(await restartedEntry.getByLabel('New credential value', { exact: true }).inputValue(), '');
+  assert.equal(await restartedEntry.locator('.credential-list > li').count(), 2);
+  assert.equal(await restartedEntry.evaluate(() => typeof window.lab), 'undefined');
+  await restartedEntry.close();
+  const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
+  await firstCard.getByText(/^Opened/).waitFor();
+  await firstCard.getByRole('button', { name: 'Show folder path for First research', exact: true }).click();
+  await firstCard.getByText(first.location, { exact: true }).waitFor();
+  await firstCard.getByRole('button', { name: 'Open project', exact: true }).click();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  await restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) }).getByText('Current', { exact: true }).waitFor();
+  await restarted.getByRole('button', { name: 'New project', exact: true }).click();
+  await restarted.getByLabel('Project name', { exact: true }).fill('Cancelled draft');
+  await restarted.getByRole('button', { name: 'Cancel creation', exact: true }).click();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  // UI-only filtering and ordering never change the saved project catalog.
+  await restarted.getByRole('searchbox', { name: 'Search projects', exact: true }).fill('Second');
+  assert.equal(await restarted.getByRole('article').count(), 1);
+  await restarted.getByRole('searchbox', { name: 'Search projects', exact: true }).fill('absent-project');
+  await restarted.getByRole('heading', { name: 'No matching projects', exact: true }).waitFor();
+  await restarted.getByRole('button', { name: 'Clear search', exact: true }).click();
+  assert.equal(await restarted.getByRole('article').count(), 2);
+  // Stub only the native Finder dispatch in this test; catalog validation still runs.
+  await application.evaluate(({ app, shell }) => {
+    app.revealedProjectPaths = [];
+    shell.openPath = async (location) => { app.revealedProjectPaths.push(location); return ''; };
+  });
+  await restarted.getByRole('button', { name: 'Open project folder in Finder', exact: true }).click();
+  await restarted.getByText('Project folder opened in Finder.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location]);
+  await restarted.getByText('Git metadata folder & project ID', { exact: true }).click();
+  await restarted.getByRole('button', { name: 'Show Git metadata in Finder', exact: true }).click();
+  await restarted.getByText('Git folder opened in Finder.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location, first.repository]);
+  const invalidGitReveal = await restarted.evaluate(() => window.lab.revealProjectRepository('not-a-project'));
+  assert.equal(invalidGitReveal.ok, false);
+  await application.evaluate(({ app, clipboard }) => {
+    app.copiedWorkspacePaths = [];
+    clipboard.writeText = (location) => { app.copiedWorkspacePaths.push(location); };
+  });
+  await restarted.getByText('Where projects are saved', { exact: true }).click();
+  await restarted.getByRole('button', { name: 'Copy workspace path', exact: true }).click();
+  await restarted.getByText('Workspace location copied.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location)]);
+  await restarted.getByRole('button', { name: 'Copy project path', exact: true }).click();
+  await restarted.getByText('Project path copied.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location]);
+  await restarted.getByRole('button', { name: 'Copy Git path', exact: true }).click();
+  await restarted.getByText('Git path copied.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location, first.repository]);
+  const invalidGitCopy = await restarted.evaluate(() => window.lab.copyProjectRepository('not-a-project'));
+  assert.equal(invalidGitCopy.ok, false);
+  const invalidCopy = await restarted.evaluate(() => window.lab.copyProjectLocation('not-a-project'));
+  assert.equal(invalidCopy.ok, false);
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location, first.repository]);
+  const invalidReveal = await restarted.evaluate(() => window.lab.revealProject('not-a-project'));
+  assert.equal(invalidReveal.ok, false);
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location, first.repository]);
+  const openedReply = await restarted.evaluate((id) => window.lab.openProject(id), first.projectId);
+  assert.deepEqual(openedReply, { ok: true, value: first });
+  assert.equal(await readFile(path.join(first.location, 'research.py'), 'utf8'), '# retained source file\n');
+  // Unavailable folders stay listed; opening must never silently recreate them.
+  await rename(first.location, `${first.location}-temporarily-unavailable`);
+  await restarted.getByRole('button', { name: 'Refresh projects', exact: true }).click();
+  await firstCard.getByText('Project unavailable', { exact: true }).waitFor();
+  await firstCard.getByRole('button', { name: 'Open project', exact: true }).click();
+  await restarted.getByRole('alert').waitFor();
+  await assert.rejects(stat(first.location), { code: 'ENOENT' });
+  await rename(`${first.location}-temporarily-unavailable`, first.location);
+  await firstCard.getByRole('button', { name: 'Open project', exact: true }).click();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  // A rejected startup bridge remains an accessible, actionable error without a success footer.
+  await application.evaluate(({ ipcMain }) => {
+    ipcMain.removeHandler('shell:get-status');
+    ipcMain.handle('shell:get-status', () => { throw new Error('Simulated unavailable workspace'); });
+  });
+  await restarted.reload();
+  await restarted.getByRole('alert').filter({ hasText: 'Workspace unavailable' }).waitFor();
+  await restarted.getByText('Restart Autoresearch Lab to reconnect to your workspace.', { exact: true }).waitFor();
+  await application.close();
+  assert.equal(child.exitCode, 0);
+  assert.deepEqual(rendererErrors, []);
+  assert.deepEqual(consoleErrors, []);
+  const report = { keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {
   if (application && child.exitCode === null) await application.close();
+  if (child) assert.notEqual(child.exitCode, null, 'Synthetic app must exit before profile cleanup.');
   await rm(userData, { recursive: true, force: true });
 }
