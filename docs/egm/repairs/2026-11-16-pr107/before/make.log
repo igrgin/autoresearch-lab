@@ -1,0 +1,54 @@
+
+> autoresearch-lab@0.1.0 make
+> electron-forge make --platform=darwin --arch=arm64
+
+❯ Checking your system
+❯ Checking package manager version
+✔ Found npm@11.19.1
+✔ Checking your system
+❯ Loading configuration
+✔ Loading configuration
+❯ Resolving make targets
+› Making for the following targets: 
+✔ Resolving make targets
+❯ Running package command
+❯ Preparing to package application
+✔ Preparing to package application
+❯ Running packaging hooks
+❯ Running generateAssets hook
+✔ Running generateAssets hook
+❯ Running prePackage hook
+❯ [plugin-webpack] Preparing webpack bundles
+❯ Preparing native dependencies for arm64
+✔ Preparing native dependencies: 1 / 1
+❯ Building webpack bundles
+✔ Building webpack bundles
+✔ [plugin-webpack] Preparing webpack bundles
+✔ Running prePackage hook
+✔ Running packaging hooks
+❯ Packaging application
+› Determining targets...
+❯ Packaging for arm64 on darwin
+❯ Copying files
+✔ Copying files
+❯ Preparing native dependencies
+✔ Preparing native dependencies
+❯ Finalizing package
+✔ Finalizing package
+✔ Packaging for arm64 on darwin
+✔ Packaging application
+❯ Running postPackage hook
+✔ Running postPackage hook
+✔ Running package command
+❯ Running preMake hook
+✔ Running preMake hook
+❯ Making distributables
+❯ Making a zip distributable for darwin/arm64
+✔ Making a zip distributable for darwin/arm64
+✔ Making distributables
+❯ Running postMake hook
+› Artifacts available at: /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/out/make
+✔ Running postMake hook
+❯ Saving make results
+› Make results saved to: /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/out/make-results
+✔ Saving make results

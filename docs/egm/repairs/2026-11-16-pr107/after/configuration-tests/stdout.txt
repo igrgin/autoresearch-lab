@@ -1,0 +1,25 @@
+✔ per-field precedence, explicit null and atomic agent choice survive full store restart; snapshots never reread defaults (1651.058958ms)
+✔ stale editors and drafts fail without overwriting; identical retries reconcile, changed retries conflict (1084.055625ms)
+✔ malformed, unsupported and credential-bearing values fail before persistence (515.685125ms)
+✔ unavailable or cross-project stores cannot be used; missing projects are never recreated (1222.394333ms)
+✔ SQL rejects snapshot mutation/deletion and future schemas without resetting records (745.020166ms)
+✔ a failed SQL write preserves defaults and the same request can recover without duplicate revisions (480.50075ms)
+✔ missing established global storage fails startup rather than replacing saved defaults (503.52325ms)
+✔ resolved inherited choices are admitted before snapshot persistence, including retained matching values (1668.579834ms)
+✔ a defaults change during resolved-choice admission cannot change the values written (748.454542ms)
+✔ credential recognition between approval and writer continuation waits for the real publication owner (883.10725ms)
+✔ configuration ownership survives caller timeout, send uncertainty and late denial until terminal reply or confirmed exit (0.452917ms)
+✔ configuration ownership fails closed on rejected admission/reply and pre-dispatch unavailability (0.217667ms)
+✔ configuration policy notifications invalidate cached and delayed replies without notifying on unchanged reload (0.117875ms)
+✔ rejected configuration reuse invalidates sibling defaults and all their in-flight replies (0.084792ms)
+✔ empty replacements of established global or project stores fail without initialization and originals recover (1590.201333ms)
+✔ admitted identical saved replay uses its pinned choices even when newer unrelated defaults are unsafe (952.314042ms)
+✔ minimal defaults recovery preserves scope, revision fencing, immutable history and current policy after restart (1134.201542ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13284.717792

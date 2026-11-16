@@ -1,0 +1,810 @@
+File: docs/BUILD.md
+Before: {'sha256': '7f452ae37222f4a44c0b0a7f85348a964203deef98133b12205e0354c61f3a60', 'mode': 420}
+After: {'sha256': 'dff2339b5cd35b2ba5cd91469678c2ec645992add1727a8343118faa4c88683a', 'mode': 420}
+--- before/docs/BUILD.md
++++ after/docs/BUILD.md
+@@ -86,6 +86,14 @@
+ and skips upload (the run's artifact list must be empty). Revert the error and
+ verify a new successful run with the ZIP. Do not merge the deliberate failure.
+ 
++The packaged configuration-protection smoke additionally delays a real
++main/coordinator admission and checks credential entry ordering through commit,
++current/retired read denial and full application restart. It checks surviving
++snapshot, draft and defaults views after credential changes, including delayed
++previously admitted replies. Evidence is written to
++`out/smoke/configuration-protection/`. These are synthetic local fixtures, with
++no live credentials, provider traffic or inference.
++
+ ## Project storage and recovery
+ 
+ The utility coordinator stores `registry.sqlite` under Electron's application-data
+File: package.json
+Before: {'sha256': '81edab197a6c44b4d3e491b1089aece17a3529f23a07a2be7729946f81db3de5', 'mode': 420}
+After: {'sha256': 'e17fdbfff3a569ba8a513e2bbac8bd8d8e03d77445404892cbf209baf0b7af17', 'mode': 420}
+--- before/package.json
++++ after/package.json
+@@ -18,7 +18,7 @@
+     "package": "electron-forge package --platform=darwin --arch=arm64",
+     "make": "electron-forge make --platform=darwin --arch=arm64",
+     "build": "npm run check && npm run make",
+-    "smoke": "node scripts/smoke.mjs && node scripts/smoke-vast.mjs && node scripts/smoke-codex.mjs",
++    "smoke": "node scripts/smoke.mjs && node scripts/smoke-vast.mjs && node scripts/smoke-codex.mjs && node scripts/smoke-configuration-protection.mjs",
+     "test": "node scripts/test.mjs && node scripts/test-security.mjs && node scripts/test-claude-runtime.mjs && node scripts/test-execution.mjs && node scripts/test-codex-transport.mjs"
+   },
+   "dependencies": {
+File: scripts/smoke-configuration-protection.mjs
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': '7d07f7e0c10b8c0d4f7b651bb70803e73ac81b365a25a2ffe077523970f0cc1a', 'mode': 420}
+--- before/scripts/smoke-configuration-protection.mjs
++++ after/scripts/smoke-configuration-protection.mjs
+@@ -0,0 +1,214 @@
++import assert from 'node:assert/strict';
++import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
++import os from 'node:os';
++import path from 'node:path';
++import { _electron as electron } from 'playwright';
++
++const output = path.resolve(process.env.PR107_OUTPUT || 'out/smoke/configuration-protection');
++await mkdir(output, { recursive: true });
++const userData = await mkdtemp(path.join(os.tmpdir(), 'lab-configuration-protection-'));
++const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
++let application;
++const observations = [], failures = [];
++const check = (name, actual, expected) => {
++  observations.push({ name, actual, expected });
++  try { assert.deepEqual(actual, expected, name); } catch (error) { failures.push(error.message); }
++};
++try {
++  application = await electron.launch({ executablePath: path.resolve('out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app/Contents/MacOS/Autoresearch Lab'), args: [`--user-data-dir=${userData}`], env });
++  const page = await application.firstWindow(); page.setDefaultTimeout(10_000);
++  await page.getByRole('heading', { name: 'No projects yet', exact: true }).waitFor();
++  const opening = application.waitForEvent('window');
++  await application.evaluate(({ Menu }) => Menu.getApplicationMenu().getMenuItemById('credential-settings').click());
++  const entry = await opening;
++  const create = async name => {
++    const reply = await page.evaluate(async name => {
++      const requestId = crypto.randomUUID(); return window.lab.createProject({ requestId, name, folderName: name });
++    }, name);
++    assert.equal(reply.ok, true); return reply.value;
++  };
++  const open = async project => {
++    await page.getByRole('button', { name: 'Settings', exact: true }).click();
++    await page.getByRole('button', { name: 'Projects', exact: true }).click();
++    await page.getByRole('article', { name: project.name, exact: true }).getByRole('button', { name: 'Open project', exact: true }).click();
++    return page.getByRole('region', { name: 'Open project', exact: true });
++  };
++  const noBody = async canary => page.evaluate(value => !document.body.innerText.includes(value) &&
++    !Array.from(document.querySelectorAll('input,textarea,select')).some(input => input.value.includes(value)), canary);
++  const recognize = async (canary, rotate = false) => {
++    // Real trusted entry form, host handler, credential service and encrypted vault.
++    if (rotate) {
++      await entry.getByLabel('New credential value', { exact: true }).fill(canary);
++      await entry.getByRole('button', { name: 'Replace credential', exact: true }).click();
++      await entry.getByRole('status').filter({ hasText: 'Replacement saved.' }).waitFor();
++    } else {
++      if (await entry.getByRole('button', { name: 'Add credential', exact: true }).count()) await entry.getByRole('button', { name: 'Add credential', exact: true }).click();
++      await entry.getByLabel('Label', { exact: true }).fill('Controlled configuration protection');
++      await entry.getByLabel('Credential', { exact: true }).fill(canary);
++      await entry.getByRole('button', { name: 'Save credential', exact: true }).click();
++      await entry.getByRole('status').filter({ hasText: 'Credential saved on this Mac.' }).waitFor();
++    }
++  };
++  for (const [kind, dropNotification] of [['snapshot', false], ['draft', false], ['defaults', false], ['snapshot', true], ['draft', true]]) {
++    const project = await create(`cache-${kind}-${dropNotification}`), canary = `LaterRecognized${kind}${dropNotification}107`;
++    await page.evaluate(async ({ projectId, canary, kind }) => {
++      const requestId = crypto.randomUUID();
++      if (kind !== 'snapshot') await window.lab.updateProjectDefaults(projectId, { requestId, expectedRevision: 0, values: { objective: canary } });
++      else {
++        const draft = await window.lab.prepareConfiguration(projectId);
++        await window.lab.saveConfiguration({ requestId, projectId, globalRevision: draft.value.globalRevision, projectRevision: draft.value.projectRevision, overrides: { objective: canary } });
++      }
++    }, { projectId: project.projectId, canary, kind });
++    const panel = await open(project);
++    if (kind === 'snapshot') await panel.getByRole('button', { name: 'View saved configuration 1', exact: true }).click();
++    if (kind === 'draft') await panel.getByRole('button', { name: 'Prepare new configuration', exact: true }).click();
++    if (kind === 'defaults') await panel.locator('summary').filter({ hasText: /^Project defaults$/ }).click();
++    await page.waitForFunction(value => document.body.innerText.includes(value) ||
++      Array.from(document.querySelectorAll('input')).some(input => input.value.includes(value)), canary);
++    assert.equal(await noBody(canary), false);
++    const capture = `${kind}${dropNotification ? '-denial-only' : ''}`;
++    await panel.screenshot({ path: path.join(output, `${capture}-before.png`) });
++    if (dropNotification) await application.evaluate(({ BrowserWindow }) => {
++      const contents = BrowserWindow.getAllWindows().find(window => window.getTitle() === 'Autoresearch Lab').webContents;
++      const original = contents.send;
++      contents.send = function(channel, ...args) { if (channel !== 'configuration:invalidate') return original.call(this, channel, ...args); };
++      globalThis.restoreConfigurationNotification = () => { contents.send = original; };
++    });
++    await recognize(canary, kind !== 'snapshot');
++    // Let the policy notification render before inspecting the surviving mount.
++    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
++    check(`${capture}: immediate policy invalidation`, await noBody(canary), !dropNotification);
++    // Exercise rejection even if the policy notification already cleared the row.
++    const denied = await page.evaluate(async ({ projectId, kind }) => kind === 'snapshot' ? window.lab.listConfigurations(projectId) : window.lab.prepareConfiguration(projectId), { projectId: project.projectId, kind });
++    check(`${capture}: current-policy read denied`, denied.ok, false);
++    if (kind === 'snapshot') {
++      const view = panel.getByRole('button', { name: 'View saved configuration 1', exact: true });
++      if (await view.count()) await view.click();
++      await panel.getByRole('button', { name: 'Refresh saved configurations', exact: true }).click();
++    } else if (kind === 'draft') await panel.getByRole('button', { name: /Prepare (again from defaults|new configuration)/ }).click();
++    else await panel.getByRole('button', { name: 'Reload defaults', exact: true }).click();
++    await panel.getByRole('alert').first().waitFor();
++    check(`${capture}: rejected revalidation clears all bodies`, await noBody(canary), true);
++    await panel.screenshot({ path: path.join(output, `${capture}-after.png`) });
++    if (dropNotification) await application.evaluate(() => globalThis.restoreConfigurationNotification());
++  }
++  for (const kind of ['prepare', 'snapshot', 'project:get']) {
++    const project = await create(`delayed-${kind.replace(':', '-')}`), canary = `DelayedReply${kind.replace(':', '')}107`;
++    const snapshotId = await page.evaluate(async ({ projectId, canary, kind }) => {
++      const requestId = crypto.randomUUID();
++      if (kind !== 'snapshot') {
++        const reply = await window.lab.updateProjectDefaults(projectId, { requestId, expectedRevision: 0, values: { objective: canary } });
++        if (!reply.ok) throw new Error('Controlled defaults setup failed'); return null;
++      }
++      const draft = await window.lab.prepareConfiguration(projectId);
++      const reply = await window.lab.saveConfiguration({ requestId, projectId, globalRevision: draft.value.globalRevision, projectRevision: draft.value.projectRevision, overrides: { objective: canary } });
++      return reply.value.snapshotId;
++    }, { projectId: project.projectId, canary, kind });
++    const panel = await open(project);
++    if (kind === 'project:get') {
++      await panel.locator('summary').filter({ hasText: /^Project defaults$/ }).click();
++      await panel.getByLabel('Project research objective source', { exact: true }).waitFor();
++    }
++    await application.evaluate(({ ipcMain }, { kind, projectId }) => {
++      const original = ipcMain._invokeHandlers.get('configuration:request');
++      globalThis.delayedConfiguration = { original, held: false };
++      ipcMain.removeHandler('configuration:request');
++      ipcMain.handle('configuration:request', async (event, request) => {
++        const reply = await original(event, request);
++        if (request.kind !== kind || request.projectId !== projectId) return reply;
++        globalThis.delayedConfiguration.held = true;
++        await new Promise(resolve => { globalThis.delayedConfiguration.resume = resolve; });
++        return reply;
++      });
++    }, { kind, projectId: project.projectId });
++    if (kind === 'prepare') await panel.getByRole('button', { name: 'Prepare new configuration', exact: true }).click();
++    else if (kind === 'snapshot') await panel.getByRole('button', { name: 'View saved configuration 1', exact: true }).click();
++    else await panel.getByRole('button', { name: 'Reload defaults', exact: true }).click();
++    await application.evaluate(() => new Promise((resolve, reject) => {
++      const until = Date.now() + 5000;
++      const poll = () => globalThis.delayedConfiguration.held ? resolve() : Date.now() > until ? reject(new Error('Delayed reply fixture not reached')) : setTimeout(poll, 5); poll();
++    }));
++    await recognize(canary, true);
++    await application.evaluate(({ ipcMain }) => {
++      globalThis.delayedConfiguration.resume();
++      ipcMain.removeHandler('configuration:request'); ipcMain.handle('configuration:request', globalThis.delayedConfiguration.original);
++    });
++    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
++    check(`${kind}: delayed previously admitted reply cannot restore body`, await noBody(canary), true);
++    if (snapshotId) check('snapshot: explicit current-policy read denied', (await page.evaluate(({ projectId, snapshotId }) => window.lab.getConfiguration(projectId, snapshotId), { projectId: project.projectId, snapshotId })).ok, false);
++  }
++  // Delay main's already-approved second admission on the actual utility port.
++  const project = await create('ordering');
++  const canary = 'DelayedPackagedAdmission107';
++  const input = await page.evaluate(async ({ projectId, canary }) => {
++    const current = await window.lab.getGlobalDefaults();
++    await window.lab.updateGlobalDefaults({ requestId: crypto.randomUUID(), expectedRevision: current.value.revision, values: { objective: canary } });
++    const draft = await window.lab.prepareConfiguration(projectId);
++    return { requestId: crypto.randomUUID(), projectId, globalRevision: draft.value.globalRevision, projectRevision: draft.value.projectRevision, overrides: {} };
++  }, { projectId: project.projectId, canary });
++  await application.evaluate(async ({ app, utilityProcess }) => {
++    const path = process.getBuiltinModule('node:path');
++    const probe = utilityProcess.fork(path.join(app.getAppPath(), '.webpack/main/coordinator.cjs'), [path.join(app.getPath('userData'), 'prototype-probe')]);
++    const prototype = Object.getPrototypeOf(probe), original = prototype.postMessage;
++    await new Promise(resolve => probe.once('message', resolve));
++    await new Promise(resolve => { probe.once('exit', resolve); probe.kill(); });
++    globalThis.configurationPort = { prototype, original, approvals: 0, held: false, committed: false };
++    prototype.postMessage = function(message, ...rest) {
++      const state = globalThis.configurationPort;
++      if (message.configuration?.kind === 'save') {
++        state.child = this; state.id = message.id;
++        this.on('message', reply => { if (reply.id === state.id && reply.configurationReply) state.committed = true; });
++      }
++      if (this === state.child && message.configurationAdmissionId && message.allowed && ++state.approvals === 2) {
++        state.held = true; state.resume = () => original.call(this, message, ...rest); return;
++      }
++      return original.call(this, message, ...rest);
++    };
++  });
++  await page.evaluate(input => { globalThis.orderingSave = window.lab.saveConfiguration(input); }, input);
++  await application.evaluate(() => new Promise((resolve, reject) => {
++    const until = Date.now() + 5000;
++    const poll = () => globalThis.configurationPort.held ? resolve() : Date.now() > until ? reject(new Error('Admission hook not reached')) : setTimeout(poll, 5); poll();
++  }));
++  await entry.evaluate(value => {
++    globalThis.registrationDone = false;
++    globalThis.registration = window.credentialEntry.save({ category: 'runpod', label: 'Controlled ordering', value }).then(reply => { globalThis.registrationDone = true; return reply; });
++  }, canary);
++  await entry.waitForTimeout(250);
++  const registeredBeforeCommit = await entry.evaluate(() => globalThis.registrationDone);
++  check('credential registration waits for admitted writer', registeredBeforeCommit, false);
++  await application.evaluate(() => globalThis.configurationPort.resume());
++  const saved = await page.evaluate(() => globalThis.orderingSave);
++  const registered = await entry.evaluate(() => globalThis.registration);
++  check('registration completes after writer quiescence', registered.ok, true);
++  check('safe admitted write completes before recognition', saved.ok, true);
++  const reRead = await page.evaluate(id => window.lab.listConfigurations(id), project.projectId);
++  check('recognized committed choices withheld on reuse', reRead.ok, false);
++  const bytes = await readFile(path.join(project.location, '.lab/configuration.sqlite'));
++  check('no invalidated-admission snapshot copy', registeredBeforeCommit && bytes.includes(Buffer.from(canary)), false);
++  await application.evaluate(() => { const state = globalThis.configurationPort; state.prototype.postMessage = state.original; });
++  // A registration that wins first denies a fresh write without a new SQL/WAL copy.
++  const deniedProject = await create('registration-first');
++  const denied = await page.evaluate(async projectId => {
++    const draft = await window.lab.prepareConfiguration(projectId);
++    return window.lab.saveConfiguration({ requestId: crypto.randomUUID(), projectId, globalRevision: draft.value?.globalRevision ?? 1, projectRevision: 0, overrides: {} });
++  }, deniedProject.projectId);
++  check('registration-first write rejected', denied.ok, false);
++  const deniedBytes = await readFile(path.join(deniedProject.location, '.lab/configuration.sqlite'));
++  check('registration-first no project snapshot bytes', deniedBytes.includes(Buffer.from(canary)), false);
++  await entry.close();
++  await application.close(); application = undefined;
++  // Real application restart loads current + retired matching before reads.
++  application = await electron.launch({ executablePath: path.resolve('out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app/Contents/MacOS/Autoresearch Lab'), args: [`--user-data-dir=${userData}`], env });
++  const restarted = await application.firstWindow();
++  await restarted.getByRole('button', { name: 'Projects', exact: true }).waitFor();
++  const reply = await restarted.evaluate(id => window.lab.listConfigurations(id), project.projectId);
++  check('restart retains matching and withholds old snapshot', reply.ok, false);
++} catch (error) { failures.push(error.stack); }
++finally {
++  if (application) await application.close();
++  await rm(userData, { recursive: true, force: true });
++  await writeFile(path.join(output, 'result.json'), JSON.stringify({ observations, failures, qualification: 'Controlled synthetic credentials, actual packaged main/coordinator/entry UI. No provider/inference qualification.' }, null, 2));
++}
++assert.deepEqual(failures, [], failures.join('\n'));
++console.log('Packaged configuration protection passed:', observations.length, 'assertions');
+File: src/configuration-bridge.ts
+Before: {'sha256': '3c7e4602af1c12a4464255424f93e54bcf9b74482c884a7489342a3be5f668ee', 'mode': 420}
+After: {'sha256': 'f6b82f61442987dbf91bdb362100320a8140ef55645e8585036094e6382144e4', 'mode': 420}
+--- before/src/configuration-bridge.ts
++++ after/src/configuration-bridge.ts
+@@ -1,5 +1,6 @@
+ import type { ConfigurationDraft, ConfigurationReply, ConfigurationSnapshot, DefaultsRecord, DefaultsRecovery, SaveConfiguration, UpdateDefaults } from './configuration';
+ export interface ConfigurationBridge {
++  onConfigurationInvalidated(listener: () => void): () => void;
+   getGlobalDefaults(): Promise<ConfigurationReply<DefaultsRecord>>;
+   recoverGlobalDefaults(): Promise<ConfigurationReply<DefaultsRecovery>>;
+   updateGlobalDefaults(input: UpdateDefaults): Promise<ConfigurationReply<DefaultsRecord>>;
+File: src/configuration/client.ts
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': 'd58d070a64e853e42c67adef7eb7d7e2e7e8fcb9095a9257a81892d35da08f87', 'mode': 420}
+--- before/src/configuration/client.ts
++++ after/src/configuration/client.ts
+@@ -0,0 +1,58 @@
++import { randomUUID } from 'node:crypto';
++import type { ConfigurationReply, ConfigurationRequest, ConfigurationValue } from '../configuration';
++
++type Reply = ConfigurationReply<ConfigurationValue>;
++type Schedule = (callback: () => void, milliseconds: number) => () => void;
++const schedule: Schedule = (callback, milliseconds) => { const timer = setTimeout(callback, milliseconds); return () => clearTimeout(timer); };
++const failure = (request: ConfigurationRequest): Reply => ({ ok: false, error: { code: 'unavailable', origin: 'run_configuration', operationId: request.operationId,
++  message: 'Configuration storage did not safely reply. Reload before retrying; retry the same save to reconcile its outcome.', effect: 'unknown', retry: 'same_key' } });
++type Pending = { request: ConfigurationRequest; resolve: (reply: Reply) => void; release: () => void; cancel: () => void; expired: boolean };
++
++// Main owns matching before dispatch, including both async admission round trips.
++// Caller timeout is not writer quiescence: keep ownership until the terminal
++// reply (sent after handleAdmitted returns/DB close), or confirmed process exit.
++export class ConfigurationClient {
++  private pending = new Map<string, Pending>();
++  constructor(private readonly transport: { available(): boolean; post(message: { id: string; configuration: ConfigurationRequest }): void },
++    private readonly own: (request: ConfigurationRequest) => () => void,
++    private readonly assertSafe: (value: unknown) => void,
++    private readonly timer: Schedule = schedule, private readonly timeoutMs = 90_000) {}
++  request(request: ConfigurationRequest): Promise<Reply> {
++    request = structuredClone(request);
++    return new Promise(resolve => {
++      if (!this.transport.available()) { resolve(failure(request)); return; }
++      let release: () => void;
++      try { release = this.own(request); } catch { resolve(failure(request)); return; }
++      const id = randomUUID(); let cancel = () => {};
++      this.pending.set(id, { request, resolve, release, cancel: () => cancel(), expired: false });
++      cancel = this.timer(() => this.expire(id), this.timeoutMs);
++      if (!this.pending.has(id)) return;
++      try { this.transport.post({ id, configuration: request }); }
++      catch { this.expire(id); } // A throwing transport may already have dispatched.
++    });
++  }
++  admit(id: string, value: unknown): boolean {
++    if (!this.pending.has(id)) return false; // No unowned or orphan approval.
++    try { this.assertSafe(value); return true; } catch { return false; }
++  }
++  receive(id: string, reply: Reply): void {
++    const entry = this.pending.get(id); if (!entry) return;
++    try {
++      if (!entry.expired) {
++        try { this.assertSafe(reply); entry.resolve(reply); }
++        catch { entry.resolve(failure(entry.request)); }
++      }
++    } finally { entry.cancel(); this.pending.delete(id); entry.release(); }
++  }
++  private expire(id: string): void {
++    const entry = this.pending.get(id); if (!entry || entry.expired) return;
++    entry.expired = true; entry.cancel(); entry.resolve(failure(entry.request));
++  }
++  // Only call after the utility process is confirmed gone, never on timeout.
++  unavailable(): void {
++    for (const [id, entry] of this.pending) {
++      if (!entry.expired) entry.resolve(failure(entry.request));
++      entry.cancel(); this.pending.delete(id); entry.release();
++    }
++  }
++}
+File: src/configuration/store.ts
+Before: {'sha256': 'c1899b2112c07d430b073423e1922ef5c6cd427dfd2b15378f1c9ed3600c6534', 'mode': 420}
+After: {'sha256': '81a267ab43819edb3b90a46129a9b6ccbcd4aa796549be5e14c04a407412c11b', 'mode': 420}
+--- before/src/configuration/store.ts
++++ after/src/configuration/store.ts
+@@ -90,8 +90,10 @@
+       : Object.hasOwn(project.values, key) ? { level: 'project', revision: project.revision } : { level: 'global', revision: global.revision };
+     return { projectId, choices, origins, globalRevision: global.revision, projectRevision: project.revision };
+   }
+-  // The utility-process entrypoint must use this boundary. Matching values stay
+-  // in main; admit the resolved inherited values before the synchronous writer.
++  // The utility-process entrypoint must use this boundary under main's
++  // ConfigurationClient matching-policy ownership through the terminal reply.
++  // An async boolean alone is not a write lease. Matching values stay in main;
++  // admit the resolved inherited values before the synchronous writer.
+   // handle() rechecks both revisions after admission, so an intervening defaults
+   // change cannot substitute different values for those that were approved.
+   async handleAdmitted(request: ConfigurationRequest, admit: (value: unknown) => Promise<void>): Promise<ConfigurationReply<ConfigurationValue>> {
+File: src/coordinator.ts
+Before: {'sha256': '11572ec886f13f3735e4019fc8dd4508ebf4c411df2ed6cac8c356581ebe0004', 'mode': 420}
+After: {'sha256': '5d87aa32de92b4f4582714942c41d7294abf4b5ca8c6b0250246611b277fdfb2', 'mode': 420}
+--- before/src/coordinator.ts
++++ after/src/coordinator.ts
+@@ -53,7 +53,7 @@
+ let catalog: ProjectCatalog | undefined;
+ let configurations: ConfigurationStore;
+ const configurationAdmissions = new Map<string, (allowed: boolean) => void>();
+-function admitConfiguration(value: unknown): Promise<void> {
++function admitConfiguration(configurationRequestId: string, value: unknown): Promise<void> {
+   return new Promise((resolve, reject) => {
+     const id = randomUUID();
+     const timer = setTimeout(() => { configurationAdmissions.delete(id); reject(new Error('Admission unavailable')); }, 15_000);
+@@ -61,7 +61,7 @@
+       clearTimeout(timer); configurationAdmissions.delete(id);
+       if (allowed) resolve(); else reject(new Error('Admission rejected'));
+     });
+-    process.parentPort.postMessage({ configurationAdmissionId: id, value });
++    process.parentPort.postMessage({ configurationAdmissionId: id, configurationRequestId, value });
+   });
+ }
+ let codex: CodexStore;
+@@ -123,7 +123,7 @@
+       return;
+     }
+     if (data.configurationAdmissionId) { configurationAdmissions.get(data.configurationAdmissionId)?.(data.allowed === true); return; }
+-    if (data.configuration) { process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, admitConfiguration) }); return; }
++    if (data.configuration) { process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, value => admitConfiguration(data.id, value)) }); return; }
+     if (data.channel === 'research_security') {
+       const pending = securityRequests.get(data.id); if (!pending) return;
+       clearTimeout(pending.timer); securityRequests.delete(data.id);
+File: src/main.ts
+Before: {'sha256': '126f89dfc5ec84ff3add37ded0fa23876ede128de3a7e1fa155076c92ab65004', 'mode': 420}
+After: {'sha256': '1390e937c148e2531b843f960456a6a827de7a1510caff984bec3036450309f8', 'mode': 420}
+--- before/src/main.ts
++++ after/src/main.ts
+@@ -11,6 +11,7 @@
+ import type { ImportAction, ImportRecord, ImportRequest, StartImport } from './imports';
+ import type { ShellStatus } from './shell';
+ import type { ConfigurationReply, ConfigurationRequest, ConfigurationValue } from './configuration';
++import { ConfigurationClient } from './configuration/client';
+ import { createSecurityHost } from './security/electron-vault';
+ import { CREDENTIAL_HELP, ENTRY_CATEGORIES, validEntry } from './security/entry-contract';
+ import { assertId, newId } from './security/common';
+@@ -74,19 +75,11 @@
+   }, security);
+ }
+ 
+-const configurationPending = new Map<string, { resolve: (reply: ConfigurationReply<ConfigurationValue>) => void; timer: ReturnType<typeof setTimeout> }>();
+-function requestConfiguration(request: ConfigurationRequest): Promise<ConfigurationReply<ConfigurationValue>> {
+-  return new Promise(resolve => {
+-    const id = randomUUID();
+-    const timer = setTimeout(() => {
+-      configurationPending.delete(id);
+-      resolve({ ok: false, error: { code: 'unavailable', origin: 'run_configuration', operationId: request.operationId,
+-        message: 'Configuration storage did not reply. Retry the same save to reconcile it before making another change.', effect: 'unknown', retry: 'same_key' } });
+-    }, 90_000);
+-    configurationPending.set(id, { resolve, timer });
+-    coordinator?.postMessage({ id, configuration: request });
+-  });
+-}
++const configurationClient = new ConfigurationClient({ available: () => coordinator !== null,
++  post: message => { if (!coordinator) throw new Error(); coordinator.postMessage(message); } }, request => {
++  const release = security.matcher.holdMatchingPolicy();
++  try { security.assertSafeConfiguration(request); return release; } catch (error) { release(); throw error; }
++}, value => security.assertSafeConfiguration(value));
+ 
+ function admit(event: Electron.IpcMainInvokeEvent) {
+   if (!window || event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame) {
+@@ -122,8 +115,7 @@
+     });
+     child.on('message', async (message: { id?: string; reply?: ProjectReply<HostValue>; configurationReply?: ConfigurationReply<ConfigurationValue>; importAdmissionId?: string; names?: string[] }) => {
+       if (message?.id && message.configurationReply) {
+-        const waiting = configurationPending.get(message.id);
+-        if (waiting) { clearTimeout(waiting.timer); configurationPending.delete(message.id); waiting.resolve(message.configurationReply); }
++        configurationClient.receive(message.id, message.configurationReply);
+         return;
+       }
+       if (message?.importAdmissionId) {
+@@ -139,10 +131,9 @@
+       pending.delete(message.id);
+       waiting.resolve(message.reply);
+     });
+-    child.on('message', async (message: { configurationAdmissionId?: string; value?: unknown }) => {
++    child.on('message', (message: { configurationAdmissionId?: string; configurationRequestId?: string; value?: unknown }) => {
+       if (!message?.configurationAdmissionId) return;
+-      let allowed = false;
+-      try { await security.initialize(); security.assertSafeConfiguration(message.value); allowed = true; } catch { /* Fail closed without forwarding the value. */ }
++      const allowed = typeof message.configurationRequestId === 'string' && configurationClient.admit(message.configurationRequestId, message.value);
+       child.postMessage({ configurationAdmissionId: message.configurationAdmissionId, allowed });
+     });
+     child.on('message', (message: { channel?: string; id?: string; kind?: string; value?: { meta: Envelope; raw: unknown } | { owner: Owner; event: ResearchEvent } | SafeRecord }) => {
+@@ -177,8 +168,7 @@
+       clearTimeout(timer);
+       for (const waiting of pending.values()) clearTimeout(waiting.timer);
+       pending.clear();
+-      for (const waiting of configurationPending.values()) clearTimeout(waiting.timer);
+-      configurationPending.clear();
++      configurationClient.unavailable();
+       if (!ready) reject(new Error('The workspace coordinator exited during startup.'));
+       else if (!quitting) {
+         dialog.showErrorBox('Workspace unavailable', 'The workspace coordinator stopped. Please restart Autoresearch Lab.');
+@@ -227,6 +217,9 @@
+   });
+   app.whenReady().then(async () => {
+     security = createSecurityHost();
++    security.matcher.onMatchingPolicyChanged(() => {
++      if (window && !window.isDestroyed()) window.webContents.send('configuration:invalidate');
++    });
+     const runpod = new RunpodAdapter(security.credentials, security.sanitizer);
+     ipcMain.handle('shell:credential-settings', event => { admit(event); return openCredentialSettings(); });
+     ipcMain.handle('runpod:credentials', async event => {
+@@ -384,7 +377,7 @@
+         // settings. Reject unsafe settings instead of saving redacted semantics.
+         await security.initialize();
+         security.assertSafeConfiguration(request);
+-        const reply = await requestConfiguration(request);
++        const reply = await configurationClient.request(request);
+         security.assertSafeConfiguration(reply);
+         return reply;
+       } catch {
+File: src/preload.ts
+Before: {'sha256': 'bb98197b003fdb6c4bd260849551a2b18edbde78c1ff8d04147a105406c45d5f', 'mode': 420}
+After: {'sha256': '307ea095bc36cede49a959d2348ac10518d2cd0a8408bb42b614d640f5bc4918', 'mode': 420}
+--- before/src/preload.ts
++++ after/src/preload.ts
+@@ -5,6 +5,11 @@
+ const operationId = () => crypto.randomUUID();
+ 
+ const bridge: ShellBridge = {
++  onConfigurationInvalidated: listener => {
++    const invalidate = () => listener();
++    ipcRenderer.on('configuration:invalidate', invalidate);
++    return () => { ipcRenderer.removeListener('configuration:invalidate', invalidate); };
++  },
+   getGlobalDefaults: () => configuration({ kind: 'global:get', operationId: operationId() }),
+   recoverGlobalDefaults: () => configuration({ kind: 'global:recover', operationId: operationId() }),
+   updateGlobalDefaults: input => configuration({ kind: 'global:update', operationId: input.requestId, input }),
+File: src/renderer/configuration-cache.ts
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': '37e9bd635c6ba485e6e595a2a34c6d7454376580a2fea8635676a14e04b54896', 'mode': 420}
+--- before/src/renderer/configuration-cache.ts
++++ after/src/renderer/configuration-cache.ts
+@@ -0,0 +1,16 @@
++// Each operation owns a generation. Revalidation, policy changes and unmount
++// invalidate older replies, including successful replies already in transit.
++export class ConfigurationCache {
++  private generation = 0;
++  begin(): number { return ++this.generation; }
++  current(generation: number): boolean { return generation === this.generation; }
++  invalidate(): void { this.generation++; }
++}
++
++const listeners = new Set<() => void>();
++export function onConfigurationCacheInvalidated(listener: () => void): () => void {
++  listeners.add(listener); return () => { listeners.delete(listener); };
++}
++// A denied reuse also fences sibling views, even if a policy notification was
++// missed. Defaults recovery may then republish only newly revalidated bodies.
++export function invalidateConfigurationCaches(): void { for (const listener of listeners) listener(); }
+File: src/renderer/configuration.tsx
+Before: {'sha256': '79cdfa3fc1aac2c7daa4e777948e28e8e5d1f568f2768589eae93496459d030a', 'mode': 420}
+After: {'sha256': '496aa556fafbe1dd0e82218afec5e928560a37685a89db771feb08530ce60015', 'mode': 420}
+--- before/src/renderer/configuration.tsx
++++ after/src/renderer/configuration.tsx
+@@ -1,4 +1,5 @@
+ import React, { useEffect, useState } from 'react';
++import { ConfigurationCache, invalidateConfigurationCaches, onConfigurationCacheInvalidated } from './configuration-cache';
+ import { CHOICE_KEYS, EMPTY_CHOICES, type ChoiceOverrides, type ConfigurationDraft, type ConfigurationReply, type ConfigurationSnapshot, type DefaultsRecovery, type RunChoices } from '../configuration';
+ 
+ function value<T>(reply: ConfigurationReply<T>): T {
+@@ -36,6 +37,20 @@
+   })}</div>;
+ }
+ 
++function useConfigurationCache(clear: () => void, setError: (message: string) => void) {
++  const [cache] = useState(() => new ConfigurationCache());
++  useEffect(() => {
++    const invalidate = () => {
++      cache.invalidate(); clear();
++      setError('Saved choices were cleared because credential protection changed. Reload defaults or prepare again to revalidate them.');
++    };
++    const unsubscribe = window.lab.onConfigurationInvalidated(invalidate);
++    const unsubscribeLocal = onConfigurationCacheInvalidated(invalidate);
++    return () => { cache.invalidate(); unsubscribe(); unsubscribeLocal(); };
++  }, [cache]);
++  return cache;
++}
++
+ export function DefaultsSettings({ projectId }: { projectId?: string }) {
+   const [record, setRecord] = useState<DefaultsRecovery>();
+   const [values, setValues] = useState<ChoiceOverrides>({});
+@@ -45,25 +60,30 @@
+   const [busy, setBusy] = useState(false);
+   const [error, setError] = useState('');
+   const [message, setMessage] = useState('');
++  function clear() {
++    setRecord(undefined); setValues({}); setBase(EMPTY_CHOICES); setBaseAvailable(false); setMessage(''); setBusy(false);
++  }
++  const cache = useConfigurationCache(clear, setError);
+   async function load() {
+-    setBusy(true); setError(''); setMessage(''); setRecord(undefined); setValues({}); setBase(EMPTY_CHOICES); setBaseAvailable(false);
++    let generation = cache.begin(); clear(); setBusy(true); setError('');
+     try {
+-      // A withheld global body must not prevent editing this project's own
+-      // defaults. Never substitute empty choices as a supposedly known parent.
++      // Publish only after all revalidation finishes under this generation.
+       const global = await window.lab.getGlobalDefaults();
+-      if (global.ok) { setBase({ ...EMPTY_CHOICES, ...global.value.values }); setBaseAvailable(true); }
++      if (!cache.current(generation)) return;
++      if (!global.ok) { invalidateConfigurationCaches(); generation = cache.begin(); setBusy(true); }
+       const reply = projectId ? await window.lab.getProjectDefaults(projectId) : global;
+-      if (reply.ok) {
+-        setRecord(reply.value); setValues(reply.value.values);
+-        if (!global.ok) setError('Global defaults are unavailable. Inherited values cannot be displayed; explicit project choices can still be saved.');
+-      } else {
+-        const recovery = value(await (projectId ? window.lab.recoverProjectDefaults(projectId) : window.lab.recoverGlobalDefaults()));
+-        setRecord(recovery);
+-        setError('Saved defaults are withheld. Enter clean replacement choices and save. Omitted project choices inherit global defaults; existing configurations stay unchanged.');
+-      }
++      if (!cache.current(generation)) return;
++      if (!reply.ok) { invalidateConfigurationCaches(); generation = cache.begin(); setBusy(true); }
++      const recovery = reply.ok ? reply.value : value(await (projectId ? window.lab.recoverProjectDefaults(projectId) : window.lab.recoverGlobalDefaults()));
++      if (!cache.current(generation)) return;
++      setRecord(recovery);
++      if (reply.ok) setValues(reply.value.values);
++      if (global.ok && reply.ok) { setBase({ ...EMPTY_CHOICES, ...global.value.values }); setBaseAvailable(true); }
++      if (!reply.ok) setError('Saved defaults are withheld. Enter clean replacement choices and save. Omitted project choices inherit global defaults; existing configurations stay unchanged.');
++      else if (!global.ok) setError('Global defaults are unavailable. Inherited values cannot be displayed; explicit project choices can still be saved.');
+       setRequestId(crypto.randomUUID());
+-    } catch (reason) { setError((reason as Error).message); }
+-    finally { setBusy(false); }
++    } catch (reason) { if (cache.current(generation)) { invalidateConfigurationCaches(); setError((reason as Error).message); } }
++    finally { if (cache.current(generation)) setBusy(false); }
+   }
+   useEffect(() => { void load(); }, [projectId]); // Component is keyed by project identity.
+   return <section className="defaults-settings" aria-label={projectId ? 'Project defaults' : 'Global defaults'}>
+@@ -72,13 +92,14 @@
+     {error && <p className="error" role="alert">{error}</p>}
+     <form onSubmit={async event => {
+       event.preventDefault(); if (!record) return;
+-      setBusy(true); setError(''); setMessage('');
++      const generation = cache.begin(); setBusy(true); setError(''); setMessage('');
+       try {
+         const input = { requestId, expectedRevision: record.revision, values };
+         const saved = value(await (projectId ? window.lab.updateProjectDefaults(projectId, input) : window.lab.updateGlobalDefaults(input)));
++        if (!cache.current(generation)) return;
+         setRecord(saved); setValues(saved.values); setRequestId(crypto.randomUUID()); setMessage('Defaults saved. Existing configurations are unchanged.');
+-      } catch (reason) { setError((reason as Error).message); }
+-      finally { setBusy(false); }
++      } catch (reason) { if (cache.current(generation)) { invalidateConfigurationCaches(); setError((reason as Error).message); } }
++      finally { if (cache.current(generation)) setBusy(false); }
+     }}>
+       {record && <ChoicesEditor scope={projectId ? 'Project' : 'Global'} values={values} base={base} baseAvailable={baseAvailable} disabled={busy} onChange={next => { setValues(next); setRequestId(crypto.randomUUID()); setMessage(''); }} />}
+       <div className="configuration-actions"><button className="primary" disabled={busy || !record}>Save {projectId ? 'project' : 'global'} defaults</button><button type="button" className="secondary" disabled={busy} onClick={() => void load()}>Reload defaults</button></div>
+@@ -95,34 +116,36 @@
+   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
+   const [busy, setBusy] = useState(false);
+   const [error, setError] = useState('');
+-  async function refresh() { setSnapshots(value(await window.lab.listConfigurations(projectId))); }
+-  useEffect(() => { void refresh().catch(reason => setError((reason as Error).message)); }, [projectId]);
+-  async function prepare() {
+-    setBusy(true); setError('');
++  function clear() { setDraft(undefined); setOverrides({}); setSnapshots([]); setSelected(undefined); setBusy(false); }
++  const cache = useConfigurationCache(clear, setError);
++  async function revalidate(read: () => Promise<{ draft?: ConfigurationDraft; snapshots?: ConfigurationSnapshot[]; selected?: ConfigurationSnapshot }>) {
++    const generation = cache.begin(); clear(); setBusy(true); setError('');
+     try {
+-      setDraft(value(await window.lab.prepareConfiguration(projectId))); setOverrides({}); setRequestId(crypto.randomUUID()); setSelected(undefined);
+-    } catch (reason) { setError((reason as Error).message); }
+-    finally { setBusy(false); }
++      const next = await read();
++      if (!cache.current(generation)) return;
++      setDraft(next.draft); setSnapshots(next.snapshots ?? []); setSelected(next.selected); setRequestId(crypto.randomUUID());
++    } catch (reason) { if (cache.current(generation)) { invalidateConfigurationCaches(); setError((reason as Error).message); } }
++    finally { if (cache.current(generation)) setBusy(false); }
+   }
++  const refresh = () => revalidate(async () => ({ snapshots: value(await window.lab.listConfigurations(projectId)) }));
++  const prepare = () => revalidate(async () => ({ draft: value(await window.lab.prepareConfiguration(projectId)), snapshots: value(await window.lab.listConfigurations(projectId)) }));
++  useEffect(() => { void refresh(); }, [projectId]);
+   return <div className="project-configurations">
+     <details><summary>Project defaults</summary><DefaultsSettings projectId={projectId} /></details>
+     <section aria-label="Run configurations"><h2>Run configurations</h2>
+       <p>Save choices for a new run. Data, initialization, hardware, evaluation and stopping setup are still required before research can start.</p>
+       {error && <p className="error" role="alert">{error}</p>}
+-      <div className="configuration-actions"><button type="button" className="secondary" disabled={busy} onClick={() => void prepare()}>{draft ? 'Prepare again from defaults' : 'Prepare new configuration'}</button><button type="button" className="secondary" disabled={busy} onClick={() => { setError(''); void refresh().catch(reason => setError((reason as Error).message)); }}>Refresh saved configurations</button></div>
+-      {draft && <form aria-label="New run configuration" onSubmit={async event => {
+-        event.preventDefault(); setBusy(true); setError('');
+-        try {
++      <div className="configuration-actions"><button type="button" className="secondary" disabled={busy} onClick={() => void prepare()}>{draft ? 'Prepare again from defaults' : 'Prepare new configuration'}</button><button type="button" className="secondary" disabled={busy} onClick={() => void refresh()}>Refresh saved configurations</button></div>
++      {draft && <form aria-label="New run configuration" onSubmit={event => {
++        event.preventDefault();
++        void revalidate(async () => {
+           const saved = value(await window.lab.saveConfiguration({ requestId, projectId, globalRevision: draft.globalRevision, projectRevision: draft.projectRevision, overrides }));
+-          setSelected(saved); setDraft(undefined); await refresh();
+-        } catch (reason) { setError((reason as Error).message); }
+-        finally { setBusy(false); }
++          return { selected: saved, snapshots: value(await window.lab.listConfigurations(projectId)) };
++        });
+       }}><ChoicesEditor scope="Run" values={overrides} base={draft.choices} disabled={busy} onChange={next => { setOverrides(next); setRequestId(crypto.randomUUID()); }} /><button className="primary" disabled={busy}>Save configuration</button></form>}
+-      <ul className="saved-configurations">{snapshots.map((snapshot, index) => <li key={snapshot.snapshotId}><button type="button" className="secondary" disabled={busy} onClick={async () => {
+-        setBusy(true); setError('');
+-        try { setSelected(value(await window.lab.getConfiguration(projectId, snapshot.snapshotId))); }
+-        catch (reason) { setError((reason as Error).message); } finally { setBusy(false); }
+-      }}>View saved configuration {snapshots.length - index}</button><span>{new Date(snapshot.createdAt).toLocaleString()} · Unprepared</span></li>)}</ul>
++      <ul className="saved-configurations">{snapshots.map((snapshot, index) => <li key={snapshot.snapshotId}><button type="button" className="secondary" disabled={busy} onClick={() => void revalidate(async () => ({
++        selected: value(await window.lab.getConfiguration(projectId, snapshot.snapshotId)), snapshots: value(await window.lab.listConfigurations(projectId)),
++      }))}>View saved configuration {snapshots.length - index}</button><span>{new Date(snapshot.createdAt).toLocaleString()} · Unprepared</span></li>)}</ul>
+       {selected && <section aria-label="Saved configuration" className="saved-configuration"><h3>Saved configuration</h3><p>Unprepared · Choices are fixed. Later default changes leave these values unchanged.</p><ChoicesSummary draft={selected} /><details><summary>Configuration identity</summary><p>Snapshot: {selected.snapshotId}</p><p>Run: {selected.runId}</p></details></section>}
+     </section>
+   </div>;
+File: src/security/sanitizer.ts
+Before: {'sha256': 'f8b8f1b13ec7b63e1a6dde946c904c9189f47011dcd449f23803c155c0e48cb0', 'mode': 420}
+After: {'sha256': 'cfd262e49623b8ac508043476937293651476a303bf698031d5abc2be2f5b05a', 'mode': 420}
+--- before/src/security/sanitizer.ts
++++ after/src/security/sanitizer.ts
+@@ -31,6 +31,14 @@
+   #values = new Map<string, string[]>();
+   #owners = 0;
+   #generation = 0;
++  #listeners = new Set<() => void>();
++  onMatchingPolicyChanged(listener: () => void): () => void {
++    this.#listeners.add(listener); return () => { this.#listeners.delete(listener); };
++  }
++  private changed(): void {
++    this.#generation++;
++    for (const listener of this.#listeners) { try { listener(); } catch { /* Notification cannot undo matching. */ } }
++  }
+   get matchingGeneration(): number { return this.#generation; }
+   get matchingRevision(): number { return this.#generation; }
+   #waiting: (() => void)[] = [];
+@@ -74,10 +82,11 @@
+     const variants = [...new Set([value, json, escaped, escaped.toUpperCase().replaceAll('\\U', '\\u'), url,
+       url.replace(/%[A-F0-9]{2}/g, p => p.toLowerCase()), encodeURIComponent(url)])].sort((a,b) => b.length-a.length);
+     if (this.#owners && JSON.stringify(this.#values.get(id)) !== JSON.stringify(variants)) throw new OmitBody('filter_unavailable');
+-    if (JSON.stringify(this.#values.get(id)) !== JSON.stringify(variants)) this.#generation++;
++    const changed = JSON.stringify(this.#values.get(id)) !== JSON.stringify(variants);
+     this.#values.set(id, variants);
++    if (changed) this.changed();
+   }
+-  forget(id: string): void { if (this.#owners) throw new OmitBody('filter_unavailable'); if (this.#values.delete(id)) this.#generation++; }
++  forget(id: string): void { if (this.#owners) throw new OmitBody('filter_unavailable'); if (this.#values.delete(id)) this.changed(); }
+   text(value: string): { value: string; changed: boolean; credentialIds: string[] } {
+     let result = value;
+     const credentialIds = new Set<string>();
+File: tests/configuration.test.ts
+Before: {'sha256': '677bb4283bcfa3b1b16c8184cfb021b68bc9c5949ed80790f85f6ad89a36ffdd', 'mode': 420}
+After: {'sha256': '5182dc1c7bebc80e26ea8e35795fa857de43346adf2462147d97dca5fca3e079', 'mode': 420}
+--- before/tests/configuration.test.ts
++++ after/tests/configuration.test.ts
+@@ -7,6 +7,8 @@
+ import Database from 'better-sqlite3';
+ import { ProjectCatalog } from '../src/catalog/catalog';
+ import { ConfigurationStore } from '../src/configuration/store';
++import { ConfigurationClient } from '../src/configuration/client';
++import { ConfigurationCache, invalidateConfigurationCaches, onConfigurationCacheInvalidated } from '../src/renderer/configuration-cache';
+ import { assertSafeConfiguration, validateOverrides } from '../src/configuration/validation';
+ import { Sanitizer } from '../src/security/sanitizer';
+ import type { ChoiceOverrides, ConfigurationDraft, ConfigurationReply, ConfigurationRequest, ConfigurationSnapshot, DefaultsRecord, DefaultsRecovery } from '../src/configuration';
+@@ -239,6 +241,101 @@
+   } finally { f.cleanup(); }
+ });
+ 
++test('credential recognition between approval and writer continuation waits for the real publication owner', async () => {
++  const f = fixture();
++  try {
++    const canary = 'DelayedAdmissionObjective107';
++    value(update(f.store, { objective: canary }));
++    const request = saveRequest(draft(f.store, f.project.projectId));
++    const matcher = new Sanitizer();
++    let sent!: { id: string; configuration: ConfigurationRequest };
++    const client = new ConfigurationClient({ available: () => true, post: message => { sent = message; } }, () => matcher.holdMatchingPolicy(), input => assertSafeConfiguration(input, matcher));
++    const pending = client.request(request);
++    let admissions = 0, registered = false, registration: Promise<void> | undefined;
++    const reply = await f.store.handleAdmitted(sent.configuration, async input => {
++      assert.equal(client.admit(sent.id, input), true);
++      if (++admissions === 2) {
++        assert.throws(() => matcher.register(randomUUID(), canary));
++        registration = matcher.registerWhenMutable(randomUUID(), canary).then(() => { registered = true; });
++        await Promise.resolve(); assert.equal(registered, false);
++      }
++    });
++    assert.equal(reply.ok, true); assert.equal(registered, false);
++    assert.equal(value(call<ConfigurationSnapshot[]>(f.store, { kind: 'snapshots', projectId: f.project.projectId })).length, 1);
++    client.receive(sent.id, reply); assert.deepEqual(await pending, reply);
++    await registration; assert.equal(registered, true);
++    assert.throws(() => assertSafeConfiguration(reply, matcher));
++    // Registration-first ordering cannot make another copy into a fresh project.
++    const denied = await f.store.handleAdmitted(saveRequest(draft(f.store, f.other.projectId)), async input => assertSafeConfiguration(input, matcher));
++    error(denied, 'unavailable');
++    const filename = path.join(f.other.location, '.lab', 'configuration.sqlite');
++    for (const file of [filename, `${filename}-wal`]) if (existsSync(file)) assert.equal(readFileSync(file).includes(Buffer.from(canary)), false);
++  } finally { f.cleanup(); }
++});
++
++test('configuration ownership survives caller timeout, send uncertainty and late denial until terminal reply or confirmed exit', async () => {
++  for (const outcome of ['late-reply', 'exit', 'throw-after-post'] as const) {
++    const matcher = new Sanitizer();
++    let sent!: { id: string; configuration: ConfigurationRequest }, expire!: () => void;
++    const client = new ConfigurationClient({ available: () => true, post: message => { sent = message; if (outcome === 'throw-after-post') throw new Error('lost dispatch result'); } },
++      () => matcher.holdMatchingPolicy(), input => assertSafeConfiguration(input, matcher), callback => { expire = callback; return () => {}; });
++    const request = { kind: 'global:get' as const, operationId: randomUUID() };
++    const pending = client.request(request); expire(); error(await pending, 'unavailable');
++    let registered = false;
++    const registration = matcher.registerWhenMutable(randomUUID(), 'UncertainConfiguration107').then(() => { registered = true; });
++    await Promise.resolve(); assert.equal(registered, false);
++    assert.equal(client.admit(randomUUID(), {}), false);
++    assert.equal(client.admit(sent.id, {}), true); // Timed-out writer remains owned.
++    const denial: ConfigurationReply<never> = { ok: false, error: { code: 'unavailable', origin: 'run_configuration', operationId: request.operationId, message: 'Admission denied', effect: 'none', retry: 'after_reconcile' } };
++    if (outcome === 'late-reply') client.receive(sent.id, denial); else client.unavailable();
++    await registration; assert.equal(registered, true);
++    assert.equal(client.admit(sent.id, {}), false);
++    client.receive(sent.id, denial); client.unavailable(); // Duplicate/late signals are harmless.
++  }
++});
++
++test('configuration ownership fails closed on rejected admission/reply and pre-dispatch unavailability', async () => {
++  const matcher = new Sanitizer(); matcher.register(randomUUID(), 'RecognizedConfiguration107');
++  let sent!: { id: string; configuration: ConfigurationRequest }, acquired = 0;
++  const own = (request: ConfigurationRequest) => {
++    acquired++; const release = matcher.holdMatchingPolicy();
++    try { assertSafeConfiguration(request, matcher); return release; } catch (error) { release(); throw error; }
++  };
++  const client = new ConfigurationClient({ available: () => true, post: message => { sent = message; } }, own, input => assertSafeConfiguration(input, matcher));
++  const request = { kind: 'global:get' as const, operationId: randomUUID() };
++  const pending = client.request(request);
++  assert.equal(client.admit(sent.id, { objective: 'RecognizedConfiguration107' }), false);
++  client.receive(sent.id, { ok: true, value: { scope: 'global', projectId: null, revision: 0, objective: 'RecognizedConfiguration107' } } as never);
++  error(await pending, 'unavailable');
++  assert.doesNotThrow(() => matcher.register(randomUUID(), 'MutableAgain107'));
++  const absent = new ConfigurationClient({ available: () => false, post: () => assert.fail() }, own, () => {});
++  error(await absent.request(request), 'unavailable'); assert.equal(acquired, 1);
++});
++
++test('configuration policy notifications invalidate cached and delayed replies without notifying on unchanged reload', () => {
++  const matcher = new Sanitizer(), cache = new ConfigurationCache(), credentialId = randomUUID();
++  let notifications = 0;
++  const unsubscribe = matcher.onMatchingPolicyChanged(() => { notifications++; cache.invalidate(); });
++  const prior = cache.begin(); matcher.register(credentialId, 'PolicyValue107');
++  assert.equal(cache.current(prior), false); assert.equal(notifications, 1);
++  const current = cache.begin(); matcher.register(credentialId, 'PolicyValue107');
++  assert.equal(cache.current(current), true); assert.equal(notifications, 1);
++  const newer = cache.begin(); assert.equal(cache.current(current), false); assert.equal(cache.current(newer), true);
++  matcher.forget(credentialId); assert.equal(cache.current(newer), false); assert.equal(notifications, 2);
++  unsubscribe(); cache.invalidate();
++});
++
++test('rejected configuration reuse invalidates sibling defaults and all their in-flight replies', () => {
++  const draft = new ConfigurationCache(), defaults = new ConfigurationCache();
++  let bodies = 2;
++  const unsubscribers = [draft, defaults].map(cache => onConfigurationCacheInvalidated(() => { cache.invalidate(); bodies--; }));
++  const oldDraft = draft.begin(), oldDefaults = defaults.begin();
++  invalidateConfigurationCaches();
++  assert.equal(bodies, 0); assert.equal(draft.current(oldDraft), false); assert.equal(defaults.current(oldDefaults), false);
++  for (const unsubscribe of unsubscribers) unsubscribe();
++  const recovered = defaults.begin(); invalidateConfigurationCaches(); assert.equal(defaults.current(recovered), true);
++});
++
+ test('empty replacements of established global or project stores fail without initialization and originals recover', () => {
+   for (const scope of ['global', 'project'] as const) {
+     const f = fixture();

@@ -1,8 +1,11 @@
+import { metadataReply } from './security/metadata-policy';
 import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { CreateProject, ProjectReply, ProjectRequest, ProjectRecord, WorkspaceProjects } from './projects';
 import type { ShellStatus } from './shell';
+import type { ConfigurationReply, ConfigurationRequest, ConfigurationValue } from './configuration';
+import { ConfigurationClient } from './configuration/client';
 import { createSecurityHost } from './security/electron-vault';
 import { CREDENTIAL_HELP, ENTRY_CATEGORIES, validEntry } from './security/entry-contract';
 import { assertId, newId } from './security/common';
@@ -33,10 +36,28 @@ function requestProjects(request: ProjectRequest): Promise<ProjectReply<ProjectR
   });
 }
 
+const configurationClient = new ConfigurationClient({ available: () => coordinator !== null,
+  post: message => { if (!coordinator) throw new Error(); coordinator.postMessage(message); } }, request => {
+  const release = security.matcher.holdMatchingPolicy();
+  try { security.assertSafeConfiguration(request); return release; } catch (error) { release(); throw error; }
+}, value => security.assertSafeConfiguration(value));
+
 function admit(event: Electron.IpcMainInvokeEvent) {
   if (!window || event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame) {
     throw new Error('Untrusted workspace request.');
   }
+}
+
+// Admission inside a host may await IO. Stamp only the generation under which
+// the complete operation ran; preload independently fences in-transit replies.
+function metadataHandle(channel: string, listener: Parameters<typeof ipcMain.handle>[1]) {
+  ipcMain.handle(channel, async (event, ...args: unknown[]) => {
+    admit(event);
+    const generation = security.matcher.matchingGeneration;
+    const value = await listener(event, ...args);
+    if (generation !== security.matcher.matchingGeneration) throw new Error('Credential protection changed. Reload metadata; a save may already have completed.');
+    return metadataReply(value, generation);
+  });
 }
 
 function startCoordinator(): Promise<ShellStatus> {
@@ -65,7 +86,11 @@ function startCoordinator(): Promise<ShellStatus> {
       ready = true;
       resolve({ coordinator: 'ready', sqliteVersion: message.sqliteVersion });
     });
-    child.on('message', (message: { id?: string; reply?: ProjectReply<ProjectRecord | WorkspaceProjects> }) => {
+    child.on('message', (message: { id?: string; reply?: ProjectReply<ProjectRecord | WorkspaceProjects>; configurationReply?: ConfigurationReply<ConfigurationValue> }) => {
+      if (message?.id && message.configurationReply) {
+        configurationClient.receive(message.id, message.configurationReply);
+        return;
+      }
       if (!message?.id || !message.reply) return;
       const waiting = pending.get(message.id);
       if (!waiting) return;
@@ -73,10 +98,16 @@ function startCoordinator(): Promise<ShellStatus> {
       pending.delete(message.id);
       waiting.resolve(message.reply);
     });
+    child.on('message', (message: { configurationAdmissionId?: string; configurationRequestId?: string; value?: unknown }) => {
+      if (!message?.configurationAdmissionId) return;
+      const allowed = typeof message.configurationRequestId === 'string' && configurationClient.admit(message.configurationRequestId, message.value);
+      child.postMessage({ configurationAdmissionId: message.configurationAdmissionId, allowed });
+    });
     child.once('exit', () => {
       clearTimeout(timer);
       for (const waiting of pending.values()) clearTimeout(waiting.timer);
       pending.clear();
+      configurationClient.unavailable();
       if (!ready) reject(new Error('The workspace coordinator exited during startup.'));
       else if (!quitting) {
         dialog.showErrorBox('Workspace unavailable', 'The workspace coordinator stopped. Please restart Autoresearch Lab.');
@@ -125,6 +156,18 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.whenReady().then(async () => {
     security = createSecurityHost();
+    security.matcher.onMatchingPolicyChanged(() => {
+      if (window && !window.isDestroyed()) window.webContents.send('configuration:invalidate', security.matcher.matchingGeneration);
+    });
+    // Barriers never join the vault queue: a registration may be waiting for an
+    // uncertain writer's matching lease, and reconciliation must stay usable.
+    ipcMain.handle('metadata:revision', event => { admit(event); return security.matcher.matchingGeneration; });
+    ipcMain.handle('metadata:ready', async event => {
+      admit(event);
+      try { security.credentials.list(); }
+      catch { try { await security.initialize(); } catch { /* Domain reads explain locked storage. */ } }
+      return security.matcher.matchingGeneration;
+    });
     ipcMain.handle('credentials:register', async (event, input: unknown) => {
       if (!credentialWindow || event.sender !== credentialWindow.webContents ||
           event.senderFrame !== credentialWindow.webContents.mainFrame || !validEntry(input)) {
@@ -192,6 +235,22 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle('shell:get-status', (event) => {
       admit(event);
       return status;
+    });
+    metadataHandle('configuration:request', async (event, request: ConfigurationRequest) => {
+      admit(event);
+      try {
+        assertId(request?.operationId);
+        // Load app-owned current/retired matching values before admitting semantic
+        // settings. Reject unsafe settings instead of saving redacted semantics.
+        await security.initialize();
+        security.assertSafeConfiguration(request);
+        const reply = await configurationClient.request(request);
+        security.assertSafeConfiguration(reply);
+        return reply;
+      } catch {
+        return { ok: false, error: { code: 'unavailable', origin: 'run_configuration', operationId: '',
+          message: 'Settings could not be safely admitted. Remove credentials from choices, unlock credential storage and reload. Saved choices may need review if a credential was registered later.', effect: 'unknown', retry: 'after_reconcile' } };
+      }
     });
     ipcMain.handle('projects:list', (event) => {
       admit(event);

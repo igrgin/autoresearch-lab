@@ -1,0 +1,11 @@
+{
+  "pwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a",
+  "root": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a",
+  "branch": "t3/90ecb91a",
+  "startingHead": "c96fcf722e2c863b01570d17a73d7a693fa7b8ee",
+  "origin": "https://github.com/igrgin/autoresearch-lab.git",
+  "registration": [
+    "worktree /Users/igrgin/Documents/home-repo/repos/autoresearch-lab\nHEAD 70250cfb20159c3d1341ab2804859135da36312e\nbranch refs/heads/main",
+    "worktree /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a\nHEAD c96fcf722e2c863b01570d17a73d7a693fa7b8ee\nbranch refs/heads/t3/90ecb91a"
+  ]
+}

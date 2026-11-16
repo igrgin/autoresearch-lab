@@ -1,0 +1,141 @@
+{
+  "observations": [
+    {
+      "name": "snapshot: immediate policy invalidation",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "snapshot: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "snapshot: rejected revalidation clears all bodies",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "draft: immediate policy invalidation",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "draft: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "draft: rejected revalidation clears all bodies",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "defaults: immediate policy invalidation",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "defaults: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "defaults: rejected revalidation clears all bodies",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "snapshot-denial-only: immediate policy invalidation",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "snapshot-denial-only: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "snapshot-denial-only: rejected revalidation clears all bodies",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "draft-denial-only: immediate policy invalidation",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "draft-denial-only: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "draft-denial-only: rejected revalidation clears all bodies",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "prepare: delayed previously admitted reply cannot restore body",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "snapshot: delayed previously admitted reply cannot restore body",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "snapshot: explicit current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "project:get: delayed previously admitted reply cannot restore body",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "credential registration waits for admitted writer",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "registration completes after writer quiescence",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "safe admitted write completes before recognition",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "recognized committed choices withheld on reuse",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "no invalidated-admission snapshot copy",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "registration-first write rejected",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "registration-first no project snapshot bytes",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "restart retains matching and withholds old snapshot",
+      "actual": false,
+      "expected": false
+    }
+  ],
+  "failures": [],
+  "qualification": "Controlled synthetic credentials, actual packaged main/coordinator/entry UI. No provider/inference qualification."
+}

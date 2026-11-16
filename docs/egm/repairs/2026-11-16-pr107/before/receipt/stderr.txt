@@ -1,0 +1,69 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: snapshot: immediate policy invalidation
+
+false !== true
+
+snapshot: rejected revalidation clears all bodies
+
+false !== true
+
+draft: immediate policy invalidation
+
+false !== true
+
+draft: rejected revalidation clears all bodies
+
+false !== true
+
+defaults: immediate policy invalidation
+
+false !== true
+
+credential registration waits for admitted writer
+
+true !== false
+
+safe admitted write completes before recognition
+
+false !== true
+
+no invalidated-admission snapshot copy
+
+true !== false
+
++ actual - expected
+
++ [
++   'snapshot: immediate policy invalidation\n\nfalse !== true\n',
++   'snapshot: rejected revalidation clears all bodies\n\nfalse !== true\n',
++   'draft: immediate policy invalidation\n\nfalse !== true\n',
++   'draft: rejected revalidation clears all bodies\n\nfalse !== true\n',
++   'defaults: immediate policy invalidation\n\nfalse !== true\n',
++   'credential registration waits for admitted writer\n\ntrue !== false\n',
++   'safe admitted write completes before recognition\n\nfalse !== true\n',
++   'no invalidated-admission snapshot copy\n\ntrue !== false\n'
++ ]
+- []
+
+    at file:///Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/scripts/smoke-configuration-protection.mjs:160:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'snapshot: immediate policy invalidation\n\nfalse !== true\n',
+    'snapshot: rejected revalidation clears all bodies\n\nfalse !== true\n',
+    'draft: immediate policy invalidation\n\nfalse !== true\n',
+    'draft: rejected revalidation clears all bodies\n\nfalse !== true\n',
+    'defaults: immediate policy invalidation\n\nfalse !== true\n',
+    'credential registration waits for admitted writer\n\ntrue !== false\n',
+    'safe admitted write completes before recognition\n\nfalse !== true\n',
+    'no invalidated-admission snapshot copy\n\ntrue !== false\n'
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.22.3

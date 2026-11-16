@@ -1,7 +1,7 @@
 # Build and run on macOS
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
-Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing and reopening. Runs
+Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults and saved run configurations. Runs
 and Compute provide empty states; Credential settings use a separate trusted window; provider connections, agents and training
 remain separate implementation tasks.
 
@@ -80,6 +80,14 @@ error under `src/`, push it to the PR, and confirm the build job fails at checki
 and skips upload (the run's artifact list must be empty). Revert the error and
 verify a new successful run with the ZIP. Do not merge the deliberate failure.
 
+The packaged configuration-protection smoke additionally delays a real
+main/coordinator admission and checks credential entry ordering through commit,
+current/retired read denial and full application restart. It checks surviving
+snapshot, draft and defaults views after credential changes, including delayed
+previously admitted replies. Evidence is written to
+`out/smoke/configuration-protection/`. These are synthetic local fixtures, with
+no live credentials, provider traffic or inference.
+
 ## Project storage and recovery
 
 The utility coordinator stores `registry.sqlite` under Electron's application-data
@@ -135,10 +143,64 @@ renderer profile. They are not research history or authoritative project records
 clearing that UI cache loses recency cues without affecting projects or their
 identities. Copy feedback is scoped to the project whose location or Git path was copied.
 
+## Defaults and saved configurations
+
+Open **Settings** for global defaults. Open a project and expand **Project
+defaults** to inherit or explicitly override each choice. The current reusable
+choices are the research agent/integration and model ID (one atomic choice),
+experiment training duration in whole seconds, and research objective. Empty
+choices remain unselected; no numeric duration or model is silently assumed.
+Model IDs are requests, not verified account/model availability.
+
+Precedence is per choice: an explicit run choice overrides an explicit project
+choice, which overrides the global choice. An absent project/run key inherits;
+an explicit empty (`null`) choice remains unset even if a global value exists.
+Removing an override restores inheritance. Changing agent integration clears its
+model, so a model from a different integration cannot be inherited accidentally.
+
+Choose **Prepare new configuration**, review the effective choices, optionally
+override them for this run, then **Save configuration**. **View saved
+configuration** reads the original choices and origin revisions, even after
+defaults change or the app restarts. Saved configurations have stable snapshot
+and reserved run identities and are immutable. They are visibly **Unprepared**;
+data, source/initialization, hardware, evaluation and stopping setup, prepared
+input manifests and launch validation remain with their owning implementation
+slices. This flow does not start training or create execution history.
+
+Only the utility coordinator writes configuration stores. Global defaults use
+`defaults.sqlite` and the `defaults.initialized` guard in application data;
+project defaults and snapshots use `.lab/configuration.sqlite` in each project.
+Existing catalog/history v1 schemas are unchanged. The stores use the same
+version/checksum, WAL and FULL-synchronization policy. Defaults append revisions;
+snapshot updates/deletes are rejected. Expected revisions reject stale forms
+and drafts; reload or prepare again to review current defaults. Retrying an
+unchanged save after an uncertain response returns the original result; changing
+that request's payload is rejected. A missing established store, foreign project
+binding or unsupported schema fails without resetting data. Restore original
+files before retrying. Include these stores, their SQLite-consistent state and
+the initialization guard when backing up application data; backup/relocation UI
+is not implemented.
+
+Settings contain no authentication fields. Main checks the trusted workspace
+frame, loads only app-owned credential matching state, rejects unsafe semantic
+settings before persistence and rechecks responses before display. It never
+silently saves a redacted objective/model as a different choice. If Keychain or
+safe admission is unavailable, settings fail closed with reload guidance. A
+saved value that later matches a registered credential is withheld for review;
+matching does not prove detection of every unknown or transformed secret.
+
+The normal test command includes precedence, restart, immutable-snapshot,
+stale/idempotent request, invalid/unsafe input, SQL write failure, missing/foreign
+store and future-schema tests. Packaged smoke additionally exercises global and
+project settings, explicit unset and run overrides, saved values after edits,
+full application restart, known synthetic credential rejection and unrelated
+renderer IPC rejection. These are controlled local checks; no provider, agent
+model access or training is qualified.
+
 ## Host boundaries and follow-up work
 
 The React renderer has no Node access; a sandboxed preload exposes status and
-four typed catalog operations (list/create/open/recover) and five narrow native
+typed configuration operations and four catalog operations (list/create/open/recover) and five narrow native
 actions (reveal validated project or Git folders, copy either validated path, and
 copy the known workspace projects path). Main validates the
 requesting window/frame and owns native windows and utility-process lifecycle.

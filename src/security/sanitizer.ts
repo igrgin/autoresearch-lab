@@ -12,15 +12,64 @@ export class OmitBody extends Error {
 export class Sanitizer {
   readonly policyRevision = POLICY_REVISION;
   #values = new Map<string, string[]>();
+  #owners = 0;
+  #generation = 0;
+  #listeners = new Set<() => void>();
+  onMatchingPolicyChanged(listener: () => void): () => void {
+    this.#listeners.add(listener); return () => { this.#listeners.delete(listener); };
+  }
+  private changed(): void {
+    this.#generation++;
+    for (const listener of this.#listeners) { try { listener(); } catch { /* Notification cannot undo matching. */ } }
+  }
+  get matchingGeneration(): number { return this.#generation; }
+  get matchingRevision(): number { return this.#generation; }
+  #waiting: (() => void)[] = [];
+  // Trusted publication owns the matching policy until its writer is quiescent.
+  // A missing acknowledgement does not release ownership of an in-flight write.
+  holdMatchingPolicy(): () => void {
+    this.#owners++; let held = true;
+    return () => {
+      if (!held) return; held = false;
+      if (--this.#owners === 0) for (const resolve of this.#waiting.splice(0)) resolve();
+    };
+  }
+  private async whenMatchingMutable(): Promise<void> {
+    while (this.#owners) await new Promise<void>(resolve => this.#waiting.push(resolve));
+  }
+  async registerWhenMutable(id: string, value: string): Promise<void> {
+    if (this.#owners) {
+      // Reloading an already known value does not mutate matching policy. It
+      // must not block unrelated initialized services behind a lost write reply.
+      try { this.register(id, value); return; }
+      catch (error) { if (!(error instanceof OmitBody) || error.reason !== 'filter_unavailable') throw error; }
+    }
+    for (;;) {
+      await this.whenMatchingMutable();
+      // A publisher can acquire ownership after the waiter wakes. Check and
+      // mutate in one synchronous turn instead of rejecting/losing the entry.
+      if (!this.#owners) { this.register(id, value); return; }
+    }
+  }
+  async forgetWhenMutable(id: string): Promise<void> {
+    for (;;) {
+      await this.whenMatchingMutable();
+      if (!this.#owners) { this.forget(id); return; }
+    }
+  }
   register(id: string, value: string): void {
     if (!value || Buffer.byteLength(value) > 64 * 1024) throw new OmitBody('invalid_schema');
     const json = JSON.stringify(value).slice(1, -1);
     const escaped = value.split('').map(c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`).join('');
     const url = encodeURIComponent(value);
-    this.#values.set(id, [...new Set([value, json, escaped, escaped.toUpperCase().replaceAll('\\U', '\\u'), url,
-      url.replace(/%[A-F0-9]{2}/g, p => p.toLowerCase()), encodeURIComponent(url)])].sort((a,b) => b.length-a.length));
+    const variants = [...new Set([value, json, escaped, escaped.toUpperCase().replaceAll('\\U', '\\u'), url,
+      url.replace(/%[A-F0-9]{2}/g, p => p.toLowerCase()), encodeURIComponent(url)])].sort((a,b) => b.length-a.length);
+    if (this.#owners && JSON.stringify(this.#values.get(id)) !== JSON.stringify(variants)) throw new OmitBody('filter_unavailable');
+    const changed = JSON.stringify(this.#values.get(id)) !== JSON.stringify(variants);
+    this.#values.set(id, variants);
+    if (changed) this.changed();
   }
-  forget(id: string): void { this.#values.delete(id); }
+  forget(id: string): void { if (this.#owners) throw new OmitBody('filter_unavailable'); if (this.#values.delete(id)) this.changed(); }
   text(value: string): { value: string; changed: boolean; credentialIds: string[] } {
     let result = value;
     const credentialIds = new Set<string>();

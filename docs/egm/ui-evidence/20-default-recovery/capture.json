@@ -1,0 +1,11 @@
+{
+  "beforePackageHead": "25175d947209b7d069504152b05687d30c681e94",
+  "after": "Combined repaired package; final tree correlated in parent receipt",
+  "runtime": "Node24.22.3 / Electron45.3.2 / macOS arm64",
+  "fixture": "Actual renderer/private IPC/store; synthetic credential recognition+rotation and full restart; no live services",
+  "images": {
+    "before.png": "7dd9f272aac7997e89a589eaf7d0b9f7b12588f300f9f69ff9a9bcaa1aebc4ba",
+    "after.png": "9909a21c7c0288e435aea3b1e4572bafb996356db8dd354044db0924be9d6356",
+    "project-after.png": "e2356cc7a7869d7914f2694e5a9ae1d25fb12ffdedaf077981465f6947b12e86"
+  }
+}

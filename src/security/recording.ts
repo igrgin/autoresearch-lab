@@ -101,8 +101,13 @@ export class SafeRecording {
     return { contractVersion: { major: 1, minor: 0 }, envelope: meta, policyRevision: POLICY_REVISION,
       body: reason ? null : body, coverage: reason ? 'omitted' : redacted ? 'redacted' : 'complete', ...(reason ? { omission: reason } : {}) };
   }
+  // Keep admitted buffers under matching authority until their writer settles.
+  async withMatchingPolicy<T>(work: (port: SafeRecording) => Promise<T>): Promise<T> {
+    const release = this.sanitizer.holdMatchingPolicy();
+    try { return await work(this); } finally { release(); }
+  }
   async capture(meta: Envelope, raw: unknown, reason?: Omission): Promise<SafeRecord> {
-    return this.serial(async () => {
+    return this.publication(async () => {
       const checked = envelope(meta); this.assertCanAct(checked);
       const record = this.filtered(checked, raw, reason);
       if (record.omission === 'filter_unavailable') await this.fence(checked);
@@ -119,6 +124,9 @@ export class SafeRecording {
       }
       return structuredClone(record);
     });
+  }
+  private publication<T>(work: () => Promise<T>): Promise<T> {
+    return this.serial(() => this.withMatchingPolicy(work));
   }
   // Only a fixed structured control receipt may bypass a capture fence. No free text/raw fallback.
   async control(meta: Envelope, receipt: { controlId: string; state: 'requested' | 'confirmed_stopped' | 'unknown' }): Promise<SafeRecord> {
@@ -231,7 +239,7 @@ export class SafeRecording {
     });
   }
   async correct(originalId: string, meta: Envelope, independentlyAdmittedBody: unknown): Promise<SafeRecord> {
-    return this.serial(() => this.correction(originalId, meta, independentlyAdmittedBody));
+    return this.publication(() => this.correction(originalId, meta, independentlyAdmittedBody));
   }
   private async correction(originalId: string, meta: Envelope, independentlyAdmittedBody: unknown): Promise<SafeRecord> {
     assertId(originalId);

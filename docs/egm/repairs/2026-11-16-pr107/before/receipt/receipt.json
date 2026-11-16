@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr107-repair/original-fixed-fixture/snapshot.json",
+  "name": "regression",
+  "role": "baseline",
+  "command": [
+    "env",
+    "PR107_OUTPUT=/tmp/pr107-repair/before-ui-final",
+    "node",
+    "scripts/smoke-configuration-protection.mjs"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a",
+  "environment": "macOS arm64; Node24.22.3; Electron45.3.2",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794858793.328929,
+  "ended": 1794858807.734266,
+  "pre_subject_id": "81eaf8222d38699385f67af19ef01fd008ce785b9430ae036987cf0f19e23e54",
+  "post_subject_id": "81eaf8222d38699385f67af19ef01fd008ce785b9430ae036987cf0f19e23e54",
+  "expected_exit": 1,
+  "exit_code": 1,
+  "observation": "Original production; real credential entry, rejected snapshot/draft/default reads and delayed utility admission.",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "e74300cf28c3f4d7f47831f54c65780c6de03231fd0b88f4405b007f404cf151"
+}
