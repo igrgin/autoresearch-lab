@@ -28,7 +28,7 @@ export interface AdapterBinding { component: Component; accountId: string; crede
 export class CredentialService {
   #vault: Vault = { version: 1, entries: [] };
   #ready = false;
-  #sessions = new Map<string, Entry & { scope: Scope }>();
+  #sessions = new Map<string, Entry & { scope: Scope; parentCredentialId?: string }>();
   #tail: Promise<unknown> = Promise.resolve();
   #revoked = new Set<string>();
   #workers = new Map<string, Set<() => void>>();
@@ -85,18 +85,29 @@ export class CredentialService {
     });
   }
   // Provider-issued expiring session only: passwords/OTP/recovery inputs have no storage API.
-  registerVastSession(accountId: string, scope: Scope, value: string): CredentialMetadata {
+  registerVastSession(accountId: string, scope: Scope, value: string, parentCredentialId?: string): CredentialMetadata {
     this.requireReady(); assertId(accountId);
+    if (parentCredentialId !== undefined) {
+      assertId(parentCredentialId);
+      if (!this.#vault.entries.some(entry => entry.id === parentCredentialId && entry.category === 'vast' &&
+          entry.accountId === accountId && entry.status === 'active' && !this.#revoked.has(entry.id))) throw new SecurityError('authentication_required');
+    }
     const entry = { id: newId(), category: 'vast_session' as const, accountId, label: 'Vast session',
-      status: 'active' as const, value, scope: validateScope(scope) };
+      status: 'active' as const, value, scope: validateScope(scope), ...(parentCredentialId ? { parentCredentialId } : {}) };
     try { this.matcher.register(entry.id, value); } catch { throw new SecurityError('invalid_input'); }
     this.#sessions.set(entry.id, entry); return this.metadata(entry);
+  }
+  private fenceAuthority(id: string): void {
+    this.#revoked.add(id);
+    for (const terminate of this.#workers.get(id) ?? []) { try { terminate(); } catch { /* safe error only */ } }
+    for (const session of this.#sessions.values()) {
+      if (session.parentCredentialId === id) this.fenceAuthority(session.id);
+    }
   }
   async replace(id: string, value: string): Promise<CredentialMetadata> {
     assertId(id);
     // Retire the old authentication authority before awaiting persistence.
-    this.#revoked.add(id);
-    for (const terminate of this.#workers.get(id) ?? []) { try { terminate(); } catch { /* safe error only */ } }
+    this.fenceAuthority(id);
     return this.serial(async () => {
       this.requireReady();
       const previous = this.#vault.entries.find(entry => entry.id === id);
@@ -115,8 +126,7 @@ export class CredentialService {
   list(): CredentialMetadata[] { this.requireReady(); return this.#vault.entries.map(entry => this.metadata(entry)); }
   async revoke(id: string): Promise<void> {
     assertId(id);
-    this.#revoked.add(id); // deny in-flight/new access even if durable write fails
-    for (const terminate of this.#workers.get(id) ?? []) { try { terminate(); } catch { /* no worker diagnostics */ } }
+    this.fenceAuthority(id); // deny dependent sessions too, before any durable write
     return this.serial(async () => {
       this.requireReady();
       if (this.#sessions.has(id)) { this.#sessions.get(id)!.status = 'revoked'; return; }
@@ -144,15 +154,18 @@ export class CredentialService {
       if (!sameScope(bound.scope, validateScope(scope))) throw new SecurityError('permission_denied');
       const session = this.#sessions.get(bound.credentialId);
       const entry = session ?? this.#vault.entries.find(e => e.id === bound.credentialId);
+      const parentActive = () => !session?.parentCredentialId || this.#vault.entries.some(parent =>
+        parent.id === session.parentCredentialId && parent.category === 'vast' && parent.accountId === session.accountId &&
+        parent.status === 'active' && !this.#revoked.has(parent.id));
       if (session && !sameScope(session.scope, bound.scope)) throw new SecurityError('permission_denied');
       if (!entry || (entry.category !== rule.category && !(bound.component === 'vast_adapter' && entry.category === 'vast_session')) || entry.accountId !== bound.accountId) throw new SecurityError('permission_denied');
-      if (entry.status !== 'active' || this.#revoked.has(entry.id)) throw new SecurityError('authentication_required');
+      if (entry.status !== 'active' || this.#revoked.has(entry.id) || !parentActive()) throw new SecurityError('authentication_required');
       const controller = new AbortController();
       const terminate = () => controller.abort();
       const workers = this.#workers.get(entry.id) ?? new Set(); workers.add(terminate); this.#workers.set(entry.id, workers);
       try {
         const result = await handler(entry.value, controller.signal);
-        if (controller.signal.aborted || this.#revoked.has(entry.id)) throw new SecurityError('authentication_required');
+        if (controller.signal.aborted || this.#revoked.has(entry.id) || !parentActive()) throw new SecurityError('authentication_required');
         return result;
       } catch { throw new SecurityError('authentication_required', 'unknown'); }
       finally { workers.delete(terminate); }
