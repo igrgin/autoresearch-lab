@@ -1,0 +1,18 @@
+✔ R4 late hold reply after admission timeout cannot leak matching ownership (31.823334ms)
+✔ R4 caller timeout does not release a live writer; actual settlement or exit does (1.23125ms)
+✔ R4 admission timeout prevents late replies from reviving a settled writer (29.627ms)
+✔ R3 sanitizer failure retains an independent safe capture receipt for an admitted attempt (735.243541ms)
+✔ R3 fixed safety receipts survive the sanitizer fence, restart and replay without admitting work or prose (534.448083ms)
+✔ R3 fixed receipt and ordinary admission replay one producer identity without rewriting source evidence (761.57ms)
+✔ R4 matching registration between detail and event admission cannot reach SQL or WAL (308.376458ms)
+✔ R4 unhealthy activity replay preserves source ordinal and dependent projections across restart (998.626208ms)
+✔ R4 research v1 upgrades with a consistent backup and rejects future schemas without reset (344.515084ms)
+✔ R4 local authority covers every SQLite checkpoint and releases after transaction rollback (435.918459ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4212.9875

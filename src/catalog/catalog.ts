@@ -9,6 +9,8 @@ import type { CreateProject, ProjectEntry, ProjectError, ProjectRecord, ProjectR
 import { findGit, git } from './git';
 import { openStore } from './storage';
 import { ComputeReservations, reservationHistorySql, reservationRegistrySql, type ReservationOptions } from '../compute/reservations';
+import { ResearchStore } from '../research/store';
+import type { ResearchAdmission } from '../research/security-port';
 
 const registrySql = `CREATE TABLE projects (
   project_id TEXT PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
@@ -55,6 +57,7 @@ function writeNew(filename: string, content: string) {
 }
 
 export class ProjectCatalog {
+  private readonly researchStores = new Map<string, ResearchStore>();
   private readonly db: Database.Database;
   private readonly root: string;
   readonly projectsFolder: string;
@@ -84,7 +87,20 @@ export class ProjectCatalog {
     return (this.db.prepare('SELECT sqlite_version() AS version').get() as { version: string }).version;
   }
 
-  close() { this.db.close(); }
+  close() { for (const store of this.researchStores.values()) store.close(); this.db.close(); }
+
+  research(projectId: string, admission: ResearchAdmission): ResearchStore {
+    if (!uuid.test(projectId)) fail('invalid_input', 'Select a valid workspace project.');
+    const row = this.db.prepare('SELECT * FROM projects WHERE project_id=?').get(projectId) as Row | undefined;
+    if (!row || row.state !== 'ready') fail('not_found', 'Open a ready project before recording research.');
+    this.validateProject(row);
+    let store = this.researchStores.get(projectId);
+    if (!store) {
+      store = new ResearchStore(path.join(this.project(row).location, '.lab', 'research.sqlite'),projectId,admission);
+      this.researchStores.set(projectId,store);
+    }
+    return store;
+  }
 
   // This is a small host port, not a raw filesystem/SQL bridge. Validate runtime
   // inputs here as well as at main's trusted-frame admission boundary.

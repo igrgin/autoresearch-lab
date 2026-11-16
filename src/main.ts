@@ -1,4 +1,5 @@
 import { metadataReply } from './security/metadata-policy';
+import { ResearchSecurityHost } from './research/security-port';
 import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -103,7 +104,13 @@ function startCoordinator(): Promise<ShellStatus> {
       const allowed = typeof message.configurationRequestId === 'string' && configurationClient.admit(message.configurationRequestId, message.value);
       child.postMessage({ configurationAdmissionId: message.configurationAdmissionId, allowed });
     });
+    const researchSecurity = new ResearchSecurityHost(() => security.initialize(), security.matcher, security.recording,
+      reply => child.postMessage(reply));
+    child.on('message', (message: Parameters<typeof researchSecurity.receive>[0]) => {
+      if (message?.channel === 'research_security') void researchSecurity.receive(message);
+    });
     child.once('exit', () => {
+      researchSecurity.unavailable();
       clearTimeout(timer);
       for (const waiting of pending.values()) clearTimeout(waiting.timer);
       pending.clear();

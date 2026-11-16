@@ -324,3 +324,12 @@ test('replacement metadata persists its safe version relationship without duplic
   assert.equal(items.filter(entry=>!entry.supersededById).length,1);
   const s=scope(); await assert.rejects(second.bindAdapter({component:'runpod_adapter',purpose:'inspect',accountId:old.accountId,credentialId:old.id,scope:s},async()=>true).execute(s),{code:'authentication_required'});
 });
+
+test('URL userinfo after diff markers and punctuation is scrubbed without quadratic scheme scanning', () => {
+ const sanitizer=new Sanitizer();
+ for(const prefix of ['+','-','.','++','.-','context: ']) {
+  const clean=sanitizer.text(`${prefix}https://unregistered-user:ordinary-fixture-value@example.invalid/model`).value;
+  assert.equal(clean.includes('unregistered-user'),false);assert.equal(clean.includes('ordinary-fixture-value'),false);
+ }
+ const long='q-'.repeat(1.5*1024*1024);assert.equal(sanitizer.text(long).value,long);
+});

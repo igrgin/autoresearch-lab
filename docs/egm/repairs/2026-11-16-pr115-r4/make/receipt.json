@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr115-repair-evidence/patched/snapshot.json",
+  "name": "make",
+  "role": "final",
+  "command": [
+    "npm",
+    "run",
+    "make"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-7678f169",
+  "environment": "Node24.22.3-macOS-arm64-Electron45.3.2-SQLite-native",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794859716.3550239,
+  "ended": 1794859766.543872,
+  "pre_subject_id": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+  "post_subject_id": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+  "expected_exit": 0,
+  "exit_code": 0,
+  "observation": "Sequential macOS arm64 production app and ZIP build after successful full checks.",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "c4a3c4502ffc0a31515eb56c6a99c8d2cf0dc03b3e669e2c3c0835b76c433bd8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,16 @@
+✔ R3 quota split at H-1 preserves an oversized body without part collisions (884.14375ms)
+✔ R3 sanitizer failure retains its safe omission envelope for an admitted attempt (495.010458ms)
+✔ R3 pending evaluation survives restart and completes under its original identity (1128.047291ms)
+✔ R3 fixed safety receipts survive the sanitizer fence, restart and replay without admitting work or prose (582.3005ms)
+✔ R3 essential receipts fail closed on a failed transaction, including after restart (452.544167ms)
+✔ R3 evaluation completion rejects changed joins, missing provenance and edits to legacy final results (3443.945458ms)
+✔ R3 delayed pending evidence unlocks final evaluation and a consistent backup restores original sources (594.008667ms)
+✔ R3 fixed receipt and ordinary admission replay one producer identity without rewriting source evidence (930.073542ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8642.005541

@@ -214,9 +214,21 @@ Main resolves native-action locations through the catalog; the renderer never
 supplies an arbitrary native path or clipboard payload. The utility coordinator
 owns all registry/history, filesystem and Git work,
 requires actual SQLite 3.51.3 or later, and serializes requests. No raw SQL or
-filesystem operation is exposed through the preload. The project history schema
-contains project identity and compute release evidence; run history, adapters, active-run
-close handling and remote supervision belong to their dependent tasks.
+filesystem operation is exposed through the preload. The catalog history schema retains project identity and compute release evidence. A separate private
+`.lab/research.sqlite` stores admitted research facts, transactional projections and
+replay cursors through the coordinator; see the [#87 implementation record](egm/87-record-store-implementation.md).
+History screens, adapters, active-run close handling and remote supervision remain
+their dependent tasks.
+
+Research schema v2 adds independent replica capture-failure receipts. Existing v1
+stores receive a consistent `research.sqlite.before-v2-<uuid>.sqlite` backup before
+the checksummed upgrade; older applications reject v2 and require restoring that
+backup with the app stopped. Event/detail admission holds main's current matching
+policy through the utility's actual SQLite commit, including after caller timeout.
+`npm test` includes delayed-admission, timeout and utility-exit checks over the real
+native port, with direct SQLite/WAL inspection before read-time quarantine.
+These use synthetic credentials and local fixtures, without live account access.
+
 
 These boundaries follow the complete decisions in
 [#15](https://github.com/igrgin/autoresearch-lab/issues/15#issuecomment-6866989510)

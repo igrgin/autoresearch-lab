@@ -1,0 +1,57 @@
+✖ R4 matching registration between detail and event admission cannot reach SQL or WAL (917.100625ms)
+✖ R4 unhealthy activity replay preserves source ordinal and dependent projections across restart (951.780625ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2200.213833
+
+✖ failing tests:
+
+test at .webpack/tests/research.cjs:4765:22
+✖ R4 matching registration between detail and event admission cannot reach SQL or WAL (917.100625ms)
+  AssertionError [ERR_ASSERTION]: stale admitted detail persisted to SQLite
+      at TestContext.<anonymous> (/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-7678f169/.webpack/tests/research.cjs:4788:26)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at .webpack/tests/research.cjs:4797:22
+✖ R4 unhealthy activity replay preserves source ordinal and dependent projections across restart (951.780625ms)
+  AssertionError [ERR_ASSERTION]: collector failure created conflicting producer evidence
+  + actual - expected
+  
+    [
+      {
+        ordinal: 5,
+  +     reason: 'event_identity_conflict',
+  +     status: 'conflict'
+  -     reason: null,
+  -     status: 'applied'
+      },
+  +   {
+  +     ordinal: 7,
+  +     reason: 'event_identity_conflict',
+  +     status: 'conflict'
+  +   }
+    ]
+  
+      at TestContext.<anonymous> (/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-7678f169/.webpack/tests/research.cjs:4818:30)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { ordinal: 5, status: 'conflict', reason: 'event_identity_conflict' }, { ordinal: 7, status: 'conflict', reason: 'event_identity_conflict' } ],
+    expected: [ { ordinal: 5, status: 'applied', reason: null } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

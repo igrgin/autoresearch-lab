@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr115-repair-evidence/original/snapshot.json",
+  "name": "regression",
+  "role": "baseline",
+  "command": [
+    "env",
+    "ELECTRON_RUN_AS_NODE=1",
+    "node_modules/electron/dist/Electron.app/Contents/MacOS/Electron",
+    "--test",
+    "--test-name-pattern=R4",
+    ".webpack/tests/research.cjs"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-7678f169",
+  "environment": "Node24.22.3-macOS-arm64-Electron45.3.2-SQLite-native",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794858753.0712059,
+  "ended": 1794858757.146741,
+  "pre_subject_id": "6d2266aa4aa2ec56d4e1ea96d05ef4a70b32f2c0f4f3bd118a5b0f76aafc17bf",
+  "post_subject_id": "6d2266aa4aa2ec56d4e1ea96d05ef4a70b32f2c0f4f3bd118a5b0f76aafc17bf",
+  "expected_exit": 1,
+  "exit_code": 1,
+  "observation": "Run both original R4 cases directly after webpack bundle preparation; inspect SQL before read quarantine.",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "d7dd2ff5e3cd51e32056463e9f828522afa132695140a73f24852f1e16cdcf46",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

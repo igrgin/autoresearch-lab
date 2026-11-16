@@ -6,6 +6,23 @@ export interface Filtered { body: SafeValue; redacted: boolean; credentialIds: s
 const credentialField = /(?:authorization|authentication|cookie|password|passphrase|secret|token|api[_-]?key|private[_-]?key|credential|challenge|otp|recovery[_-]?code|signed[_-]?url)/i;
 export const MAX_CAPTURE_BYTES = 4 * 1024 * 1024; // admission bound; #86 retention cuts follow admission
 
+// Scan each scheme/authority once. A diff marker can be adjacent to a URL;
+// treating punctuation as a mandatory boundary both misses it and tempts a
+// quadratic retry at every character of long scheme-like activity text.
+function redactUrlUserinfo(value: string): string {
+  const schemes = /:\/\//g;
+  const pieces: string[] = []; let copied = 0; let match;
+  while ((match = schemes.exec(value))) {
+    const colon = match.index; let start = colon;
+    while (start > 0 && /[a-z0-9+.-]/i.test(value[start - 1])) start--;
+    if (!/[a-z]/i.test(value.slice(start, colon))) continue;
+    let end = colon + 3, lastAt = -1;
+    while (end < value.length && !/[\s/]/.test(value[end])) { if (value[end] === '@') lastAt = end; end++; }
+    if (lastAt >= colon + 3) { pieces.push(value.slice(copied, colon + 3), REDACTED, '@'); copied = lastAt + 1; }
+  }
+  return copied ? [...pieces, value.slice(copied)].join('') : value;
+}
+
 export class OmitBody extends Error {
   constructor(readonly reason: Omission) { super('Activity detail was withheld.'); }
 }
@@ -79,8 +96,8 @@ export class Sanitizer {
     result = result
       .replace(/-----BEGIN (?:[A-Z0-9 ]*PRIVATE KEY)-----[\s\S]*?(?:-----END [A-Z0-9 ]*PRIVATE KEY-----|$)/g, REDACTED)
       .replace(/\b(?:sk-(?:proj-|ant-)?[A-Za-z0-9_-]{12,}|hf_[A-Za-z0-9]{12,}|gh[pousr]_[A-Za-z0-9]{12,}|AKIA[A-Z0-9]{16}|eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)\b/g, REDACTED)
-      .replace(/\b(?:Bearer|Basic)\s+[A-Za-z0-9+/_=.%-]+/gi, REDACTED)
-      .replace(/([a-z][a-z0-9+.-]*:\/\/)[^\s/@]+@/gi, `$1${REDACTED}@`)
+      .replace(/\b(?:Bearer|Basic)\s+[A-Za-z0-9+/_=.%-]+/gi, REDACTED);
+    result = redactUrlUserinfo(result)
       .replace(/([?&](?:[^\s=&#]*(?:token|key|secret|password|signature|sig|credential|auth)[^\s=&#]*)=)[^\s&#]*/gi, `$1${REDACTED}`)
       .replace(/((?:--)?(?:api[_-]?key|password|token|secret|authorization)\s*(?:=|:|\s)\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi, `$1${REDACTED}`);
     return { value: result, changed: result !== value, credentialIds: [...credentialIds] };
