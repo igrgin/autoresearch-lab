@@ -79,3 +79,12 @@ Coordinator overlap: `src/coordinator.ts`, `src/main.ts`, `src/preload.ts`,
 `docs/BUILD.md`. New importer/contracts/component/tests are otherwise isolated.
 The import store is an independent v1 initialization; registry/history initialization
 SQL and their existing checksums are unchanged.
+
+## Coordinator correction
+
+Coordinator inspection found that unsupported-entry errors included a nested
+filename before the full inventory passed credential-name admission. The error
+now omits the unadmitted filename. A regression checks a synthetic secret in an
+unsupported nested filename against the UI projection, SQLite/WAL bytes, and
+reopened records. The corrected source passes typecheck/lint, 38 catalog/import
+tests and 47 security tests. Combined packaging/smoke validation remains pending.

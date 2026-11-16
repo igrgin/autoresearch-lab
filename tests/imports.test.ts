@@ -261,3 +261,17 @@ test('simultaneous retry/discard commands cannot delete staging used by the resu
     assert.equal(await readFile(path.join(f.project.location, 'dataset/data/files/class-one/one.txt'), 'utf8'), 'first document\n');
   } finally { await f.cleanup(); }
 });
+
+test('unsupported-entry diagnostics omit unadmitted filenames before persistence and display', async () => {
+  const secret = 'synthetic-import-unsupported-credential';
+  const f = await fixture({ admitNames: async names => names.every(name => !name.includes(secret)) });
+  try {
+    await writeFile(path.join(f.source, 'class-one', `${secret}.py`), 'unsupported fixture');
+    const result = await f.record(await f.start());
+    assert.equal(result.bytesUsable, false); assert.match(result.problem!, /Unsupported source entry/);
+    const database = path.join(f.project.location, '.lab', 'imports.sqlite');
+    for (const filename of [database, `${database}-wal`]) assert.equal((await readFile(filename)).includes(Buffer.from(secret)), false);
+    assert.ok(!JSON.stringify(await f.list()).includes(secret));
+    f.restart(); assert.ok(!JSON.stringify(await f.list()).includes(secret));
+  } finally { await f.cleanup(); }
+});

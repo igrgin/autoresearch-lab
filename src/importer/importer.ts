@@ -223,7 +223,7 @@ export class DatasetImports {
         for (const child of (await readdir(source)).sort()) await walk(path.join(source, child), relative ? `${relative}/${child}` : child);
       } else if (info.isFile() && supported.has(path.extname(source).toLowerCase())) {
         entries.push({ relative, source, ...await hashFile(source, check), copied: false, removed: false });
-      } else fail(`Unsupported source entry (${relative}). Use an extracted self-contained directory of JPEG/PNG, CSV/JSONL or UTF-8 text files; custom scripts, archives and other formats require conversion.`);
+      } else fail('Unsupported source entry. Use an extracted self-contained directory of JPEG/PNG, CSV/JSONL or UTF-8 text files; custom scripts, archives and other formats require conversion.');
     }
     if (isDirectory) await walk(roots[0], '');
     else for (const source of roots) { if (!(await lstat(source)).isFile()) fail('Select one directory or regular files.'); await walk(source, path.basename(source)); }
