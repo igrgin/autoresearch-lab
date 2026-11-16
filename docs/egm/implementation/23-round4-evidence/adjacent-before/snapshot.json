@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "kind": "snapshot",
+  "spec": {
+    "root": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3",
+    "record": "/private/tmp/pr113-hardlink-repair/fix_record.md",
+    "paths": [
+      "docs/BUILD.md",
+      "docs/egm/implementation/23-round4-hardlink-repair.md",
+      "package-lock.json",
+      "package.json",
+      "scripts/test-import-policy.mjs",
+      "scripts/test.mjs",
+      "src/coordinator.ts",
+      "src/importer/importer.ts",
+      "src/importer/policy.ts",
+      "src/imports.ts",
+      "src/main.ts",
+      "tests/import-crash-worker.ts",
+      "tests/import-policy-main.ts",
+      "tests/import-policy-worker.ts",
+      "tests/imports.test.ts",
+      "webpack.rules.cjs",
+      "webpack.tests.config.cjs"
+    ],
+    "environment": "macOS-arm64 Node24.22.3 pinned-Electron45.3.2 SQLite13.1.1"
+  },
+  "subject": {
+    "root": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3",
+    "head": "c96fcf722e2c863b01570d17a73d7a693fa7b8ee",
+    "contract": "Observed: Confirmed moves of regular source aliases sharing an inode retain an unchanged alias forever after unlinking the first name changes shared ctime.\nExpected: Healthy confirmed moves remove matching inventoried aliases and retain two independent verified destination byte copies. Restart reconciles a durably observed application unlink; changed/replaced/symlink sources and uncertain deletion authority remain preserved. Existing metadata admission/quarantine and all identity/digest protections remain.\nAuthority: Issue #23, current #22 decision section 3, and the user's scoped implementation repair instruction. Live #15/#16/#17 and #19/#24/#25/#26 were read through gh CLI; semantic readiness remains later work.\nScope: Importer cleanup and adjacent regression coverage/documentation only. No publication, issue/PR mutation, coordinator/security/main edits, dependencies, CI policy changes or new agents. Parent owns fresh independent review and integration.\n",
+    "environment": "macOS-arm64 Node24.22.3 pinned-Electron45.3.2 SQLite13.1.1",
+    "files": {
+      "docs/BUILD.md": {
+        "sha256": "f715e02063bd1ea11882310b0656c5fcdf9cfa5d5d199614cb9b73145b7bc0e5",
+        "mode": 420
+      },
+      "docs/egm/implementation/23-round4-hardlink-repair.md": {
+        "sha256": null,
+        "mode": null
+      },
+      "package-lock.json": {
+        "sha256": "e375662a2f382c16520e4b61c78c4b68c17599659ae18e021c2d0f0ca384e55a",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "81edab197a6c44b4d3e491b1089aece17a3529f23a07a2be7729946f81db3de5",
+        "mode": 420
+      },
+      "scripts/test-import-policy.mjs": {
+        "sha256": null,
+        "mode": null
+      },
+      "scripts/test.mjs": {
+        "sha256": "41f43a52357a3c4bb67b2125a7b17329a2a7fecbc13f77e49653052030d99a67",
+        "mode": 420
+      },
+      "src/coordinator.ts": {
+        "sha256": "11572ec886f13f3735e4019fc8dd4508ebf4c411df2ed6cac8c356581ebe0004",
+        "mode": 420
+      },
+      "src/importer/importer.ts": {
+        "sha256": "b7d4bacf7004311baeda50a9abba22da2acbc351a3f449c4de9332f6bdfeb9ab",
+        "mode": 420
+      },
+      "src/importer/policy.ts": {
+        "sha256": null,
+        "mode": null
+      },
+      "src/imports.ts": {
+        "sha256": "b7ab73bc159884f880ff07e401542eafba4be8004591350ddcf3f849fc53a2f2",
+        "mode": 420
+      },
+      "src/main.ts": {
+        "sha256": "126f89dfc5ec84ff3add37ded0fa23876ede128de3a7e1fa155076c92ab65004",
+        "mode": 420
+      },
+      "tests/import-crash-worker.ts": {
+        "sha256": "1f2ad9d28e373148dd9ba000625e33caead0ee2582faf1a29dac9dc25e728599",
+        "mode": 420
+      },
+      "tests/import-policy-main.ts": {
+        "sha256": null,
+        "mode": null
+      },
+      "tests/import-policy-worker.ts": {
+        "sha256": null,
+        "mode": null
+      },
+      "tests/imports.test.ts": {
+        "sha256": "5cf4b75397121ff00cf242885b857c6398d4bef2bcd5798f3297b033c4d3aa34",
+        "mode": 420
+      },
+      "webpack.rules.cjs": {
+        "sha256": "f81afa0bc38d67cf63517bf076bf27dfe8250a8641e48853b8e70e8f1d60362b",
+        "mode": 420
+      },
+      "webpack.tests.config.cjs": {
+        "sha256": "ef1137779a010b950e1b1e7076178e27eebbb4244656628c9a29e06b2228fafd",
+        "mode": 420
+      }
+    }
+  },
+  "subject_id": "dfd70ae9c1327b4b8d05d45be3c22098bca74886b146e4a3c14638d8e80582e4",
+  "baseline_files": {
+    "docs/BUILD.md": {
+      "sha256": "7f452ae37222f4a44c0b0a7f85348a964203deef98133b12205e0354c61f3a60",
+      "mode": 420
+    },
+    "docs/egm/implementation/23-round4-hardlink-repair.md": {
+      "sha256": null,
+      "mode": null
+    },
+    "package-lock.json": {
+      "sha256": "e375662a2f382c16520e4b61c78c4b68c17599659ae18e021c2d0f0ca384e55a",
+      "mode": 420
+    },
+    "package.json": {
+      "sha256": "81edab197a6c44b4d3e491b1089aece17a3529f23a07a2be7729946f81db3de5",
+      "mode": 420
+    },
+    "scripts/test.mjs": {
+      "sha256": "41f43a52357a3c4bb67b2125a7b17329a2a7fecbc13f77e49653052030d99a67",
+      "mode": 420
+    },
+    "src/importer/importer.ts": {
+      "sha256": "8b249a49e5c24fdb19c0f6c09404462c13bf24516151da59df09d328ff3741e5",
+      "mode": 420
+    },
+    "src/imports.ts": {
+      "sha256": "b7ab73bc159884f880ff07e401542eafba4be8004591350ddcf3f849fc53a2f2",
+      "mode": 420
+    },
+    "tests/import-crash-worker.ts": {
+      "sha256": "1f2ad9d28e373148dd9ba000625e33caead0ee2582faf1a29dac9dc25e728599",
+      "mode": 420
+    },
+    "tests/imports.test.ts": {
+      "sha256": "47380b7e3e2f946ef6e523c61bc41d1fcc68ad3a07eafc8f8bd420608a7813aa",
+      "mode": 420
+    },
+    "webpack.rules.cjs": {
+      "sha256": "f81afa0bc38d67cf63517bf076bf27dfe8250a8641e48853b8e70e8f1d60362b",
+      "mode": 420
+    },
+    "webpack.tests.config.cjs": {
+      "sha256": "ef1137779a010b950e1b1e7076178e27eebbb4244656628c9a29e06b2228fafd",
+      "mode": 420
+    },
+    "scripts/test-import-policy.mjs": {
+      "sha256": null,
+      "mode": null
+    },
+    "tests/import-policy-main.ts": {
+      "sha256": null,
+      "mode": null
+    },
+    "src/coordinator.ts": {
+      "sha256": "11572ec886f13f3735e4019fc8dd4508ebf4c411df2ed6cac8c356581ebe0004",
+      "mode": 420
+    },
+    "tests/import-policy-worker.ts": {
+      "sha256": null,
+      "mode": null
+    },
+    "src/importer/policy.ts": {
+      "sha256": null,
+      "mode": null
+    },
+    "src/main.ts": {
+      "sha256": "126f89dfc5ec84ff3add37ded0fa23876ede128de3a7e1fa155076c92ab65004",
+      "mode": 420
+    }
+  },
+  "before": "/private/tmp/pr113-hardlink-repair/expanded/snapshot.json",
+  "verification": "automated",
+  "required_checks": [
+    "check",
+    "make",
+    "regression",
+    "smoke"
+  ],
+  "record_sha256": "59457938cdec708c3422236ebd3a2b69d0355e45f9812b6cf90fd2f6c74bb9b7",
+  "resources": [],
+  "receipts": [],
+  "diff_sha256": "65b1942e02a7b08f142b4261eb51eb7d7d69d2d28b95ac5c44400281cd337ae7",
+  "reading_list": [
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/docs/BUILD.md",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/package-lock.json",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/package.json",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/scripts/test.mjs",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/src/coordinator.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/src/importer/importer.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/src/imports.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/src/main.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/tests/import-crash-worker.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/tests/imports.test.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/webpack.rules.cjs",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/webpack.tests.config.cjs",
+    "/private/tmp/pr113-hardlink-repair/adjacent-original/changes.diff",
+    "/private/tmp/pr113-hardlink-repair/adjacent-original/snapshot.json",
+    "/private/tmp/pr113-hardlink-repair/fix_record.md"
+  ],
+  "snapshot_id": "655d34453682c27d83dde6281e0f06f7af8e91480e2d625b32e4d26ca278eb28"
+}

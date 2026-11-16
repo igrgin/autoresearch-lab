@@ -1,0 +1,15 @@
+
+> autoresearch-lab@0.1.0 check
+> npm run typecheck && npm run lint && npm test
+
+
+> autoresearch-lab@0.1.0 typecheck
+> tsc --noEmit
+
+tests/imports.test.ts(941,26): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(block: Promise<unknown> | (() => Promise<unknown>), message?: string | Error | undefined): Promise<void>', gave the following error.
+    Argument of type 'string | Promise<string>' is not assignable to parameter of type 'Promise<unknown> | (() => Promise<unknown>)'.
+      Type 'string' is not assignable to type 'Promise<unknown> | (() => Promise<unknown>)'.
+  Overload 2 of 2, '(block: Promise<unknown> | (() => Promise<unknown>), error: AssertPredicate, message?: string | Error | undefined): Promise<void>', gave the following error.
+    Argument of type 'string | Promise<string>' is not assignable to parameter of type 'Promise<unknown> | (() => Promise<unknown>)'.
+      Type 'string' is not assignable to type 'Promise<unknown> | (() => Promise<unknown>)'.

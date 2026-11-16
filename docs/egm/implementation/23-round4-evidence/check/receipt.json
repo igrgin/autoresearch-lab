@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr113-hardlink-repair/final-inputs-v3/snapshot.json",
+  "name": "check",
+  "role": "final",
+  "command": [
+    "npm",
+    "run",
+    "check"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3",
+  "environment": "macOS-arm64 Node24.22.3 pinned-Electron45.3.2 SQLite13.1.1",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794860637.813469,
+  "ended": 1794861105.661118,
+  "pre_subject_id": "99241b6ada0fa0613e428cfd7dee5aacabf8c5f3f2e026957de33333f92b40e7",
+  "post_subject_id": "99241b6ada0fa0613e428cfd7dee5aacabf8c5f3f2e026957de33333f92b40e7",
+  "expected_exit": 0,
+  "exit_code": 0,
+  "observation": "",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "29f40fe7035d29bcaede4da715602ab8fe8f979e8bb8399898e46ef398790f35",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

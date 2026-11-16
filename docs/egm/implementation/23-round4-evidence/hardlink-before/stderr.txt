@@ -1,0 +1,19 @@
+node:internal/errors:986
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --test .webpack/tests/catalog.cjs .webpack/tests/configuration.cjs .webpack/tests/reservations.cjs .webpack/tests/research.cjs .webpack/tests/imports.cjs .webpack/tests/vast.cjs .webpack/tests/codex.cjs .webpack/tests/claude.cjs .webpack/tests/checkpoints.cjs
+    at genericNodeError (node:internal/errors:986:15)
+    at wrappedFn (node:internal/errors:540:14)
+    at checkExecSyncError (node:child_process:943:11)
+    at execFileSync (node:child_process:979:15)
+    at file:///Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/scripts/test.mjs:15:1 {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 6799,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v24.22.3

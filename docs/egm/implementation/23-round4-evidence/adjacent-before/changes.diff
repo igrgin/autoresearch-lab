@@ -1,0 +1,280 @@
+File: docs/BUILD.md
+Before: {'sha256': '7f452ae37222f4a44c0b0a7f85348a964203deef98133b12205e0354c61f3a60', 'mode': 420}
+After: {'sha256': 'f715e02063bd1ea11882310b0656c5fcdf9cfa5d5d199614cb9b73145b7bc0e5', 'mode': 420}
+--- before/docs/BUILD.md
++++ after/docs/BUILD.md
+@@ -250,8 +250,16 @@
+ supply that confirmation; the current UI states that preparation is not available
+ yet and retains the source. Confirmation does not assert full run readiness.
+ Cleanup verifies the destination again and deletes only inventoried source files
+-whose content and identity still match. Durable deletion intents reconcile crashes
+-between unlink and progress recording. Non-recursive directory removal preserves
++whose content and identity still match. Regular source names may share an inode;
++each destination file is an independent byte copy. Cleanup pins the source inode,
++observes its own unlink's link-count/ctime transition, and persists the resulting
++identity for matching inventoried aliases before continuing. Full ctime, inode,
++size, mtime and digest checks still apply to every surviving name. Durable deletion
++intents reconcile crashes between unlink and progress recording. A crash before
++the alias identity receipt is durable preserves the uncertain remaining aliases
++and reports incomplete cleanup; retry never infers authority from a missing name.
++Earlier incomplete moves without that receipt likewise retain uncertain sources.
++Non-recursive directory removal preserves
+ new/changed/replaced entries. Cleanup failures keep the project copy and show
+ **import complete; source cleanup incomplete**, remaining inventoried-file count,
+ and **Retry source cleanup**. No destination rollback or provider action occurs.
+File: src/importer/importer.ts
+Before: {'sha256': '8b249a49e5c24fdb19c0f6c09404462c13bf24516151da59df09d328ff3741e5', 'mode': 420}
+After: {'sha256': 'b7d4bacf7004311baeda50a9abba22da2acbc351a3f449c4de9332f6bdfeb9ab', 'mode': 420}
+--- before/src/importer/importer.ts
++++ after/src/importer/importer.ts
+@@ -1,6 +1,6 @@
+ import Database from 'better-sqlite3';
+ import { createHash, randomUUID } from 'node:crypto';
+-import { constants } from 'node:fs';
++import { constants, fstatSync, lstatSync, unlinkSync } from 'node:fs';
+ import { link, lstat, mkdir, open, readdir, realpath, rm, rmdir, statfs, unlink } from 'node:fs/promises';
+ import path from 'node:path';
+ import type { ImportRecord, ImportRequest } from '../imports';
+@@ -15,9 +15,9 @@
+ const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+ const supported = new Set(['.jpg', '.jpeg', '.png', '.csv', '.jsonl', '.txt']);
+ const active = new Set<ImportRecord['state']>(['inventorying', 'copying', 'verifying', 'publishing', 'cleaning']);
+-interface Entry { relative: string; source: string; size: number; digest: string; identity: string; copied: boolean; removed: boolean; deletionIntent?: boolean }
++interface Entry { relative: string; source: string; size: number; digest: string; identity: string; copied: boolean; removed: boolean; deletionIntent?: boolean; cleanupIdentity?: string }
+ interface Saved { view: ImportRecord; sources: string[]; entries: Entry[]; directories: string[]; directoryIds: Record<string, string>; inventoryComplete: boolean; sourceRoot: string | null; destinationOwned: boolean; publicationStarted?: boolean }
+-export type ImportCheckpoint = 'inventory' | 'copied' | 'verified' | 'reserved' | 'published' | 'publishing_file' | 'before_unlink' | 'unlinked' | 'removed';
++export type ImportCheckpoint = 'inventory' | 'copied' | 'verified' | 'reserved' | 'published' | 'publishing_file' | 'before_unlink' | 'unlink_unrecorded' | 'unlinked' | 'removed';
+ interface Options {
+   checkpoint?: (stage: ImportCheckpoint, importId: string) => void | Promise<void>;
+   admitNames?: (names: string[]) => Promise<boolean>;
+@@ -515,15 +515,37 @@
+         if (entry.deletionIntent && !await exists(entry.source)) { entry.removed = true; saved.view.remainingSourceFiles--; await this.save(db, saved); continue; }
+         await noSymlinks(saved.sourceRoot);
+         const current = await hashFile(entry.source);
+-        if (current.identity !== entry.identity || current.digest !== entry.digest || current.size !== entry.size) { remaining++; continue; }
++        const expected = entry.cleanupIdentity ?? entry.identity;
++        if (current.identity !== expected || current.digest !== entry.digest || current.size !== entry.size) { remaining++; continue; }
+         await this.options.checkpoint?.('before_unlink', saved.view.importId);
+-        if (identity(await lstat(entry.source)) !== entry.identity) { remaining++; continue; }
++        if (identity(await lstat(entry.source)) !== expected) { remaining++; continue; }
+         entry.deletionIntent = true; await this.save(db, saved);
+         // Policy checking crosses private IPC. Revalidate the source after that
+         // await so a changed/replaced file cannot be deleted using older stats.
+         await noSymlinks(entry.source);
+-        if (identity(await lstat(entry.source)) !== entry.identity) { remaining++; continue; }
+-        await unlink(entry.source); await this.options.checkpoint?.('unlinked', saved.view.importId); await syncDirectory(path.dirname(entry.source));
++        const source = await open(entry.source, constants.O_RDONLY | constants.O_NOFOLLOW);
++        try {
++          // Pin this inode across unlink, and observe its resulting identity
++          // without yielding to another application action between the stats.
++          const before = fstatSync(source.fd);
++          if (identity(before) !== expected || identity(lstatSync(entry.source)) !== expected) { remaining++; continue; }
++          unlinkSync(entry.source);
++          const after = fstatSync(source.fd);
++          if (after.dev !== before.dev || after.ino !== before.ino || after.size !== before.size || after.mtimeMs !== before.mtimeMs ||
++              after.mode !== before.mode || after.uid !== before.uid || after.gid !== before.gid || after.birthtimeMs !== before.birthtimeMs || after.nlink !== before.nlink - 1) fail('Source changed during cleanup. Remaining source entries were preserved.');
++          await this.options.checkpoint?.('unlink_unrecorded', saved.view.importId);
++          await syncDirectory(path.dirname(entry.source));
++          // Only aliases with this exact prior identity inherit the ctime change
++          // we observed ourselves. Never infer it from absence after a restart.
++          // Preserve the immutable inventory identity for copy verification.
++          if (before.nlink > 1) for (const alias of saved.entries) {
++            if (alias !== entry && !alias.removed && (alias.cleanupIdentity ?? alias.identity) === expected) alias.cleanupIdentity = identity(after);
++          }
++          // This receipt precedes the post-unlink crash checkpoint, while the
++          // existing deletion intent still reconciles the removed name itself.
++          await this.save(db, saved);
++          await this.options.checkpoint?.('unlinked', saved.view.importId);
++        } finally { await source.close(); }
+         entry.removed = true; saved.view.remainingSourceFiles--; await this.save(db, saved);
+         await this.options.checkpoint?.('removed', saved.view.importId);
+       } catch { remaining++; }
+File: tests/imports.test.ts
+Before: {'sha256': '47380b7e3e2f946ef6e523c61bc41d1fcc68ad3a07eafc8f8bd420608a7813aa', 'mode': 420}
+After: {'sha256': '5cf4b75397121ff00cf242885b857c6398d4bef2bcd5798f3297b033c4d3aa34', 'mode': 420}
+--- before/tests/imports.test.ts
++++ after/tests/imports.test.ts
+@@ -1,7 +1,7 @@
+ import assert from 'node:assert/strict';
+ import { spawnSync } from 'node:child_process';
+ import { randomUUID } from 'node:crypto';
+-import { chmod, mkdir, mkdtemp, readFile, realpath, readdir, rm, rename, symlink, writeFile, stat } from 'node:fs/promises';
++import { chmod, link, mkdir, mkdtemp, readFile, realpath, readdir, rm, rename, symlink, writeFile, stat } from 'node:fs/promises';
+ import os from 'node:os';
+ import path from 'node:path';
+ import { test } from 'node:test';
+@@ -577,6 +577,149 @@
+   } finally { await f.cleanup(); }
+ });
+ 
++async function sourceAliases(f: Awaited<ReturnType<typeof fixture>>) {
++  const first = path.join(f.source, 'class-one', 'one.txt'), second = path.join(f.source, 'class-two', 'two.txt');
++  await rm(second); await link(first, second);
++  assert.equal((await stat(first)).ino, (await stat(second)).ino);
++  return { first, second };
++}
++async function independentAliasCopies(f: Awaited<ReturnType<typeof fixture>>, record: ImportRecord, sourceInode: number) {
++  const first = path.join(f.project.location, record.destination, 'class-one', 'one.txt');
++  const second = path.join(f.project.location, record.destination, 'class-two', 'two.txt');
++  for (const file of [first, second]) {
++    assert.equal(await readFile(file, 'utf8'), 'first document\n');
++    assert.equal((await stat(file)).nlink, 1); assert.notEqual((await stat(file)).ino, sourceInode);
++  }
++  assert.notEqual((await stat(first)).ino, (await stat(second)).ino);
++}
++
++test('confirmed move of hard-linked source aliases cleans both names and keeps independent destination bytes', async () => {
++  const f = await fixture();
++  try {
++    const { first } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const id = await f.start('move'); let record = await f.record(id);
++    assert.equal(record.state, 'cleanup_pending');
++    await independentAliasCopies(f, record, sourceInode);
++    await f.imports.confirmPreparation(f.project.projectId, id, record.revision, randomUUID()); record = await f.record(id);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0);
++    await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
++test('SIGKILL after the first hard-link unlink recovers alias cleanup after restart', async () => {
++  const f = await fixture();
++  try {
++    const { first, second } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const operationId = randomUUID();
++    const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlinked', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++    assert.equal(child.signal, 'SIGKILL', child.stderr);
++    await assert.rejects(stat(first), { code: 'ENOENT' }); assert.equal(await readFile(second, 'utf8'), 'first document\n');
++    f.restart(); let record = (await f.list()).find(row => row.operationId === operationId)!;
++    assert.equal(record.state, 'cleanup_pending'); assert.ok(record.preparationRef);
++    value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0);
++    await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
++for (const timing of ['before confirmation', 'after unlink restart'] as const) {
++  for (const mutation of ['changed bytes', 'same-byte replacement', 'symlink', 'ctime only'] as const) test(`hard-link cleanup preserves ${mutation} ${timing}`, async () => {
++    const f = await fixture();
++    try {
++      const { first, second } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++      let record: ImportRecord;
++      if (timing === 'before confirmation') record = await f.record(await f.start('move'));
++      else {
++        const operationId = randomUUID();
++        const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlinked', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++        assert.equal(child.signal, 'SIGKILL', child.stderr); f.restart();
++        record = (await f.list()).find(row => row.operationId === operationId)!;
++      }
++      const before = await stat(second); let expected = 'first document\n';
++      if (mutation === 'changed bytes') { expected = 'externally changed bytes\n'; await writeFile(second, expected); }
++      else if (mutation === 'same-byte replacement') { await rename(second, path.join(f.root, 'retained-original.txt')); await writeFile(second, expected); assert.notEqual((await stat(second)).ino, before.ino); }
++      else if (mutation === 'symlink') { await rm(second); const target = path.join(f.root, 'external.txt'); await writeFile(target, expected); await symlink(target, second); }
++      else { await chmod(second, 0o400); await chmod(second, before.mode & 0o777); assert.notEqual((await stat(second)).ctimeMs, before.ctimeMs); assert.equal((await stat(second)).mtimeMs, before.mtimeMs); }
++      if (timing === 'before confirmation') await f.imports.confirmPreparation(f.project.projectId, record.importId, record.revision, randomUUID());
++      else value(await f.request(action(record, 'retry_cleanup')));
++      record = await f.record(record.importId);
++      assert.equal(record.state, 'cleanup_pending'); assert.ok(record.remainingSourceFiles >= 1); assert.equal(record.bytesUsable, true);
++      assert.equal(await readFile(second, 'utf8'), expected);
++      await independentAliasCopies(f, record, sourceInode);
++      f.restart(); record = (await f.list())[0]; value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++      assert.equal(record.state, 'cleanup_pending'); assert.equal(await readFile(second, 'utf8'), expected);
++    } finally { await f.cleanup(); }
++  });
++}
++
++test('SIGKILL before the alias unlink receipt retains uncertain source authority on every retry', async () => {
++  const f = await fixture();
++  try {
++    const { first, second } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const operationId = randomUUID();
++    const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlink_unrecorded', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++    assert.equal(child.signal, 'SIGKILL', child.stderr); await assert.rejects(stat(first), { code: 'ENOENT' });
++    for (let retry = 0; retry < 2; retry++) {
++      f.restart(); let record = (await f.list()).find(row => row.operationId === operationId)!;
++      value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++      assert.equal(record.state, 'cleanup_pending'); assert.equal(record.remainingSourceFiles, 1);
++      assert.equal(await readFile(second, 'utf8'), 'first document\n'); await independentAliasCopies(f, record, sourceInode);
++    }
++  } finally { await f.cleanup(); }
++});
++
++test('post-unlink failure retains the alias identity receipt and reconciles deletion intent after restart', async () => {
++  let unlinked = 0;
++  const f = await fixture({ checkpoint: stage => { if (stage === 'unlinked' && ++unlinked === 1) throw Object.assign(new Error('controlled unlink failure'), { code: 'EIO' }); } });
++  try {
++    const { first } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const id = await f.start('move'); let record = await f.record(id);
++    await f.imports.confirmPreparation(f.project.projectId, id, record.revision, randomUUID()); record = await f.record(id);
++    assert.equal(record.state, 'cleanup_pending'); assert.equal(record.remainingSourceFiles, 1); await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    f.restart(); record = (await f.list())[0]; value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(id);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0); await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
++test('hard-link cleanup rechecks the destination before removing a surviving alias', async () => {
++  const f = await fixture();
++  try {
++    const { second } = await sourceAliases(f); const operationId = randomUUID();
++    const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlinked', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++    assert.equal(child.signal, 'SIGKILL', child.stderr); f.restart();
++    let record = (await f.list()).find(row => row.operationId === operationId)!;
++    const target = path.join(f.project.location, record.destination, 'class-two', 'two.txt');
++    await writeFile(target, 'corrupt destination');
++    value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++    assert.equal(record.state, 'cleanup_pending'); assert.equal(await readFile(second, 'utf8'), 'first document\n');
++    assert.equal(await readFile(target, 'utf8'), 'corrupt destination');
++    await writeFile(target, 'first document\n'); value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++    assert.equal(record.state, 'complete'); await assert.rejects(stat(f.source), { code: 'ENOENT' });
++  } finally { await f.cleanup(); }
++});
++
++test('hard-link identity refresh cannot adopt changes made while its policy receipt awaits', async () => {
++  let second = ''; let changed = false;
++  const f = await fixture({ recording: { recheck: async record => {
++    const saved = record.body as unknown as { entries?: { cleanupIdentity?: string }[] };
++    if (!changed && second && saved.entries?.some(entry => entry.cleanupIdentity)) {
++      changed = true; const before = await stat(second); await chmod(second, 0o400); await chmod(second, before.mode & 0o777);
++    }
++    return f.recording.recheck(record);
++  } } });
++  try {
++    ({ second } = await sourceAliases(f)); const sourceInode = (await stat(second)).ino;
++    const id = await f.start('move'); let record = await f.record(id);
++    await f.imports.confirmPreparation(f.project.projectId, id, record.revision, randomUUID()); record = await f.record(id);
++    assert.equal(changed, true); assert.equal(record.state, 'cleanup_pending'); assert.equal(record.remainingSourceFiles, 1);
++    assert.equal(await readFile(second, 'utf8'), 'first document\n'); await independentAliasCopies(f, record, sourceInode);
++    f.restart(); record = (await f.list())[0]; value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(id);
++    assert.equal(record.state, 'cleanup_pending'); assert.equal(await readFile(second, 'utf8'), 'first document\n');
++  } finally { await f.cleanup(); }
++});
++
+ for (const stage of ['copied', 'reserved', 'publishing_file', 'published', 'unlinked'] as const) test(`SIGKILL at ${stage} reopens a named partial operation and recovers without duplicate publication or source loss`, async () => {
+   const f = await fixture();
+   try {
+@@ -668,3 +811,24 @@
+     f.restart(); assert.ok(!JSON.stringify(await f.list()).includes(secret));
+   } finally { await f.cleanup(); }
+ });
++test('import publication rejects a stale final metadata approval before SQLite persistence', async () => {
++  const canary = 'PendingMetadataApproval23'; let probes = 0;
++  const f = await fixture({ recording: {
++    recheck: record => f.recording.recheck(record),
++    metadataRevision: meta => {
++      const revision = f.recording.metadataRevision(meta);
++      if (++probes === 2) f.matcher.register(randomUUID(), canary);
++      return revision;
++    },
++  } });
++  try {
++    const source = path.join(f.root, canary); await rename(f.source, source);
++    const requestId = randomUUID();
++    await f.imports.handle({ kind: 'imports:start', operationId: requestId, projectId: f.project.projectId, sourcePaths: [source], destinationName: 'approved', mode: 'copy' });
++    const db = new Database(path.join(f.project.location, '.lab', 'imports.sqlite'), { readonly: true });
++    try {
++      const rows = db.prepare('SELECT payload FROM imports').all() as {payload: string}[];
++      assert.equal(rows.some(row => row.payload.includes(canary)), false, 'stale final approval must not persist a now-known credential path');
++    } finally { db.close(); }
++  } finally { await f.cleanup(); }
++});

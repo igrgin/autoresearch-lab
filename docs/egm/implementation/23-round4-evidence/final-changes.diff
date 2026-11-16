@@ -1,0 +1,1018 @@
+File: docs/BUILD.md
+Before: {'sha256': '7f452ae37222f4a44c0b0a7f85348a964203deef98133b12205e0354c61f3a60', 'mode': 420}
+After: {'sha256': 'e162b6a64610a2deebf8692382647ac534a895272469cfacdbd3ef2fb3316293', 'mode': 420}
+--- before/docs/BUILD.md
++++ after/docs/BUILD.md
+@@ -231,6 +231,15 @@
+ that admission. Dataset payloads are copied as selected bytes, never reproduced
+ in diagnostics or activity records.
+ 
++Each import INSERT/UPDATE acquires matching-policy ownership through a private
++main/utility lease before checking metadata and retains it through the synchronous
++SQLite commit. Credential matching changes wait for writer completion; a revision
++reply alone cannot authorize persistence. Timed-out acquisition cannot revive a
++write when a grant arrives late. An uncertain/dropped release retains ownership
++until the writer explicitly releases it or its utility process actually exits.
++Unavailable authority blocks persistence. The bounded-piece cache and durable
++import-wide quarantine continue to apply under the same matching policy.
++
+ Interrupted/failed imports remain named **Partial import** records. **Retry import**
+ rechecks source stability and staged files; corrupt/truncated staging is copied
+ again. **Discard staging** removes only the import's staging, preserving sources,
+@@ -250,8 +259,16 @@
+ supply that confirmation; the current UI states that preparation is not available
+ yet and retains the source. Confirmation does not assert full run readiness.
+ Cleanup verifies the destination again and deletes only inventoried source files
+-whose content and identity still match. Durable deletion intents reconcile crashes
+-between unlink and progress recording. Non-recursive directory removal preserves
++whose content and identity still match. Regular source names may share an inode;
++each destination file is an independent byte copy. Cleanup pins the source inode,
++observes its own unlink's link-count/ctime transition, and persists the resulting
++identity for matching inventoried aliases before continuing. Full ctime, inode,
++size, mtime and digest checks still apply to every surviving name. Durable deletion
++intents reconcile crashes between unlink and progress recording. A crash before
++the alias identity receipt is durable preserves the uncertain remaining aliases
++and reports incomplete cleanup; retry never infers authority from a missing name.
++Earlier incomplete moves without that receipt likewise retain uncertain sources.
++Non-recursive directory removal preserves
+ new/changed/replaced entries. Cleanup failures keep the project copy and show
+ **import complete; source cleanup incomplete**, remaining inventoried-file count,
+ and **Retry source cleanup**. No destination rollback or provider action occurs.
+File: docs/egm/implementation/23-round4-hardlink-repair.md
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': '251adb969b4459d5c3aa06dff7da89d407a9b77646194e488a4947175ddd5501', 'mode': 420}
+--- before/docs/egm/implementation/23-round4-hardlink-repair.md
++++ after/docs/egm/implementation/23-round4-hardlink-repair.md
+@@ -0,0 +1,146 @@
++# Issue 23: round-four source alias and publication authority repairs
++
++This records the authorized local repair of PR113-F01 and the parent's adjacent
++PR113-C01 for [issue 23](https://github.com/igrgin/autoresearch-lab/issues/23) /
++[PR 113](https://github.com/igrgin/autoresearch-lab/pull/113). Archived findings,
++reviewer responses, previous fixes and captured inputs remain unchanged. The
++parent owns integration, pushing and fresh independent review; this record does
++not claim review convergence.
++
++## Workspace and authority
++
++Before edits, `pwd` and Git top-level both identified the prepared `t3-99f3fbe3`
++worktree, branch `t3/99f3fbe3`, clean HEAD
++`c96fcf722e2c863b01570d17a73d7a693fa7b8ee`. Fetch/push origin was
++`https://github.com/igrgin/autoresearch-lab.git`. Git worktree registration
++identified it as a distinct checkout of the primary product repository. No
++worktree/branch switch, other-checkout edit, push, PR, issue/comment publication,
++merge, live credential, paid inference or provisioning was performed.
++
++Read the repository instructions, shared agent and GitHub workflows, EGM fix
++procedure, [concepts brief](../../designs/concepts_brief.md),
++[sitemap](../../designs/SITEMAP.md), approved design framing, build scripts, entire
++selected reviewer JSON and findings. Live issue bodies and every available
++comment for #23/#22/#19/#15/#16/#17/#24/#25/#26 were fetched with `gh issue view`;
++the frozen issue URLs/index corroborated their ownership and decisions. The
++parent had verified account, assignment and blockers before dispatch.
++
++[#22 section 3](https://github.com/igrgin/autoresearch-lab/issues/22#issuecomment-6859424772)
++requires independent project bytes and matching-only recoverable source cleanup.
++Regular source names may share an inode; the prohibition concerns imported links
++to mutable sources. #24/#25/#26 still own semantic interpretation, fixed run
++inputs and explicit updates. [#17](https://github.com/igrgin/autoresearch-lab/issues/17#issuecomment-6867871329)
++requires current matching authority before persistence and durable containment.
++
++## Executed original regressions
++
++Two completion regressions were added before production edits. `node
++scripts/test.mjs` genuinely failed with **245 passing tests and exactly two
++failures**: healthy confirmed two-alias move and SIGKILL after its first unlink,
++followed by restart/retry. Both reported `cleanup_pending` instead of `complete`.
++The controlled 7,000-file import plus byte assertions took **494,503 ms**; its
++whole test took 500,950 ms and the suite 542,778 ms. This is a slow throughput
++limit, not large-dataset qualification.
++
++The first attempt could not load Electron because the prepared checkout lacked
++node_modules. That setup failure is retained separately and is not reproduction.
++`npm ci` installed the unchanged pinned lockfile before the genuine failure.
++
++After the user added adjacent PR113-C01, the exact parent regression was copied
++into this branch and executed against the unchanged publication mechanism. It
++failed independently: registering a credential path after computing the final
++revision but before delivering it left that raw path in `imports.payload` before
++any inspection. The local assertion failed in 539 ms. See the immutable
++[hard-link before receipt](23-round4-evidence/hardlink-before/receipt.json) and
++[adjacent before receipt](23-round4-evidence/adjacent-before/receipt.json), with
++stdout/stderr in the same directories. The original scoped sources and regression
++snapshots remain in the external helper case recorded in the receipt paths.
++
++## Repair and compatibility
++
++[Importer cleanup](../../../src/importer/importer.ts) retains the original
++inventory identity and introduces optional private `cleanupIdentity` only for
++observed application unlink transitions. It pins the inode, checks full identity
++immediately before unlink, and synchronously observes the resulting stat without
++an intervening application action. Device/inode, size, mtime, mode, UID/GID,
++birthtime and the exact one-link decrement must agree. Only still-inventoried
++aliases with the exact previous identity receive that observed ctime. The source
++directory is synced and the receipt persisted before the existing `unlinked`
++checkpoint. The original deletion intent still reconciles the removed name.
++
++Each surviving name still passes symlink ancestry, full ctime/inode/size/mtime
++identity and digest checks. A crash at the new earlier `unlink_unrecorded`
++checkpoint, before durable alias evidence, retains the uncertain surviving
++aliases on every restart/retry. Earlier stuck moves lacking that evidence also
++remain conservative. No authority is inferred from absence or a matching digest
++alone. Destination verification precedes cleanup; destination files remain
++independent inodes/bytes with link count one.
++
++[Publication](../../../src/importer/importer.ts) now owns the existing matching
++policy before bounded-piece recheck and through every synchronous SQLite INSERT
++and UPDATE. Missing ownership fails closed. The private
++[import lease port](../../../src/importer/policy.ts) carries identity-only
++acquire/release messages. Main holds `Sanitizer.holdMatchingPolicy()`; existing
++`registerWhenMutable` waits for writer completion. No second matcher lock or
++sanitizer exemption was introduced. An acquisition timeout never revives a write
++on late grant. Dropped or uncertain release retains the hold until explicit
++writer release or actual utility exit. Acquisition cancellation is tracked before
++asynchronous initialization, so late grants cannot leak authority. Leased rechecks and revision probes use the already initialized policy; they do
++not reload credential state behind a mutation waiting for the same owner. Only
++acquisition initializes first. This consumes the parent/#87 integration boundary
++without importing that other issue's commit. The same
++bounded piece/cache checks and import-wide persistent quarantine remain intact.
++
++Authorized shared-file overlaps are [main](../../../src/main.ts),
++[coordinator](../../../src/coordinator.ts), test entry configuration and the npm
++test command. The #20 worker confirmed reuse of the unchanged ownership primitive
++and configuration-specific ports; import changes use `import_matching`. Parent
++#50/#60 and other workers' changes are not copied or replaced. Dependencies,
++lockfile, public renderer/preload contracts, CI triggers and existing quarantines
++are unchanged. No UI changed and no new screenshots are claimed.
++
++The v1 import SQL/schema/checksum and registry/history schemas are unchanged.
++`cleanupIdentity` is optional private JSON state: existing records remain readable,
++with uncertain old cleanup retained. Older code ignores this extra evidence and
++conservatively retains aliases against the original identity. No migration,
++backup transformation or destructive automatic recovery is required.
++
++## Verification receipts and limits
++
++The initial repaired hard-link-focused run passed **23/23** selected cases.
++Combined focused checks passed, including the exact stale-approval regression,
++missing authority, duplicate grants, timed-out/late grants, asynchronous acquire
++cancellation, dropped releases, uncertain delivery and source preservation.
++Before final capture, the native fixture passed **four actual Electron
++main/utility cases** against the production coordinator and real SQLite: queued
++registration at final revision delivery, late grant after the production 15-second
++acquisition deadline, dropped post-commit release held until confirmed utility
++exit, and denied authority. The final native initializer deliberately waits on a
++queued credential mutation, proving leased checks avoid reinitialization; the
++dropped-release writer is interrupted conservatively until actual utility exit. These run as part of `npm test` through
++[test-import-policy](../../../scripts/test-import-policy.mjs).
++
++Final outcomes are recorded in the immutable receipts/logs below; check each
++receipt's `exit_code`, `passed`, pre/post subject IDs and raw assertion output:
++
++- [Focused regression](23-round4-evidence/regression/receipt.json), including the
++  native fixture and positive/negative/crash/restart/source/destination tests.
++- [Full npm check](23-round4-evidence/check/receipt.json), including the complete
++  physical 7,000-file case, existing security/quarantine and native suites.
++- [Make and ZIP integrity](23-round4-evidence/make/receipt.json).
++- [Packaged native smoke](23-round4-evidence/smoke/receipt.json).
++
++These checks execute sequentially in this checkout, with Node 24.22.3 selected;
++webpack/test/package jobs never overlap. Raw receipts contain actual host paths
++and toolchain identity. Source/test fingerprints and original failures are
++retained by the EGM evidence helper. The final handoff reports their actual
++results; absent/failing receipts cannot be interpreted as a pass.
++
++All data, credential values, delayed/dropped messages, trusted preparation
++confirmations and process kills are controlled fixtures. They do not establish
++live provider/authentication/inference behavior, semantic preparation, hostile
++same-user mutation safety, physical disk-full/power-loss durability, clean-machine
++signed distribution or acceptable large-dataset performance. Lost release can
++hold credential mutation until coordinator exit; uncertain unlink authority can
++require deliberate source preservation rather than automatic cleanup. These
++limits are explicit, and parent integration/fresh review remain outstanding.
+File: package.json
+Before: {'sha256': '81edab197a6c44b4d3e491b1089aece17a3529f23a07a2be7729946f81db3de5', 'mode': 420}
+After: {'sha256': 'ac4b45d2bec899f5eeb6d82d509850c9016d3fe4da3836767eb2fea458d872e2', 'mode': 420}
+--- before/package.json
++++ after/package.json
+@@ -19,7 +19,7 @@
+     "make": "electron-forge make --platform=darwin --arch=arm64",
+     "build": "npm run check && npm run make",
+     "smoke": "node scripts/smoke.mjs && node scripts/smoke-vast.mjs && node scripts/smoke-codex.mjs",
+-    "test": "node scripts/test.mjs && node scripts/test-security.mjs && node scripts/test-claude-runtime.mjs && node scripts/test-execution.mjs && node scripts/test-codex-transport.mjs"
++    "test": "node scripts/test.mjs && node scripts/test-security.mjs && node scripts/test-claude-runtime.mjs && node scripts/test-execution.mjs && node scripts/test-codex-transport.mjs && node scripts/test-import-policy.mjs"
+   },
+   "dependencies": {
+     "@openai/codex-runtime": "npm:@openai/codex@0.169.0-darwin-arm64",
+File: scripts/test-import-policy.mjs
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': '20508b3f750c5410a6b8298fe59d54b6da8f3ef2566981f07e05b0ff8b6f898c', 'mode': 420}
+--- before/scripts/test-import-policy.mjs
++++ after/scripts/test-import-policy.mjs
+@@ -0,0 +1,10 @@
++import { execFileSync } from 'node:child_process';
++import { mkdtemp, rm } from 'node:fs/promises';
++import os from 'node:os';
++import path from 'node:path';
++import electron from 'electron';
++const directory = await mkdtemp(path.join(os.tmpdir(), 'lab-import-policy-native-'));
++const environment = { ...process.env }; delete environment.ELECTRON_RUN_AS_NODE;
++try {
++  execFileSync(electron, [path.resolve('.webpack/tests/import-policy-main.cjs'), `--user-data-dir=${directory}`], { env: environment, stdio: 'inherit', timeout: 90_000 });
++} finally { await rm(directory, { recursive: true, force: true }); }
+File: src/coordinator.ts
+Before: {'sha256': '11572ec886f13f3735e4019fc8dd4508ebf4c411df2ed6cac8c356581ebe0004', 'mode': 420}
+After: {'sha256': '03cb4cbffdf5fafdd4a8e62fce971ad625632acf96a21e64ef47200b012a0557', 'mode': 420}
+--- before/src/coordinator.ts
++++ after/src/coordinator.ts
+@@ -5,6 +5,7 @@
+ import type { CodexStoreCommand } from './codex/contract';
+ import type { ImportRequest } from './imports';
+ import { DatasetImports } from './importer/importer';
++import { ImportPolicyClient, type ImportPolicyReply } from './importer/policy';
+ import { ConfigurationStore } from './configuration/store';
+ import type { ConfigurationRequest } from './configuration';
+ import { randomUUID } from 'node:crypto';
+@@ -33,6 +34,7 @@
+   admitReceipt: (owner: Owner, event: ResearchEvent) => securityRequest('receipt', {owner,event}),
+   recheck: (record: SafeRecord) => securityRequest('recheck', record),
+ };
++const importPolicy = new ImportPolicyClient(message => process.parentPort.postMessage(message));
+ // Import inventories cross the policy boundary only as bounded pieces. This
+ // identity-only probe validates cached pieces against current matching and
+ // durable quarantine; it carries no source paths or inventory payload.
+@@ -84,7 +86,7 @@
+     const reply = activeCatalog.handle({ kind: 'open', operationId: randomUUID(), projectId });
+     if (!reply.ok || !('projectId' in reply.value)) throw new Error('Project unavailable');
+     return reply.value;
+-  }, { recording: { ...admission, metadataRevision }, admitNames: names => new Promise(resolve => {
++  }, { recording: { ...admission, metadataRevision }, ownMetadata: meta => importPolicy.authority(meta), admitNames: names => new Promise(resolve => {
+     const id = randomUUID();
+     const timer = setTimeout(() => { admissions.delete(id); resolve(false); }, 15000);
+     admissions.set(id, allowed => { clearTimeout(timer); admissions.delete(id); resolve(allowed); });
+@@ -92,6 +94,7 @@
+   }) });
+ 
+   process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; configurationAdmissionId?: string; codex?: CodexStoreCommand; selection?: SelectionCommand; record?: SafeRecord; revision?: string; ok?: boolean } }) => {
++    if (data.channel === 'import_matching') { importPolicy.receive(data as ImportPolicyReply); return; }
+     if (data.channel === 'import_metadata_revision') {
+       const pending = metadataRequests.get(data.id); if (!pending) return;
+       clearTimeout(pending.timer); metadataRequests.delete(data.id);
+File: src/importer/importer.ts
+Before: {'sha256': '8b249a49e5c24fdb19c0f6c09404462c13bf24516151da59df09d328ff3741e5', 'mode': 420}
+After: {'sha256': '3f6cb6a8210a616e0ccf89faab3b86161e25fd2dfcd1dce6def93ead2691a439', 'mode': 420}
+--- before/src/importer/importer.ts
++++ after/src/importer/importer.ts
+@@ -1,6 +1,6 @@
+ import Database from 'better-sqlite3';
+ import { createHash, randomUUID } from 'node:crypto';
+-import { constants } from 'node:fs';
++import { constants, fstatSync, lstatSync, unlinkSync } from 'node:fs';
+ import { link, lstat, mkdir, open, readdir, realpath, rm, rmdir, statfs, unlink } from 'node:fs/promises';
+ import path from 'node:path';
+ import type { ImportRecord, ImportRequest } from '../imports';
+@@ -15,14 +15,18 @@
+ const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+ const supported = new Set(['.jpg', '.jpeg', '.png', '.csv', '.jsonl', '.txt']);
+ const active = new Set<ImportRecord['state']>(['inventorying', 'copying', 'verifying', 'publishing', 'cleaning']);
+-interface Entry { relative: string; source: string; size: number; digest: string; identity: string; copied: boolean; removed: boolean; deletionIntent?: boolean }
++interface Entry { relative: string; source: string; size: number; digest: string; identity: string; copied: boolean; removed: boolean; deletionIntent?: boolean; cleanupIdentity?: string }
+ interface Saved { view: ImportRecord; sources: string[]; entries: Entry[]; directories: string[]; directoryIds: Record<string, string>; inventoryComplete: boolean; sourceRoot: string | null; destinationOwned: boolean; publicationStarted?: boolean }
+-export type ImportCheckpoint = 'inventory' | 'copied' | 'verified' | 'reserved' | 'published' | 'publishing_file' | 'before_unlink' | 'unlinked' | 'removed';
++type MetadataRecording = Pick<SafeRecording, 'recheck'> & { metadataRevision?: (meta: Envelope) => string | Promise<string> };
++export type ImportCheckpoint = 'inventory' | 'copied' | 'verified' | 'reserved' | 'published' | 'publishing_file' | 'before_unlink' | 'unlink_unrecorded' | 'unlinked' | 'removed';
+ interface Options {
+   checkpoint?: (stage: ImportCheckpoint, importId: string) => void | Promise<void>;
+   admitNames?: (names: string[]) => Promise<boolean>;
+   // Private utility-to-main policy port. Never exposed through renderer IPC.
+-  recording?: Pick<SafeRecording, 'recheck'> & { metadataRevision?: (meta: Envelope) => string | Promise<string> };
++  recording?: MetadataRecording;
++  // Holds main's existing matching policy until this writer's commit is done.
++  // An asynchronous revision reply alone never authorizes persistence.
++  ownMetadata?: (meta: Envelope) => { release: () => void; recording: MetadataRecording } | Promise<{ release: () => void; recording: MetadataRecording }>;
+   availableBytes?: (folder: string) => Promise<number>;
+ }
+ class ImportFailure extends Error { constructor(message: string, readonly code: ProjectError['code'] = 'unavailable') { super(message); } }
+@@ -121,10 +125,9 @@
+     if (!db) { db = openStore(filename, sql); this.stores.set(project.projectId, db); await syncDirectory(path.dirname(filename)); }
+     return db;
+   }
+-  private async recheck(saved: Saved) {
++  private async recheck(saved: Saved, recording = this.options.recording) {
+     try {
+-      if (!this.options.recording) throw new Error();
+-      const recording = this.options.recording;
++      if (!recording) throw new Error();
+       const identity = { recordId: saved.view.importId, projectId: saved.view.projectId };
+       const envelope = storedMetadataEnvelope(identity, 'file_name');
+       for (let attempt = 0; attempt < 3; attempt++) {
+@@ -166,10 +169,19 @@
+     return rows;
+   }
+   private async save(db: Database.Database, saved: Saved) {
+-    await this.recheck(saved);
+-    saved.view.revision++;
+-    this.live.set(saved.view.importId, saved);
+-    db.prepare('UPDATE imports SET payload = ? WHERE import_id = ?').run(JSON.stringify(saved), saved.view.importId);
++    await this.publish(saved, () => {
++      saved.view.revision++;
++      db.prepare('UPDATE imports SET payload = ? WHERE import_id = ?').run(JSON.stringify(saved), saved.view.importId);
++      this.live.set(saved.view.importId, saved);
++    });
++  }
++  private async publish(saved: Saved, commit: () => void) {
++    if (!this.options.ownMetadata) fail(protectionProblem);
++    const meta = storedMetadataEnvelope({ recordId: saved.view.importId, projectId: saved.view.projectId }, 'file_name');
++    const authority = await this.options.ownMetadata(meta);
++    if (typeof authority?.release !== 'function' || !authority.recording) fail(protectionProblem);
++    try { await this.recheck(saved, authority.recording); commit(); }
++    finally { authority.release(); }
+   }
+   private rows(db: Database.Database) { return (db.prepare('SELECT payload FROM imports ORDER BY rowid').all() as { payload: string }[]).map(row => { const saved = JSON.parse(row.payload) as Saved; return this.live.get(saved.view.importId) || saved; }); }
+   private async paths(project: ProjectRecord, saved: Saved) {
+@@ -212,8 +224,7 @@
+         } else {
+           if (rows.some(row => row.view.state !== 'discarded' && normalized(row.view.destination) === normalized(`dataset/${request.destinationName}/files`))) fail('That destination is already reserved by an import. Retry its partial result or choose another name.', 'conflict');
+           const saved: Saved = { view: { recordKind: 'dataset_import', schemaVersion: 1, owner: 'project_preparation', importId: randomUUID(), operationId: request.operationId, projectId: project.projectId, revision: 1, mode: request.mode, destination: `dataset/${request.destinationName}/files`, state: 'inventorying', totalBytes: 0, completedBytes: 0, totalFiles: 0, completedFiles: 0, failedFiles: 0, remainingSourceFiles: 0, bytesUsable: false, researchReadiness: 'not_prepared', preparationRef: null, problem: null }, sources: request.sourcePaths, entries: [], directories: [], directoryIds: {}, inventoryComplete: false, sourceRoot: null, destinationOwned: false };
+-          await this.recheck(saved);
+-          db.prepare('INSERT INTO imports VALUES (?, ?, ?)').run(saved.view.importId, request.operationId, JSON.stringify(saved));
++          await this.publish(saved, () => db.prepare('INSERT INTO imports VALUES (?, ?, ?)').run(saved.view.importId, request.operationId, JSON.stringify(saved)));
+           partial = true; await this.launch(project, db, saved, false);
+         }
+       } else if (request.kind === 'imports:action') {
+@@ -515,15 +526,37 @@
+         if (entry.deletionIntent && !await exists(entry.source)) { entry.removed = true; saved.view.remainingSourceFiles--; await this.save(db, saved); continue; }
+         await noSymlinks(saved.sourceRoot);
+         const current = await hashFile(entry.source);
+-        if (current.identity !== entry.identity || current.digest !== entry.digest || current.size !== entry.size) { remaining++; continue; }
++        const expected = entry.cleanupIdentity ?? entry.identity;
++        if (current.identity !== expected || current.digest !== entry.digest || current.size !== entry.size) { remaining++; continue; }
+         await this.options.checkpoint?.('before_unlink', saved.view.importId);
+-        if (identity(await lstat(entry.source)) !== entry.identity) { remaining++; continue; }
++        if (identity(await lstat(entry.source)) !== expected) { remaining++; continue; }
+         entry.deletionIntent = true; await this.save(db, saved);
+         // Policy checking crosses private IPC. Revalidate the source after that
+         // await so a changed/replaced file cannot be deleted using older stats.
+         await noSymlinks(entry.source);
+-        if (identity(await lstat(entry.source)) !== entry.identity) { remaining++; continue; }
+-        await unlink(entry.source); await this.options.checkpoint?.('unlinked', saved.view.importId); await syncDirectory(path.dirname(entry.source));
++        const source = await open(entry.source, constants.O_RDONLY | constants.O_NOFOLLOW);
++        try {
++          // Pin this inode across unlink, and observe its resulting identity
++          // without yielding to another application action between the stats.
++          const before = fstatSync(source.fd);
++          if (identity(before) !== expected || identity(lstatSync(entry.source)) !== expected) { remaining++; continue; }
++          unlinkSync(entry.source);
++          const after = fstatSync(source.fd);
++          if (after.dev !== before.dev || after.ino !== before.ino || after.size !== before.size || after.mtimeMs !== before.mtimeMs ||
++              after.mode !== before.mode || after.uid !== before.uid || after.gid !== before.gid || after.birthtimeMs !== before.birthtimeMs || after.nlink !== before.nlink - 1) fail('Source changed during cleanup. Remaining source entries were preserved.');
++          await this.options.checkpoint?.('unlink_unrecorded', saved.view.importId);
++          await syncDirectory(path.dirname(entry.source));
++          // Only aliases with this exact prior identity inherit the ctime change
++          // we observed ourselves. Never infer it from absence after a restart.
++          // Preserve the immutable inventory identity for copy verification.
++          if (before.nlink > 1) for (const alias of saved.entries) {
++            if (alias !== entry && !alias.removed && (alias.cleanupIdentity ?? alias.identity) === expected) alias.cleanupIdentity = identity(after);
++          }
++          // This receipt precedes the post-unlink crash checkpoint, while the
++          // existing deletion intent still reconciles the removed name itself.
++          await this.save(db, saved);
++          await this.options.checkpoint?.('unlinked', saved.view.importId);
++        } finally { await source.close(); }
+         entry.removed = true; saved.view.remainingSourceFiles--; await this.save(db, saved);
+         await this.options.checkpoint?.('removed', saved.view.importId);
+       } catch { remaining++; }
+File: src/importer/policy.ts
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': 'bc5c5e1c61f80e68bddf1e71d39f3a125cd76da230f2a9d45cbdd560cf074f73', 'mode': 420}
+--- before/src/importer/policy.ts
++++ after/src/importer/policy.ts
+@@ -0,0 +1,119 @@
++import { randomUUID } from 'node:crypto';
++import { SecurityError } from '../security/common';
++import type { Envelope, SafeRecord } from '../security/recording';
++
++type Recording = { recheck: (record: SafeRecord) => Promise<SafeRecord>; metadataRevision: (meta: Envelope) => string | Promise<string> };
++export type ImportPolicyRequest = { channel: 'import_matching'; id: string; kind: 'acquire'; meta: Envelope } | { channel: 'import_matching'; id: string; kind: 'release' }
++  | { channel: 'import_matching'; id: string; kind: 'recheck'; leaseId: string; record: SafeRecord }
++  | { channel: 'import_matching'; id: string; kind: 'revision'; leaseId: string; meta: Envelope };
++export type ImportPolicyReply = { channel: 'import_matching'; id: string; ok: boolean; record?: SafeRecord; revision?: string };
++type Schedule = (callback: () => void, milliseconds: number) => () => void;
++const schedule: Schedule = (callback, milliseconds) => { const timer = setTimeout(callback, milliseconds); return () => clearTimeout(timer); };
++type Lease = { leaseId: string; release: () => void };
++
++// This port transports ownership of main's existing matcher, never a second
++// lock or matching material. The utility releases only after its writer is done.
++export class ImportPolicyClient {
++  private pending = new Map<string, { resolve: (lease: Lease) => void; reject: () => void; cancel: () => void }>();
++  private operations = new Map<string, { resolve: (reply: ImportPolicyReply) => void; reject: () => void; cancel: () => void }>();
++  private active = new Set<string>();
++  constructor(private readonly post: (message: ImportPolicyRequest) => void, private readonly timer: Schedule = schedule, private readonly timeoutMs = 15_000) {}
++  own(meta: Envelope): Promise<() => void> { return this.acquire(meta).then(lease => lease.release); }
++  async authority(meta: Envelope): Promise<{ release: () => void; recording: Recording }> {
++    const lease = await this.acquire(meta);
++    return { release: lease.release, recording: {
++      recheck: async record => {
++        const reply = await this.operation({ channel: 'import_matching', id: randomUUID(), kind: 'recheck', leaseId: lease.leaseId, record });
++        if (!reply.record) throw new SecurityError('capture_failed'); return reply.record;
++      },
++      metadataRevision: async meta => {
++        const reply = await this.operation({ channel: 'import_matching', id: randomUUID(), kind: 'revision', leaseId: lease.leaseId, meta });
++        if (typeof reply.revision !== 'string' || !reply.revision || reply.revision.length > 200) throw new SecurityError('capture_failed'); return reply.revision;
++      },
++    } };
++  }
++  private acquire(meta: Envelope): Promise<Lease> {
++    return new Promise((resolve, reject) => {
++      const id = randomUUID(); let cancel = () => {};
++      const entry = { resolve, reject: () => reject(new SecurityError('capture_failed')), cancel: () => cancel() };
++      this.pending.set(id, entry);
++      cancel = this.timer(() => {
++        this.pending.delete(id); entry.reject(); this.release(id);
++        // A late grant must still be retired. Expiry never authorizes a commit.
++      }, this.timeoutMs);
++      if (!this.pending.has(id)) return;
++      try { this.post({ channel: 'import_matching', id, kind: 'acquire', meta: structuredClone(meta) }); }
++      catch { this.pending.delete(id); entry.cancel(); entry.reject(); this.release(id); }
++    });
++  }
++  private operation(message: Extract<ImportPolicyRequest, { leaseId: string }>): Promise<ImportPolicyReply> {
++    return new Promise((resolve, reject) => {
++      const fail = () => reject(new SecurityError('capture_failed'));
++      if (!this.active.has(message.leaseId)) { fail(); return; }
++      const cancel = this.timer(() => { this.operations.delete(message.id); fail(); }, this.timeoutMs);
++      this.operations.set(message.id, { resolve, reject: fail, cancel });
++      try { this.post(message); } catch { this.operations.delete(message.id); cancel(); fail(); }
++    });
++  }
++  receive(message: ImportPolicyReply): void {
++    const operation = this.operations.get(message.id);
++    if (operation) { operation.cancel(); this.operations.delete(message.id); if (message.ok) operation.resolve(message); else operation.reject(); return; }
++    // Late admission/revision replies are not lease grants.
++    if (message.record || message.revision) return;
++    const entry = this.pending.get(message.id);
++    if (!entry) { if (message.ok && !this.active.has(message.id)) this.release(message.id); return; }
++    entry.cancel(); this.pending.delete(message.id);
++    if (!message.ok) { entry.reject(); return; }
++    this.active.add(message.id);
++    entry.resolve({ leaseId: message.id, release: () => { if (this.active.delete(message.id)) this.release(message.id); } });
++  }
++  private release(id: string): void {
++    try { this.post({ channel: 'import_matching', id, kind: 'release' }); }
++    catch { /* Unknown delivery retains main's hold until confirmed utility exit. */ }
++  }
++}
++
++export class ImportPolicyHost {
++  private leases = new Map<string, { cancelled: boolean; release?: () => void }>();
++  private closed = false;
++  constructor(private readonly own: (meta: Envelope) => Promise<() => void>, private readonly post: (message: ImportPolicyReply) => void, private readonly recording?: Recording) {}
++  receive(message: ImportPolicyRequest): void {
++    if (this.closed || typeof message.id !== 'string' || message.id.length > 100) return;
++    if (message.kind === 'release') {
++      const lease = this.leases.get(message.id); if (!lease) return;
++      lease.cancelled = true;
++      if (lease.release) { lease.release(); this.leases.delete(message.id); }
++      return;
++    }
++    if (message.kind === 'recheck' || message.kind === 'revision') { void this.operation(message); return; }
++    if (message.kind !== 'acquire' || this.leases.has(message.id)) return;
++    const lease: { cancelled: boolean; release?: () => void } = { cancelled: false };
++    this.leases.set(message.id, lease); // Before initialize/admission can await.
++    void this.own(message.meta).then(release => {
++      lease.release = release;
++      if (lease.cancelled || this.closed) { release(); this.leases.delete(message.id); return; }
++      // A dropped/throwing grant is uncertain. Keep ownership until an explicit
++      // writer release or actual process exit, even after the caller's timeout.
++      try { this.post({ channel: 'import_matching', id: message.id, ok: true }); } catch { /* Retain ownership. */ }
++    }, () => {
++      this.leases.delete(message.id);
++      try { this.post({ channel: 'import_matching', id: message.id, ok: false }); } catch { /* No authority was granted. */ }
++    });
++  }
++  private async operation(message: Extract<ImportPolicyRequest, { leaseId: string }>) {
++    try {
++      const lease = this.leases.get(message.leaseId);
++      if (!lease?.release || lease.cancelled || !this.recording) throw new SecurityError('capture_failed');
++      // Acquire initialized the policy before holding it. Reinitialization here
++      // can deadlock on a credential reload waiting for this same writer.
++      const value = message.kind === 'recheck' ? { record: await this.recording.recheck(message.record) }
++        : { revision: await this.recording.metadataRevision(message.meta) };
++      if (!this.closed) this.post({ channel: 'import_matching', id: message.id, ok: true, ...value });
++    } catch { if (!this.closed) { try { this.post({ channel: 'import_matching', id: message.id, ok: false }); } catch { /* Writer/exit retains ownership. */ } } }
++  }
++  close(): void {
++    this.closed = true;
++    for (const lease of this.leases.values()) { lease.cancelled = true; lease.release?.(); }
++    this.leases.clear();
++  }
++}
+File: src/main.ts
+Before: {'sha256': '126f89dfc5ec84ff3add37ded0fa23876ede128de3a7e1fa155076c92ab65004', 'mode': 420}
+After: {'sha256': 'dc270cfc71d424aacea80acc4752ee0cc2bf880d91820c76b99d59804a7b1174', 'mode': 420}
+--- before/src/main.ts
++++ after/src/main.ts
+@@ -16,6 +16,7 @@
+ import { assertId, newId } from './security/common';
+ import type { Envelope, SafeRecord } from './security/recording';
+ import { requestImport } from './importer/host';
++import { ImportPolicyHost, type ImportPolicyRequest } from './importer/policy';
+ import { RunpodAdapter } from './providers/runpod';
+ import { VastConnection } from './providers/vast-connection';
+ import { vastFailure } from './providers/vast';
+@@ -100,6 +101,13 @@
+       serviceName: 'Autoresearch Lab Coordinator',
+     });
+     coordinator = child;
++    const importPolicy = new ImportPolicyHost(async meta => {
++      await security.initialize();
++      const release = security.matcher.holdMatchingPolicy();
++      try { security.recording.metadataRevision(meta); return release; }
++      catch (error) { release(); throw error; }
++    }, message => child.postMessage(message), { recheck: record => security.recording.recheck(record), metadataRevision: meta => security.recording.metadataRevision(meta) });
++    child.on('message', (message: ImportPolicyRequest) => { if (message?.channel === 'import_matching') importPolicy.receive(message); });
+     let ready = false;
+     const timer = setTimeout(() => {
+       reject(new Error('The workspace coordinator did not start in time.'));
+@@ -172,6 +180,7 @@
+       selectionClient.receive(message.id, message.selectionReply);
+     });
+     child.once('exit', () => {
++      importPolicy.close();
+       selectionClient.unavailable();
+       codexClient.unavailable(); coordinator = null;
+       clearTimeout(timer);
+File: tests/import-crash-worker.ts
+Before: {'sha256': '1f2ad9d28e373148dd9ba000625e33caead0ee2582faf1a29dac9dc25e728599', 'mode': 420}
+After: {'sha256': 'ce58964d49a979398621e5d1fa1fa6138cd752976daa77a66d7a935fa0466b1d', 'mode': 420}
+--- before/tests/import-crash-worker.ts
++++ after/tests/import-crash-worker.ts
+@@ -8,12 +8,13 @@
+ import type { ProjectRecord } from '../src/projects';
+ const [applicationData, projectId, source, importId, stage, mode] = process.argv.slice(2);
+ const catalog = new ProjectCatalog(applicationData);
+-const recording = new SafeRecording(new PrivateFiles(path.join(applicationData, 'import-security')), new Sanitizer(), async () => {});
++const matcher = new Sanitizer();
++const recording = new SafeRecording(new PrivateFiles(path.join(applicationData, 'import-security')), matcher, async () => {});
+ const imports = new DatasetImports(id => {
+   const reply = catalog.handle({ kind: 'open', operationId: randomUUID(), projectId: id });
+   if (!reply.ok) throw new Error('Project unavailable');
+   return reply.value as ProjectRecord;
+-}, { recording, checkpoint: checkpoint => { if (checkpoint === stage) process.kill(process.pid, 'SIGKILL'); } });
++}, { recording, ownMetadata: () => ({ release: matcher.holdMatchingPolicy(), recording }), checkpoint: checkpoint => { if (checkpoint === stage) process.kill(process.pid, 'SIGKILL'); } });
+ async function run() {
+   await recording.initialize();
+   const started = await imports.handle({ kind: 'imports:start', operationId: importId, projectId, sourcePaths: [source], destinationName: 'killed', mode: mode === 'move' ? 'move' : 'copy' });
+File: tests/import-policy-main.ts
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': '9811a24f9cdcce96b86bbe5228ff6d078f24a26f9aacb81e5ac961ec2a995ad0', 'mode': 420}
+--- before/tests/import-policy-main.ts
++++ after/tests/import-policy-main.ts
+@@ -0,0 +1,111 @@
++import assert from 'node:assert/strict';
++import path from 'node:path';
++import { randomUUID } from 'node:crypto';
++import { mkdir, readFile, writeFile } from 'node:fs/promises';
++import { app, utilityProcess } from 'electron';
++import Database from 'better-sqlite3';
++import { ImportPolicyHost, type ImportPolicyReply, type ImportPolicyRequest } from '../src/importer/policy';
++import { SafeRecording, type Envelope, type SafeRecord } from '../src/security/recording';
++import { PrivateFiles } from '../src/security/private-files';
++import { Sanitizer } from '../src/security/sanitizer';
++import type { ImportRecord } from '../src/imports';
++import type { ProjectRecord } from '../src/projects';
++
++type Reply = { ok: boolean; value?: ProjectRecord | ImportRecord[] };
++async function scenario(mode: 'normal' | 'late-grant' | 'dropped-release' | 'denied') {
++  const root = path.join(app.getPath('userData'), mode), applicationData = path.join(root, 'app'), source = path.join(root, 'NativePolicyPath23');
++  await mkdir(applicationData, { recursive: true }); await mkdir(source); await writeFile(path.join(source, 'data.txt'), 'controlled import bytes\n');
++  const matcher = new Sanitizer();
++  const recording = new SafeRecording(new PrivateFiles(path.join(root, 'security')), matcher, async () => {}); await recording.initialize();
++  const child = utilityProcess.fork(path.join(__dirname, 'import-policy-worker.cjs'), [applicationData]);
++  let connected = true, project: ProjectRecord, probes = 0, registered = false, registration: Promise<void> | undefined, delayed: ImportPolicyReply | undefined, heldRelease = false;
++  const pending = new Map<string, (reply: Reply) => void>();
++  const register = () => registration ||= matcher.registerWhenMutable(randomUUID(), 'NativePolicyPath23').then(() => { registered = true; });
++  const initialize = async () => { if (registration) await registration; };
++  let releaseSeen = () => {};
++  const released = new Promise<void>(resolve => { releaseSeen = resolve; });
++  const payloads = () => {
++    const db = new Database(path.join(project.location, '.lab', 'imports.sqlite'), { readonly: true });
++    try { return db.prepare('SELECT payload FROM imports').all() as { payload: string }[]; } finally { db.close(); }
++  };
++  const policy = new ImportPolicyHost(async meta => {
++    if (mode === 'denied') throw new Error('controlled unavailable authority');
++    await initialize();
++    const release = matcher.holdMatchingPolicy();
++    try { recording.metadataRevision(meta); return release; } catch (error) { release(); throw error; }
++  }, reply => {
++    if (mode === 'late-grant' && !delayed) { delayed = reply; void register(); }
++    else child.postMessage(reply);
++  }, { recheck: record => recording.recheck(record), metadataRevision: meta => {
++    const revision = recording.metadataRevision(meta);
++    if (mode === 'normal' && ++probes === 2) void register();
++    return revision;
++  } });
++  const exited = new Promise<void>(resolve => child.once('exit', () => {
++    connected = false; policy.close(); for (const reply of pending.values()) reply({ ok: false }); pending.clear(); resolve();
++  }));
++  const ready = new Promise<void>((resolve, reject) => {
++    const timeout = setTimeout(() => reject(new Error('Native import coordinator did not start')), 15_000);
++    child.once('message', (message: { coordinator?: string }) => { clearTimeout(timeout); assert.equal(message.coordinator, 'ready'); resolve(); });
++  });
++  child.on('message', (message: { channel?: string; id: string; kind?: string; value?: SafeRecord; meta?: Envelope; reply?: Reply; importAdmissionId?: string } & Partial<ImportPolicyRequest>) => {
++    if (message.channel === 'import_matching') {
++      if (message.kind === 'release' && mode === 'dropped-release') { heldRelease = true; void register(); releaseSeen(); return; }
++      if (message.kind === 'release' && mode === 'normal' && registration && !heldRelease) {
++        assert.equal(registered, false, 'registration must wait for actual writer completion');
++        assert.ok(payloads().some(row => row.payload.includes('NativePolicyPath23')), 'real SQLite commit precedes writer release');
++        heldRelease = true;
++      }
++      policy.receive(message as ImportPolicyRequest); return;
++    }
++    if (message.channel === 'import_metadata_revision') {
++      void initialize().then(() => {
++        try {
++        const revision = recording.metadataRevision(message.meta!);
++        child.postMessage({ channel: message.channel, id: message.id, ok: true, revision });
++        } catch { child.postMessage({ channel: message.channel, id: message.id, ok: false }); }
++      });
++      return;
++    }
++    if (message.channel === 'research_security') {
++      void initialize().then(() => recording.recheck(message.value!)).then(record => child.postMessage({ channel: message.channel, id: message.id, ok: true, record }), () => child.postMessage({ channel: message.channel, id: message.id, ok: false })); return;
++    }
++    if (message.importAdmissionId) { child.postMessage({ importAdmissionId: message.importAdmissionId, allowed: true }); return; }
++    if (message.reply) { pending.get(message.id)?.(message.reply); pending.delete(message.id); }
++  });
++  const request = (request: unknown) => new Promise<Reply>((resolve, reject) => {
++    const id = randomUUID(); const timer = setTimeout(() => reject(new Error('Native import request did not finish')), 35_000);
++    pending.set(id, reply => { clearTimeout(timer); resolve(reply); }); child.postMessage({ id, request });
++  });
++  try {
++    await ready;
++    const operationId = randomUUID(); const created = await request({ kind: 'create', operationId, input: { requestId: operationId, name: 'Native import ownership', folderName: 'ownership' } });
++    assert.equal(created.ok, true); project = created.value as ProjectRecord;
++    const starting = request({ kind: 'imports:start', operationId: randomUUID(), projectId: project.projectId, sourcePaths: [source], destinationName: 'data', mode: 'copy' });
++    if (mode === 'dropped-release') {
++      await released; await new Promise<void>(resolve => setImmediate(resolve));
++      assert.equal(heldRelease, true); assert.equal(registered, false); assert.equal(payloads().length, 1);
++      child.kill(); await exited; await registration; assert.equal(registered, true);
++    }
++    const start = await starting;
++    if (mode === 'late-grant') {
++      assert.equal(start.ok, false); assert.ok(delayed); await registration; assert.equal(registered, true);
++      child.postMessage(delayed); // A grant delivered after expiry cannot revive INSERT.
++      const listed = await request({ kind: 'imports:list', operationId: randomUUID(), projectId: project.projectId });
++      assert.equal(listed.ok, true); assert.deepEqual(listed.value, []); assert.equal(payloads().length, 0);
++    } else if (mode === 'dropped-release') {
++      assert.equal(start.ok, false, 'confirmed utility exit leaves caller with an uncertain interrupted write');
++    } else if (mode === 'denied') { assert.equal(start.ok, false); assert.equal(payloads().length, 0); }
++    else {
++      assert.equal(start.ok, false); await registration; assert.equal(registered, true); assert.equal(heldRelease, true);
++      const listed = await request({ kind: 'imports:list', operationId: randomUUID(), projectId: project.projectId });
++      assert.equal(listed.ok, false); assert.equal(JSON.stringify(listed).includes('NativePolicyPath23'), false);
++    }
++    assert.equal(await readFile(path.join(source, 'data.txt'), 'utf8'), 'controlled import bytes\n');
++    console.log(`Native import matching ownership ${mode}: passed; actual coordinator, SQLite and source preservation.`);
++  } finally { if (connected) child.kill(); await exited; }
++}
++void app.whenReady().then(async () => {
++  for (const mode of ['normal', 'late-grant', 'dropped-release', 'denied'] as const) await scenario(mode);
++  app.exit(0);
++}).catch(error => { console.error('Controlled native import matching regression failed:', error); app.exit(1); });
+File: tests/import-policy-worker.ts
+Before: {'sha256': None, 'mode': None}
+After: {'sha256': '27018e78b467a8485e57829a949380b7a0875c6375a97d3c638e4b396f3f8682', 'mode': 420}
+--- before/tests/import-policy-worker.ts
++++ after/tests/import-policy-worker.ts
+@@ -0,0 +1,2 @@
++// Native fixture runs the actual production coordinator and importer wiring.
++import '../src/coordinator';
+File: tests/imports.test.ts
+Before: {'sha256': '47380b7e3e2f946ef6e523c61bc41d1fcc68ad3a07eafc8f8bd420608a7813aa', 'mode': 420}
+After: {'sha256': 'dd0fcb7e09b6c7a15a71862a324cb6599fd74e1852f1d656d3c049de9f5eb8a2', 'mode': 420}
+--- before/tests/imports.test.ts
++++ after/tests/imports.test.ts
+@@ -1,7 +1,7 @@
+ import assert from 'node:assert/strict';
+ import { spawnSync } from 'node:child_process';
+ import { randomUUID } from 'node:crypto';
+-import { chmod, mkdir, mkdtemp, readFile, realpath, readdir, rm, rename, symlink, writeFile, stat } from 'node:fs/promises';
++import { chmod, link, mkdir, mkdtemp, readFile, realpath, readdir, rm, rename, symlink, writeFile, stat } from 'node:fs/promises';
+ import os from 'node:os';
+ import path from 'node:path';
+ import { test } from 'node:test';
+@@ -14,6 +14,8 @@
+ import { SafeRecording } from '../src/security/recording';
+ import { Sanitizer } from '../src/security/sanitizer';
+ import { PrivateFiles } from '../src/security/private-files';
++import { storedMetadataEnvelope } from '../src/security/stored-metadata';
++import { ImportPolicyClient, ImportPolicyHost, type ImportPolicyReply, type ImportPolicyRequest } from '../src/importer/policy';
+ 
+ function value<T>(reply: ProjectReply<T>): T { if (!reply.ok) assert.fail(reply.error.message); return reply.value; }
+ async function fixture(options: ConstructorParameters<typeof DatasetImports>[1] = {}) {
+@@ -33,7 +35,7 @@
+   const policyCalls = { pieces: 0, revisions: 0 };
+   const recordingPort = { recheck: (record: Parameters<SafeRecording['recheck']>[0]) => { policyCalls.pieces++; return recording.recheck(record); },
+     metadataRevision: (meta: Parameters<SafeRecording['metadataRevision']>[0]) => { policyCalls.revisions++; return recording.metadataRevision(meta); } };
+-  const importOptions = { recording: recordingPort, ...options };
++  const importOptions = { recording: recordingPort, ownMetadata: () => ({ release: matcher.holdMatchingPolicy(), recording: options.recording ?? recordingPort }), ...options };
+   const security = { get recording() { return recording; }, initialize: () => recording.initialize(),
+     assertSafeConfiguration: (input: unknown) => { if (matcher.filter(input).redacted) throw new Error(); } };
+   let imports = new DatasetImports(resolveProject, importOptions);
+@@ -577,6 +579,149 @@
+   } finally { await f.cleanup(); }
+ });
+ 
++async function sourceAliases(f: Awaited<ReturnType<typeof fixture>>) {
++  const first = path.join(f.source, 'class-one', 'one.txt'), second = path.join(f.source, 'class-two', 'two.txt');
++  await rm(second); await link(first, second);
++  assert.equal((await stat(first)).ino, (await stat(second)).ino);
++  return { first, second };
++}
++async function independentAliasCopies(f: Awaited<ReturnType<typeof fixture>>, record: ImportRecord, sourceInode: number) {
++  const first = path.join(f.project.location, record.destination, 'class-one', 'one.txt');
++  const second = path.join(f.project.location, record.destination, 'class-two', 'two.txt');
++  for (const file of [first, second]) {
++    assert.equal(await readFile(file, 'utf8'), 'first document\n');
++    assert.equal((await stat(file)).nlink, 1); assert.notEqual((await stat(file)).ino, sourceInode);
++  }
++  assert.notEqual((await stat(first)).ino, (await stat(second)).ino);
++}
++
++test('confirmed move of hard-linked source aliases cleans both names and keeps independent destination bytes', async () => {
++  const f = await fixture();
++  try {
++    const { first } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const id = await f.start('move'); let record = await f.record(id);
++    assert.equal(record.state, 'cleanup_pending');
++    await independentAliasCopies(f, record, sourceInode);
++    await f.imports.confirmPreparation(f.project.projectId, id, record.revision, randomUUID()); record = await f.record(id);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0);
++    await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
++test('SIGKILL after the first hard-link unlink recovers alias cleanup after restart', async () => {
++  const f = await fixture();
++  try {
++    const { first, second } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const operationId = randomUUID();
++    const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlinked', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++    assert.equal(child.signal, 'SIGKILL', child.stderr);
++    await assert.rejects(stat(first), { code: 'ENOENT' }); assert.equal(await readFile(second, 'utf8'), 'first document\n');
++    f.restart(); let record = (await f.list()).find(row => row.operationId === operationId)!;
++    assert.equal(record.state, 'cleanup_pending'); assert.ok(record.preparationRef);
++    value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0);
++    await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
++for (const timing of ['before confirmation', 'after unlink restart'] as const) {
++  for (const mutation of ['changed bytes', 'same-byte replacement', 'symlink', 'ctime only'] as const) test(`hard-link cleanup preserves ${mutation} ${timing}`, async () => {
++    const f = await fixture();
++    try {
++      const { first, second } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++      let record: ImportRecord;
++      if (timing === 'before confirmation') record = await f.record(await f.start('move'));
++      else {
++        const operationId = randomUUID();
++        const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlinked', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++        assert.equal(child.signal, 'SIGKILL', child.stderr); f.restart();
++        record = (await f.list()).find(row => row.operationId === operationId)!;
++      }
++      const before = await stat(second); let expected = 'first document\n';
++      if (mutation === 'changed bytes') { expected = 'externally changed bytes\n'; await writeFile(second, expected); }
++      else if (mutation === 'same-byte replacement') { await rename(second, path.join(f.root, 'retained-original.txt')); await writeFile(second, expected); assert.notEqual((await stat(second)).ino, before.ino); }
++      else if (mutation === 'symlink') { await rm(second); const target = path.join(f.root, 'external.txt'); await writeFile(target, expected); await symlink(target, second); }
++      else { await chmod(second, 0o400); await chmod(second, before.mode & 0o777); assert.notEqual((await stat(second)).ctimeMs, before.ctimeMs); assert.equal((await stat(second)).mtimeMs, before.mtimeMs); }
++      if (timing === 'before confirmation') await f.imports.confirmPreparation(f.project.projectId, record.importId, record.revision, randomUUID());
++      else value(await f.request(action(record, 'retry_cleanup')));
++      record = await f.record(record.importId);
++      assert.equal(record.state, 'cleanup_pending'); assert.ok(record.remainingSourceFiles >= 1); assert.equal(record.bytesUsable, true);
++      assert.equal(await readFile(second, 'utf8'), expected);
++      await independentAliasCopies(f, record, sourceInode);
++      f.restart(); record = (await f.list())[0]; value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++      assert.equal(record.state, 'cleanup_pending'); assert.equal(await readFile(second, 'utf8'), expected);
++    } finally { await f.cleanup(); }
++  });
++}
++
++test('SIGKILL before the alias unlink receipt retains uncertain source authority on every retry', async () => {
++  const f = await fixture();
++  try {
++    const { first, second } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const operationId = randomUUID();
++    const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlink_unrecorded', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++    assert.equal(child.signal, 'SIGKILL', child.stderr); await assert.rejects(stat(first), { code: 'ENOENT' });
++    for (let retry = 0; retry < 2; retry++) {
++      f.restart(); let record = (await f.list()).find(row => row.operationId === operationId)!;
++      value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++      assert.equal(record.state, 'cleanup_pending'); assert.equal(record.remainingSourceFiles, 1);
++      assert.equal(await readFile(second, 'utf8'), 'first document\n'); await independentAliasCopies(f, record, sourceInode);
++    }
++  } finally { await f.cleanup(); }
++});
++
++test('post-unlink failure retains the alias identity receipt and reconciles deletion intent after restart', async () => {
++  let unlinked = 0;
++  const f = await fixture({ checkpoint: stage => { if (stage === 'unlinked' && ++unlinked === 1) throw Object.assign(new Error('controlled unlink failure'), { code: 'EIO' }); } });
++  try {
++    const { first } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const id = await f.start('move'); let record = await f.record(id);
++    await f.imports.confirmPreparation(f.project.projectId, id, record.revision, randomUUID()); record = await f.record(id);
++    assert.equal(record.state, 'cleanup_pending'); assert.equal(record.remainingSourceFiles, 1); await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    f.restart(); record = (await f.list())[0]; value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(id);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0); await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
++test('hard-link cleanup rechecks the destination before removing a surviving alias', async () => {
++  const f = await fixture();
++  try {
++    const { second } = await sourceAliases(f); const operationId = randomUUID();
++    const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlinked', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++    assert.equal(child.signal, 'SIGKILL', child.stderr); f.restart();
++    let record = (await f.list()).find(row => row.operationId === operationId)!;
++    const target = path.join(f.project.location, record.destination, 'class-two', 'two.txt');
++    await writeFile(target, 'corrupt destination');
++    value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++    assert.equal(record.state, 'cleanup_pending'); assert.equal(await readFile(second, 'utf8'), 'first document\n');
++    assert.equal(await readFile(target, 'utf8'), 'corrupt destination');
++    await writeFile(target, 'first document\n'); value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++    assert.equal(record.state, 'complete'); await assert.rejects(stat(f.source), { code: 'ENOENT' });
++  } finally { await f.cleanup(); }
++});
++
++test('hard-link identity refresh cannot adopt changes made while its policy receipt awaits', async () => {
++  let second = ''; let changed = false;
++  const f = await fixture({ recording: { recheck: async record => {
++    const saved = record.body as unknown as { entries?: { cleanupIdentity?: string }[] };
++    if (!changed && second && saved.entries?.some(entry => entry.cleanupIdentity)) {
++      changed = true; const before = await stat(second); await chmod(second, 0o400); await chmod(second, before.mode & 0o777);
++    }
++    return f.recording.recheck(record);
++  } } });
++  try {
++    ({ second } = await sourceAliases(f)); const sourceInode = (await stat(second)).ino;
++    const id = await f.start('move'); let record = await f.record(id);
++    await f.imports.confirmPreparation(f.project.projectId, id, record.revision, randomUUID()); record = await f.record(id);
++    assert.equal(changed, true); assert.equal(record.state, 'cleanup_pending'); assert.equal(record.remainingSourceFiles, 1);
++    assert.equal(await readFile(second, 'utf8'), 'first document\n'); await independentAliasCopies(f, record, sourceInode);
++    f.restart(); record = (await f.list())[0]; value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(id);
++    assert.equal(record.state, 'cleanup_pending'); assert.equal(await readFile(second, 'utf8'), 'first document\n');
++  } finally { await f.cleanup(); }
++});
++
+ for (const stage of ['copied', 'reserved', 'publishing_file', 'published', 'unlinked'] as const) test(`SIGKILL at ${stage} reopens a named partial operation and recovers without duplicate publication or source loss`, async () => {
+   const f = await fixture();
+   try {
+@@ -668,3 +813,131 @@
+     f.restart(); assert.ok(!JSON.stringify(await f.list()).includes(secret));
+   } finally { await f.cleanup(); }
+ });
++test('import publication rejects a stale final metadata approval before SQLite persistence', async () => {
++  const canary = 'PendingMetadataApproval23'; let probes = 0;
++  const f = await fixture({ recording: {
++    recheck: record => f.recording.recheck(record),
++    metadataRevision: meta => {
++      const revision = f.recording.metadataRevision(meta);
++      if (++probes === 2) f.matcher.register(randomUUID(), canary);
++      return revision;
++    },
++  } });
++  try {
++    const source = path.join(f.root, canary); await rename(f.source, source);
++    const requestId = randomUUID();
++    await f.imports.handle({ kind: 'imports:start', operationId: requestId, projectId: f.project.projectId, sourcePaths: [source], destinationName: 'approved', mode: 'copy' });
++    const db = new Database(path.join(f.project.location, '.lab', 'imports.sqlite'), { readonly: true });
++    try {
++      const rows = db.prepare('SELECT payload FROM imports').all() as {payload: string}[];
++      assert.equal(rows.some(row => row.payload.includes(canary)), false, 'stale final approval must not persist a now-known credential path');
++    } finally { db.close(); }
++  } finally { await f.cleanup(); }
++});
++
++test('import publication without matching ownership fails closed before INSERT and preserves source bytes', async () => {
++  for (const ownMetadata of [undefined, async () => { throw new Error('unsafe ownership diagnostic'); }]) {
++    const f = await fixture({ ownMetadata });
++    try {
++      const result = await f.imports.handle({ kind: 'imports:start', operationId: randomUUID(), projectId: f.project.projectId, sourcePaths: [f.source], destinationName: 'unowned', mode: 'move' });
++      assert.equal(result.ok, false); assert.equal(JSON.stringify(result).includes('unsafe ownership diagnostic'), false);
++      assert.equal((await f.list()).length, 0);
++      assert.equal(await readFile(path.join(f.source, 'class-one', 'one.txt'), 'utf8'), 'first document\n');
++    } finally { await f.cleanup(); }
++  }
++});
++
++function policyFixture(options: { dropRelease?: boolean; delayedGrant?: boolean; delayedAcquire?: boolean; throwGrant?: boolean; deny?: boolean } = {}) {
++  const matcher = new Sanitizer(); const grants: ImportPolicyReply[] = []; const requests: ImportPolicyRequest[] = [];
++  const timeouts: (() => void)[] = []; let acquireReady = () => {};
++  const gate = new Promise<void>(resolve => { acquireReady = resolve; });
++  const host = new ImportPolicyHost(async () => {
++    if (options.delayedAcquire) await gate;
++    if (options.deny) throw new Error('unavailable');
++    return matcher.holdMatchingPolicy();
++  }, reply => { if (options.delayedGrant) grants.push(reply); else client.receive(reply); if (options.throwGrant) throw new Error('uncertain grant delivery'); });
++  const client = new ImportPolicyClient(message => {
++    requests.push(message);
++    if (message.kind !== 'release' || !options.dropRelease) host.receive(message);
++  }, callback => { timeouts.push(callback); return () => {}; });
++  const meta = storedMetadataEnvelope({ projectId: randomUUID(), recordId: randomUUID() }, 'file_name');
++  return { matcher, host, client, meta, grants, requests, timeouts, acquireReady };
++}
++const policyTurn = () => new Promise<void>(resolve => setImmediate(resolve));
++
++test('import matching ownership lasts through writer completion and ignores duplicate grant replies', async () => {
++  const f = policyFixture();
++  try {
++    const release = await f.client.own(f.meta); let registered = false;
++    const registration = f.matcher.registerWhenMutable(randomUUID(), 'QueuedImportPolicy23').then(() => { registered = true; });
++    await policyTurn(); assert.equal(registered, false); assert.throws(() => f.matcher.register(randomUUID(), 'DirectPolicyMutation23'));
++    f.client.receive({ channel: 'import_matching', id: f.requests[0].id, ok: true });
++    await policyTurn(); assert.equal(registered, false);
++    release(); release(); await registration; assert.equal(registered, true);
++    assert.equal(f.requests.filter(request => request.kind === 'release').length, 1);
++  } finally { f.host.close(); }
++});
++
++test('late import ownership grants cannot revive an expired writer or authorize persistence', async () => {
++  const f = policyFixture({ delayedGrant: true, dropRelease: true });
++  try {
++    let commits = 0; const write = f.client.own(f.meta).then(release => { commits++; release(); });
++    await policyTurn(); assert.equal(f.grants.length, 1);
++    const denied = assert.rejects(write); f.timeouts[0](); await denied;
++    let registered = false; const registration = f.matcher.registerWhenMutable(randomUUID(), 'LateImportGrant23').then(() => { registered = true; });
++    await policyTurn(); assert.equal(registered, false);
++    f.client.receive(f.grants[0]); await policyTurn(); assert.equal(commits, 0); assert.equal(registered, false);
++    f.host.close(); await registration; assert.equal(registered, true);
++  } finally { f.host.close(); }
++});
++
++test('import acquire cancellation before asynchronous initialization cannot leak or grant ownership', async () => {
++  const f = policyFixture({ delayedAcquire: true });
++  try {
++    const denied = assert.rejects(f.client.own(f.meta)); f.timeouts[0](); await denied;
++    f.acquireReady(); await policyTurn();
++    await f.matcher.registerWhenMutable(randomUUID(), 'CancelledImportAcquire23');
++    assert.equal(f.requests.filter(request => request.kind === 'release').length, 1);
++  } finally { f.host.close(); }
++});
++
++test('a dropped import writer release retains matching ownership until confirmed utility exit', async () => {
++  const f = policyFixture({ dropRelease: true });
++  try {
++    const release = await f.client.own(f.meta); let registered = false;
++    const registration = f.matcher.registerWhenMutable(randomUUID(), 'DroppedImportRelease23').then(() => { registered = true; });
++    release(); await policyTurn(); assert.equal(registered, false);
++    f.host.close(); await registration; assert.equal(registered, true);
++  } finally { f.host.close(); }
++});
++
++test('uncertain import grant delivery retains ownership until writer release and acquisition failures grant none', async () => {
++  const f = policyFixture({ throwGrant: true });
++  try {
++    const release = await f.client.own(f.meta); assert.throws(() => f.matcher.register(randomUUID(), 'UncertainImportGrant23'));
++    release(); await f.matcher.registerWhenMutable(randomUUID(), 'ReleasedImportGrant23');
++  } finally { f.host.close(); }
++  const denied = policyFixture({ deny: true });
++  try { await assert.rejects(denied.client.own(denied.meta)); denied.matcher.register(randomUUID(), 'DeniedImportGrant23'); }
++  finally { denied.host.close(); }
++});
++
++test('leased import policy checks complete while credential reload waits for the same writer', async () => {
++  const f = await fixture(); let initialization = 0;
++  const meta = storedMetadataEnvelope({ projectId: f.project.projectId, recordId: randomUUID() }, 'file_name');
++  let reload: Promise<void> = Promise.resolve();
++  const host = new ImportPolicyHost(async () => { initialization++; await reload; return f.matcher.holdMatchingPolicy(); }, reply => client.receive(reply), {
++    recheck: record => f.recording.recheck(record), metadataRevision: meta => f.recording.metadataRevision(meta),
++  });
++  const client = new ImportPolicyClient(message => host.receive(message));
++  try {
++    const authority = await client.authority(meta); let registered = false;
++    reload = f.matcher.registerWhenMutable(randomUUID(), 'QueuedPolicyReload23').then(() => { registered = true; });
++    const revision = await authority.recording.metadataRevision(meta); assert.equal(typeof revision, 'string');
++    const admitted = await f.recording.admit(meta, { name: 'safe' });
++    assert.deepEqual(await authority.recording.recheck(admitted), admitted);
++    assert.equal(initialization, 1); assert.equal(registered, false);
++    authority.release(); await reload; assert.equal(registered, true);
++    await assert.rejects(async () => authority.recording.metadataRevision(meta), 'settled lease cannot authorize a later operation');
++  } finally { host.close(); await f.cleanup(); }
++});
+File: webpack.tests.config.cjs
+Before: {'sha256': 'ef1137779a010b950e1b1e7076178e27eebbb4244656628c9a29e06b2228fafd', 'mode': 420}
+After: {'sha256': '36947531b35c6f6dce31d09190b73fbc105fe766ad50a846baf594a7641f8e3f', 'mode': 420}
+--- before/webpack.tests.config.cjs
++++ after/webpack.tests.config.cjs
+@@ -1,7 +1,7 @@
+ module.exports = {
+   mode: 'development', target: 'node', devtool: false,
+   externals: { electron: 'commonjs electron' },
+-  entry: { 'codex-transport-main': './tests/codex-transport-main.ts', 'codex-transport-worker': './tests/codex-transport-worker.ts', 'configuration': './tests/configuration.test.ts', 'catalog': './tests/catalog.test.ts', 'crash-worker': './tests/crash-worker.ts', 'reservations': './tests/reservations.test.ts', 'reservation-worker': './tests/reservation-worker.ts', 'research': './tests/research.test.ts', 'research-crash': './tests/research-crash.ts', 'import-crash-worker': './tests/import-crash-worker.ts', 'imports': './tests/imports.test.ts', 'vast': './tests/vast.test.ts', 'codex': './tests/codex.test.ts', 'codex-fixture': './tests/codex-fixture.ts', 'claude': './tests/claude.test.ts', 'checkpoints': './tests/checkpoints.test.ts' },
++  entry: { 'import-policy-main': './tests/import-policy-main.ts', 'import-policy-worker': './tests/import-policy-worker.ts', 'codex-transport-main': './tests/codex-transport-main.ts', 'codex-transport-worker': './tests/codex-transport-worker.ts', 'configuration': './tests/configuration.test.ts', 'catalog': './tests/catalog.test.ts', 'crash-worker': './tests/crash-worker.ts', 'reservations': './tests/reservations.test.ts', 'reservation-worker': './tests/reservation-worker.ts', 'research': './tests/research.test.ts', 'research-crash': './tests/research-crash.ts', 'import-crash-worker': './tests/import-crash-worker.ts', 'imports': './tests/imports.test.ts', 'vast': './tests/vast.test.ts', 'codex': './tests/codex.test.ts', 'codex-fixture': './tests/codex-fixture.ts', 'claude': './tests/claude.test.ts', 'checkpoints': './tests/checkpoints.test.ts' },
+   output: { path: require('node:path').resolve('.webpack/tests'), filename: '[name].cjs' },
+   module: { rules: require('./webpack.rules.cjs') },
+   resolve: { extensions: ['.ts', '.js', '.json'], alias: { 'better-sqlite3$': 'better-sqlite3/darwin-arm64' } },

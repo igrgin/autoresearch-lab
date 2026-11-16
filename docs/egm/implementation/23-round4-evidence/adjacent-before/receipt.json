@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr113-hardlink-repair/adjacent-original/snapshot.json",
+  "name": "regression",
+  "role": "baseline",
+  "command": [
+    "node",
+    "/tmp/pr113-hardlink-repair/focused.mjs",
+    "import publication rejects"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3",
+  "environment": "macOS-arm64 Node24.22.3 pinned-Electron45.3.2 SQLite13.1.1",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794859387.260328,
+  "ended": 1794859390.395815,
+  "pre_subject_id": "dfd70ae9c1327b4b8d05d45be3c22098bca74886b146e4a3c14638d8e80582e4",
+  "post_subject_id": "dfd70ae9c1327b4b8d05d45be3c22098bca74886b146e4a3c14638d8e80582e4",
+  "expected_exit": 1,
+  "exit_code": 1,
+  "observation": "Parent stale-final-revision regression against unchanged import publication mechanism; hard-link repair already applied independently.",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "3e046942921ef2a9eadc86b4c9a5d8f403a85762ba088eaa4627a02a003ff507",
+  "stderr_sha256": "c69550803cad0b9dfb14be6a335a6812ad1e9cd6392ecc4d8400d2a86061616a"
+}

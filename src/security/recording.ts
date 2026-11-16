@@ -44,6 +44,7 @@ export class SafeRecording {
   #state: State = { version: 1, incidents: [], fencedRuns: [], withheld: [], retiredSessions: [] };
   #ready = false;
   #tail: Promise<unknown> = Promise.resolve();
+  readonly #policyInstance = newId();
   constructor(private readonly files: PrivateFiles, private readonly sanitizer: Sanitizer,
     private readonly revoke: (id: string) => Promise<void>) {}
   private serial<T>(work: () => Promise<T>): Promise<T> {
@@ -146,6 +147,16 @@ export class SafeRecording {
       return { ...current, body: null, coverage: 'omitted', omission: 'quarantined' };
     }
     return { ...record, body: current.body };
+  }
+  // Private external-metadata cache validation, never a renderer capability.
+  // A caller may reuse an unchanged bounded piece only under this exact matcher
+  // generation, with the same generation checked again after the entire scan.
+  // Quarantine is checked on every call, including after incident recovery.
+  metadataRevision(meta: Envelope): string {
+    const checked = envelope(meta);
+    if (!this.#ready || this.#state.withheld.includes(checked.eventId) ||
+        this.#state.incidents.some(i => i.runId === checked.runId && i.state === 'contained')) throw new SecurityError('capture_failed');
+    return `${POLICY_REVISION}:${this.#policyInstance}:${this.sanitizer.matchingRevision}`;
   }
   async capture(meta: Envelope, raw: unknown, reason?: Omission): Promise<SafeRecord> {
     return this.publication(async () => {

@@ -1,0 +1,7 @@
+import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+const require = createRequire(path.join(process.cwd(), 'package.json'));
+const webpack = require('webpack'); const config = require(path.join(process.cwd(), 'webpack.tests.config.cjs'));
+await new Promise((resolve,reject)=>{const compiler=webpack(config);compiler.run((error,stats)=>compiler.close(()=>error?reject(error):stats.hasErrors()?reject(new Error(stats.toString({all:false,errors:true}))):resolve()));});
+execFileSync(require('electron'), ['--test', `--test-name-pattern=${process.argv[2]}`, '.webpack/tests/imports.cjs'], { stdio: 'inherit', env: {...process.env,ELECTRON_RUN_AS_NODE:'1'} });
