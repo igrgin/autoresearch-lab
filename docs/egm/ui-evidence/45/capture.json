@@ -1,0 +1,30 @@
+{
+  "issue": 45,
+  "pull_request": "https://github.com/igrgin/autoresearch-lab/pull/114",
+  "before_commit": "c53bf7f1badb1bfc9b648bc566a5d5c79c6a233c",
+  "after_commit": "30e3be6d35919c4c9cc4f10f63712469a39a13f6",
+  "captured_on": "2026-11-16",
+  "platform": "macOS arm64",
+  "method": "Native Electron capturePage from successful CI packaged artifacts; native window zoom 80%. Crops show the complete named feature panel.",
+  "fixtures": "Isolated temporary profiles; synthetic project/data/credential labels. Provider HTTP and model worker responses are controlled fixtures. No live service, credentials, inference or training was used. Application renderer and production IPC/store paths were not replaced.",
+  "images": [
+    {
+      "filename": "before.png",
+      "path": "docs/egm/ui-evidence/45/before.png",
+      "sha256": "1d11698c432c898bcbaa7f48b352a3a8b4b923bfa9a253674ef03be94981f0cf",
+      "region": "application window",
+      "zoom": 0.8,
+      "build_run": 43865135334,
+      "source_commit": "c53bf7f1badb1bfc9b648bc566a5d5c79c6a233c"
+    },
+    {
+      "filename": "after.png",
+      "path": "docs/egm/ui-evidence/45/after.png",
+      "sha256": "bfeddcf24368d3300121e9374bc030ce21e924c77d7976d149d448c99763d0ed",
+      "region": "Codex settings",
+      "zoom": 0.8,
+      "build_run": 43865144777,
+      "source_commit": "30e3be6d35919c4c9cc4f10f63712469a39a13f6"
+    }
+  ]
+}
