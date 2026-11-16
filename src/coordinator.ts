@@ -1,3 +1,6 @@
+import { CodexStore } from './codex/store';
+import { codexStoreFailure, CodexFailure } from './codex/errors';
+import type { CodexStoreCommand } from './codex/contract';
 import type { ImportRequest } from './imports';
 import { DatasetImports } from './importer/importer';
 import { ImportPolicyClient, type ImportPolicyReply } from './importer/policy';
@@ -47,9 +50,11 @@ function admitConfiguration(configurationRequestId: string, value: unknown): Pro
     process.parentPort.postMessage({ configurationAdmissionId: id, configurationRequestId, value });
   });
 }
+let codex: CodexStore;
 try {
   catalog = new ProjectCatalog(applicationData);
   configurations = new ConfigurationStore(applicationData, catalog);
+  codex = new CodexStore(applicationData);
 } catch {
   catalog?.close(); catalog = undefined;
   process.parentPort.postMessage({ coordinator: 'failed', message: 'Workspace storage could not open. Check application-data folder permissions and free disk space. If this workspace was created by a newer app, reopen it with that version. Existing files were left intact.' });
@@ -70,7 +75,7 @@ if (catalog) {
     process.parentPort.postMessage({ importAdmissionId: id, names });
   }) });
 
-  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; configurationAdmissionId?: string; record?: SafeRecord; revision?: string; ok?: boolean } }) => {
+  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; configurationAdmissionId?: string; codex?: CodexStoreCommand; record?: SafeRecord; revision?: string; ok?: boolean } }) => {
     if (data.channel === 'import_matching') { importPolicy.receive(data as ImportPolicyReply); return; }
     if (data.channel === 'import_metadata_revision') {
       const pending = metadataRequests.get(data.id); if (!pending) return;
@@ -80,6 +85,19 @@ if (catalog) {
       return;
     }
     if (data.importAdmissionId) { admissions.get(data.importAdmissionId)?.(data.allowed === true); return; }
+    if (data.codex) {
+      let codexReply;
+      try {
+        if ('projectId' in data.codex) {
+          const project = activeCatalog.handle({ kind: 'open', operationId: data.id, projectId: data.codex.projectId });
+          if (!project.ok) throw new CodexFailure('unavailable');
+        }
+        codexReply = { ok: true as const, value: codex.handle(data.codex) };
+      } catch (error) { codexReply = codexStoreFailure(error, data.codex, data.id); }
+      process.parentPort.postMessage({ id: data.id, codexReply });
+
+      return;
+    }
     if (data.configurationAdmissionId) { configurationAdmissions.get(data.configurationAdmissionId)?.(data.allowed === true); return; }
     if (data.configuration) { process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, value => admitConfiguration(data.id, value)) }); return; }
     if (data.channel === 'research_security') {
@@ -95,5 +113,5 @@ if (catalog) {
     process.parentPort.postMessage({ id: data.id, reply });
   });
   process.parentPort.postMessage({ coordinator: 'ready', sqliteVersion: activeCatalog.sqliteVersion });
-  process.on('exit', () => { imports.close(); configurations.close(); activeCatalog.close(); });
+  process.on('exit', () => { codex.close(); imports.close(); configurations.close(); activeCatalog.close(); });
 }

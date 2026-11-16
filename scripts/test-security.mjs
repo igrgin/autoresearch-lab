@@ -355,3 +355,12 @@ test('URL userinfo after diff markers and punctuation is scrubbed without quadra
  }
  const long='q-'.repeat(1.5*1024*1024);assert.equal(sanitizer.text(long).value,long);
 });
+test('unchanged vault reload can finish while metadata publication owns matching policy', async () => {
+  const f = await fixture(); const release = f.sanitizer.holdMatchingPolicy(); let timer;
+  const reload = f.credentials.initialize();
+  try {
+    const completed = await Promise.race([reload.then(() => true), new Promise(resolve => { timer = setTimeout(() => resolve(false), 2000); })]);
+    assert.equal(completed, true, 'unchanged matching material must not wait for a writer acknowledgement');
+    assert.equal(f.credentials.list().find(item => item.id === f.entry.id).status, 'active');
+  } finally { clearTimeout(timer); release(); await reload; }
+});

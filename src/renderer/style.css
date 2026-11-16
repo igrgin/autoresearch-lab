@@ -345,3 +345,9 @@ main { padding-bottom: 24px; }
 .import-record { margin-top: 14px; padding: 12px; border: 1px solid #dce5df; border-radius: 8px; }
 .import-record strong { overflow-wrap: anywhere; font-size: 13px; }
 .import-record progress { width: 100%; }
+.codex-panel { max-width: 780px; margin-bottom: 32px; }
+.codex-panel label { display: block; margin-top: 20px; font-weight: 600; }
+.codex-panel select { display: block; width: 100%; margin: 8px 0 16px; min-height: 42px; }
+.codex-panel p { line-height: 1.6; overflow-wrap: anywhere; }
+.codex-panel h2 { margin-top: 24px; }
+.codex-panel button { margin-right: 8px; margin-bottom: 8px; }

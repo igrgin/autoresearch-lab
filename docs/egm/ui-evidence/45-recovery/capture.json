@@ -1,0 +1,17 @@
+{
+  "beforeSourceCommit": "766d4421fc2986b626807a34686aba20e3f0c7e8",
+  "afterSourceFiles": {
+    "src/codex/contract.ts": "ba66f9010f0429cce65cd719d29877718693e5c95446c6f4c81c7211a49afb92",
+    "src/codex/host.ts": "f96f21a75e79ec76d0866d825b7eb050590e4b947fabd3cb6678046f0d07bfb1",
+    "src/main.ts": "a1bc730dd4295333715cc6da5ff78851fa61add2a6ba1c3011868e9ff32b1242",
+    "src/preload.ts": "952364ad802dbd356f41af6ffe062fca27e12b65b72bb0bb8aeb01ae133dd0b0",
+    "src/renderer/codex-settings.tsx": "f0708631c23ae9b32f99735ded17dee77d5483df8f4e8dc230d2333f74059806",
+    "tests/codex.test.ts": "31f23b202837783ba2604d3b44732ae9f8123200837752038258b2b13b835d37",
+    "scripts/smoke-codex.mjs": "3f8f213b51b4d525b9edf632d8ddb4bd80fae3913dd92a3c83d703d9bbeafdb4"
+  },
+  "images": {
+    "before.png": "bc6640c5ba5a1bd6af91f3fc82a929e0c7783621c5cc07fe5e90c56e304221aa",
+    "after.png": "20a873fce22175e59f3d14ca437901c0c6c98c2fb6216c649aae37accac0abf3"
+  },
+  "qualification": "Controlled local/native fixture only; no live service or inference"
+}

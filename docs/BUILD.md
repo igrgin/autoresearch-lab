@@ -1,7 +1,7 @@
 # Build and run on macOS
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
-Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults, saved run configurations and recoverable local dataset imports. Compute discovers existing Runpod GPU Pods and Vast.ai instances. Credential settings use a separate trusted window; research execution, agents and training
+Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults, saved run configurations and recoverable local dataset imports. Compute discovers existing Runpod GPU Pods and Vast.ai instances. Credential settings use a separate trusted window; Codex authentication/model settings are available; research execution and training
 remain separate implementation tasks.
 
 ## Prerequisites
@@ -405,3 +405,62 @@ credential service, adapter, preload and Compute UI. Evidence is written to
 `out/smoke/vast-result.json`. These checks do not prove live account permissions,
 2FA behavior or compatibility on a real rental. No host credentials or paid
 resources are used.
+
+## Codex authentication and model settings
+
+The Settings page connects a saved OpenAI Platform API key to Codex and lists
+all visible model catalog pages. Enter keys through **Manage API keys** in the
+separate credential window, refresh the saved-key list, then choose
+**Authenticate and load models**. Choose a model and returned reasoning effort
+explicitly and save the default. The catalog also displays returned input
+modalities. API-key state reported by Codex and catalog membership do not prove
+inference entitlement; no paid validation turn is sent from settings.
+
+The Runs page can save the agent portion of the selected project's next-run
+configuration. Saved selections are immutable revisions with project/snapshot
+identity, integration/provider/auth mode, model, effort, modalities, runtime and
+catalog provenance, and an opaque credential reference. Full run preparation,
+launch and execution remain dependent work. Changing the global default or
+credential binding never rewrites a saved project selection. Reload a saved
+selection to resolve a revision conflict. Missing models, invalid efforts,
+permission/authentication errors, quota/rate limits, incompatible runtime and
+unsafe metadata produce distinct safe errors; no fallback model is chosen.
+
+The lockfile pins the official `@openai/codex` **0.169.0-darwin-arm64** runtime
+under the `@openai/codex-runtime` alias. Forge copies its native `bin/codex` into
+application resources. The adapter verifies that binary's SHA-256 before it can
+receive a key; replacing/upgrading it requires protocol qualification and an
+explicit code/lockfile change. Regenerate its request bindings with
+`node scripts/generate-codex-protocol.mjs`; they are generated in a clean temporary
+state directory. The package includes upstream Apache-2.0 license and notices.
+It starts App Server over private stdio with
+`cli_auth_credentials_store="ephemeral"`, forced API-key auth and an explicit
+OpenAI provider. `HOME`, `CODEX_HOME`, temporary storage and cwd are app-private;
+the child environment is allowlisted. It does not inspect the user's Codex
+installation, configuration, subscription or login cache.
+
+Only initialize, pre-login config/read, API-key login, account/read and paginated model/list are exposed
+by this adapter. Before supplying a key, config/read must confirm ephemeral storage,
+forced API-key auth and the OpenAI provider, with no nonempty inherited system,
+user, project or managed configuration. Otherwise authentication is rejected.
+Each auth/catalog session has a 30-second total limit and
+10-second RPC limit; owned processes are killed on completion, failure,
+revocation or app quit. Auth bodies, native notifications and stderr are excluded
+from application recording. Authentication diagnostics contain fixed status
+codes and operation IDs only. Model metadata is checked with the shared
+credential sanitizer before display/persistence, and restored metadata is
+rechecked before disclosure. `codex-settings.sqlite` is written only by the
+utility coordinator, independently of registry/project-history schemas. Its
+selections contain references, while credential values remain in the encrypted
+vault. Private Codex state is outside projects and is not a sanitized archive.
+Future action/history implementations must preserve that boundary.
+
+`npm test` includes controlled stdio acceptance/failure tests and a real bundled
+runtime initialize/account-read check **without authentication or inference**.
+`npm run smoke` additionally exercises the packaged Settings and Runs UI, actual
+IPC/vault/coordinator persistence, full app restart, missing-model and denied
+access paths using a controlled stdio subprocess fixture. Only that subprocess
+is replaced by the test harness; production has no test runtime override. It
+writes `out/smoke/codex.json`. These checks prove fixture behavior and local
+integration, not live API-key validity, account/model entitlement, paid inference,
+or the future action sandbox. No real host credential is used.
