@@ -12,6 +12,25 @@ const launchEnv = { ...process.env };
 delete launchEnv.ELECTRON_RUN_AS_NODE;
 let application;
 let child;
+async function checkWindowChrome(page, title) {
+  if (process.platform !== 'darwin') return;
+  const bar = page.locator('.window-titlebar');
+  await bar.waitFor();
+  const bounds = await bar.boundingBox();
+  assert.equal(bounds.y, 0);
+  assert.equal(await bar.evaluate(element => getComputedStyle(element).getPropertyValue('-webkit-app-region')), 'drag');
+  assert.ok(await page.locator('button, input, select, a').evaluateAll(elements => elements.every(element => {
+    const rect = element.getBoundingClientRect();
+    return rect.height === 0 || rect.top >= 46;
+  })));
+  const native = await application.evaluate(({ BrowserWindow }, name) => {
+    const window = BrowserWindow.getAllWindows().find(window => window.getTitle() === name);
+    return { buttons: window.getWindowButtonPosition(), movable: window.isMovable(), resizable: window.isResizable(),
+      closable: window.isClosable(), minimizable: window.isMinimizable(), maximizable: window.isMaximizable() };
+  }, title);
+  assert.deepEqual(native.buttons, { x: 16, y: 16 });
+  assert.ok(native.movable && native.resizable && native.closable && native.minimizable && native.maximizable);
+}
 try {
   application = await electron.launch({ executablePath, args: [`--user-data-dir=${userData}`], env: launchEnv, timeout: 30_000 });
   child = application.process();
@@ -24,6 +43,7 @@ try {
   page.on('requestfailed', (request) => console.error(request.url(), request.failure()));
 
   await page.getByRole('status').filter({ hasText: 'Workspace ready' }).waitFor();
+  await checkWindowChrome(page, 'Autoresearch Lab');
   for (const [name, heading] of [['Projects', 'No projects yet'], ['Runs', 'No runs yet'], ['Compute', 'No connected instances']]) {
     await page.getByRole('button', { name, exact: true }).click();
     await page.getByRole('heading', { name: heading, exact: true }).waitFor();
@@ -47,6 +67,8 @@ try {
     item.click();
   });
   const entryPage = await entryOpening;
+  await entryPage.getByRole('heading', { name: 'Credential settings', exact: true }).waitFor();
+  await checkWindowChrome(entryPage, 'Credential settings');
   await application.evaluate(({ shell }) => {
     globalThis.evidenceDocLinks = [];
     globalThis.originalOpenExternal = shell.openExternal;

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CredentialEntry, CREDENTIAL_HELP, ENTRY_CATEGORIES, EntryMetadata, EntryReply } from '../security/entry-contract';
 import './credential-entry.css';
+import { WindowTitlebar } from './window-titlebar';
 
 declare global { interface Window { credentialEntry: { save(entry: CredentialEntry): Promise<EntryReply>; list(): Promise<EntryMetadata[]>; replace(id: string, value: string): Promise<EntryReply>; revoke(id: string): Promise<EntryReply>; help(category: string): Promise<EntryReply>; copyHelp(category: string): Promise<EntryReply> } } }
 const names: Record<string, string> = { runpod: 'Runpod', vast: 'Vast.ai', openai: 'OpenAI · Codex', anthropic: 'Anthropic · Claude', ssh_passphrase: 'SSH passphrase', model_download: 'Model download' };
@@ -93,7 +94,7 @@ function CredentialSettings() {
     } catch { setFeedback({ message: 'Could not revoke app access. Check credential storage and try again.', error: true }); }
     finally { setBusy(false); }
   }
-  return <main className="credentials" aria-busy={busy}>
+  return <><WindowTitlebar title="Credential settings" settings /><main className="credentials" aria-busy={busy}>
     <header className="credentials-header">
       <div><div className="breadcrumb">Autoresearch Lab <span>/</span> Settings</div>
         <h1>Credential settings</h1><p>Manage access to your research integrations.</p></div>
@@ -181,6 +182,6 @@ function CredentialSettings() {
       <details className="history-retention-details"><summary>Retention and removal limits</summary><p>The credential service removes copies after trusted checks confirm old values have been hidden in recorded activity and any exposure is contained. These settings cannot start or track those checks.</p><p>Revoke old credentials with their issuer separately. This does not remove secrets from activity records.</p></details>
       </div><div className="dialog-actions">{moreHistoryBelow && <span className="history-scroll-note">More details below ↓</span>}<button className="primary" autoFocus onClick={() => setHistoryOpen(false)}>Close history</button></div>
     </dialog>}
-  </main>;
+  </main></>;
 }
 createRoot(document.getElementById('root')!).render(<CredentialSettings />);

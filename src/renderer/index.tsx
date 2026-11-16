@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { ShellBridge } from '../shell';
 import './style.css';
+import { WindowTitlebar } from './window-titlebar';
 
 declare global { interface Window { lab: ShellBridge } }
 
@@ -18,7 +19,7 @@ function App() {
     window.lab.getStatus().then(() => setStatus('Workspace ready')).catch(() => setStatus('Workspace unavailable. Please restart the app.'));
   }, []);
   const content = pages[page];
-  return <div className="workspace">
+  return <><WindowTitlebar title="Autoresearch Lab" /><div className="workspace">
     <aside>
       <div className="brand"><span className="brand-mark">A</span><div>Autoresearch Lab<small>Personal research workspace</small></div></div>
       <nav aria-label="Workspace">{(Object.keys(pages) as (keyof typeof pages)[]).map((name) =>
@@ -32,7 +33,7 @@ function App() {
         <h2>{content.empty}</h2><p>{content.hint}</p>
       </section>
     </main>
-  </div>;
+  </div></>;
 }
 
 createRoot(document.getElementById('root')!).render(<App />);

@@ -50,6 +50,8 @@ function startCoordinator(): Promise<ShellStatus> {
 async function openCredentialSettings() {
   if (credentialWindow) { credentialWindow.focus(); return; }
   credentialWindow = new BrowserWindow({ width: 1000, height: 790, minWidth: 740, minHeight: 650, title: 'Credential settings',
+    backgroundColor: '#f5f7f6',
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 16, y: 16 } } : {}),
     webPreferences: { preload: CREDENTIAL_WINDOW_PRELOAD_WEBPACK_ENTRY, nodeIntegration: false, contextIsolation: true, sandbox: true, devTools: false } });
   credentialWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   credentialWindow.webContents.on('will-navigate', event => event.preventDefault());
@@ -62,6 +64,7 @@ async function createWindow() {
   window = new BrowserWindow({
     width: 1180, height: 780, minWidth: 760, minHeight: 520,
     title: 'Autoresearch Lab', backgroundColor: '#f5f6f8',
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 16, y: 16 } } : {}),
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       nodeIntegration: false, contextIsolation: true, sandbox: true,
