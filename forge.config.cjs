@@ -1,5 +1,5 @@
 module.exports = {
-  packagerConfig: { asar: { unpack: '**/*.node' }, appBundleId: 'dev.igrgin.autoresearch-lab', extraResource: ['node_modules/@openai/codex-runtime/vendor/aarch64-apple-darwin/bin/codex', 'resources/codex-LICENSE', 'resources/codex-NOTICE'] },
+  packagerConfig: { asar: { unpack: '**/*.node' }, appBundleId: 'dev.igrgin.autoresearch-lab', extraResource: ['node_modules/@openai/codex-runtime/vendor/aarch64-apple-darwin/bin/codex', 'resources/codex-LICENSE', 'resources/codex-NOTICE', 'node_modules/@anthropic-ai/claude-agent-sdk-darwin-arm64'] },
   rebuildConfig: {},
   makers: [{ name: '@electron-forge/maker-zip', platforms: ['darwin'] }],
   plugins: [

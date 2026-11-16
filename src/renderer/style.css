@@ -351,3 +351,8 @@ main { padding-bottom: 24px; }
 .codex-panel p { line-height: 1.6; overflow-wrap: anywhere; }
 .codex-panel h2 { margin-top: 24px; }
 .codex-panel button { margin-right: 8px; margin-bottom: 8px; }
+.claude-settings { max-width: 780px; margin: 24px 0; }
+.claude-settings label { display: block; margin-top: 20px; font-weight: 600; }
+.claude-settings select { display: block; width: 100%; margin: 8px 0 16px; padding: 10px; }
+.claude-settings p { line-height: 1.6; }
+.claude-settings li { margin: 12px 0; overflow-wrap: anywhere; }

@@ -43,6 +43,7 @@ function envelope(input: Envelope): Envelope {
 export class SafeRecording {
   #state: State = { version: 1, incidents: [], fencedRuns: [], withheld: [], retiredSessions: [] };
   #ready = false;
+  #initialized = false;
   #tail: Promise<unknown> = Promise.resolve();
   readonly #policyInstance = newId();
   constructor(private readonly files: PrivateFiles, private readonly sanitizer: Sanitizer,
@@ -51,33 +52,46 @@ export class SafeRecording {
     const result = this.#tail.then(work); this.#tail = result.catch(() => undefined); return result;
   }
   async initialize(): Promise<void> {
-    this.#ready = false;
-    try {
-      await this.files.prepare();
-      const raw = await this.files.read('security-state.json');
-      if (raw) {
-        const state = JSON.parse(raw.toString('utf8')) as State;
-        if (Object.keys(state).sort().join(',') !== 'fencedRuns,incidents,retiredSessions,version,withheld' || state.version !== 1 || !Array.isArray(state.incidents)) throw new Error();
-        for (const id of [...state.fencedRuns, ...state.withheld, ...state.retiredSessions]) assertId(id);
-        // State contains no free-form diagnostic content. Recheck even trusted disk metadata.
-        for (const incident of state.incidents) {
-          const keys = ['projectId', 'runId', 'actionId', 'operationId', 'incidentId', 'recordIds', 'sessionIds', 'reach', 'destinations',
-            'detectedAt', 'policyRevision', 'state', 'coverage', 'reason', ...(incident.credentialId ? ['credentialId'] : [])];
-          if (Object.keys(incident).sort().join(',') !== keys.sort().join(',')) throw new Error();
-          validateScope(incident); assertId(incident.incidentId);
-          for (const id of [...incident.recordIds, ...incident.sessionIds]) assertId(id);
-          if (incident.credentialId) assertId(incident.credentialId);
-          if (!['prevented', 'exposed', 'unknown'].includes(incident.reach) ||
-              !['contained', 'recovered'].includes(incident.state) ||
-              !['complete', 'incomplete'].includes(incident.coverage) ||
-              !['credential_exposure', 'unsafe_capture'].includes(incident.reason) ||
-              !/^\d{4}-\d{2}-\d{2}T[0-9:.]+Z$/.test(incident.detectedAt) ||
-              !incident.destinations.every(d => ['application', 'model', 'native_history', 'remote', 'export', 'unknown'].includes(d))) throw new Error();
+    return this.serial(async () => {
+      try {
+        await this.files.prepare();
+        const raw = await this.files.read('security-state.json');
+        if (raw) {
+          const state = JSON.parse(raw.toString('utf8')) as State;
+          if (Object.keys(state).sort().join(',') !== 'fencedRuns,incidents,retiredSessions,version,withheld' || state.version !== 1 || !Array.isArray(state.incidents)) throw new Error();
+          for (const id of [...state.fencedRuns, ...state.withheld, ...state.retiredSessions]) assertId(id);
+          // State contains no free-form diagnostic content. Recheck even trusted disk metadata.
+          for (const incident of state.incidents) {
+            const keys = ['projectId', 'runId', 'actionId', 'operationId', 'incidentId', 'recordIds', 'sessionIds', 'reach', 'destinations',
+              'detectedAt', 'policyRevision', 'state', 'coverage', 'reason', ...(incident.credentialId ? ['credentialId'] : [])];
+            if (Object.keys(incident).sort().join(',') !== keys.sort().join(',')) throw new Error();
+            validateScope(incident); assertId(incident.incidentId);
+            for (const id of [...incident.recordIds, ...incident.sessionIds]) assertId(id);
+            if (incident.credentialId) assertId(incident.credentialId);
+            if (!['prevented', 'exposed', 'unknown'].includes(incident.reach) ||
+                !['contained', 'recovered'].includes(incident.state) ||
+                !['complete', 'incomplete'].includes(incident.coverage) ||
+                !['credential_exposure', 'unsafe_capture'].includes(incident.reason) ||
+                !/^\d{4}-\d{2}-\d{2}T[0-9:.]+Z$/.test(incident.detectedAt) ||
+                !incident.destinations.every(d => ['application', 'model', 'native_history', 'remote', 'export', 'unknown'].includes(d))) throw new Error();
+          }
+          if (!this.#initialized) {
+            // This instance is the sole physical writer. Import disk state once,
+            // retaining any containment raised during its initial read. Later
+            // reloads validate storage but cannot replace live authority with an
+            // older snapshot while an immediate fence awaits persistence.
+            const live = this.#state;
+            this.#state = { version: 1,
+              incidents: [...new Map([...state.incidents, ...live.incidents].map(i => [i.incidentId, i])).values()],
+              fencedRuns: [...new Set([...state.fencedRuns, ...live.fencedRuns])],
+              withheld: [...new Set([...state.withheld, ...live.withheld])],
+              retiredSessions: [...new Set([...state.retiredSessions, ...live.retiredSessions])] };
+          }
         }
-        this.#state = state;
-      }
-      this.#ready = true;
-    } catch { throw new SecurityError('capture_failed'); }
+        this.#initialized = true;
+        this.#ready = true;
+      } catch { this.#ready = false; throw new SecurityError('capture_failed'); }
+    });
   }
   assertCanAct(scope: Scope, sessionId?: string): void {
     validateScope(scope);

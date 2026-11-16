@@ -45,9 +45,11 @@ try {
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('heading', { name: 'Codex settings', exact: true }).waitFor();
   assert.equal(await page.evaluate(() => typeof window.lab.codex.getSecret), 'undefined');
-  const opening = application.waitForEvent('window');
-  await page.getByRole('button', { name: 'Manage API keys', exact: true }).click();
-  const entry = await opening; entry.setDefaultTimeout(15_000);
+  const [entry] = await Promise.all([
+    application.waitForEvent('window'),
+    page.getByRole('region', { name: 'Codex settings', exact: true }).getByRole('button', { name: 'Manage API keys', exact: true }).click(),
+  ]);
+  entry.setDefaultTimeout(15_000);
   await entry.getByLabel('Integration', { exact: true }).selectOption('openai');
   await entry.getByLabel('Label', { exact: true }).fill('Codex synthetic key');
   await entry.getByLabel('Credential', { exact: true }).fill(synthetic);
