@@ -1,0 +1,30 @@
+{
+  "issue": 50,
+  "pull_request": "https://github.com/igrgin/autoresearch-lab/pull/116",
+  "before_commit": "30e3be6d35919c4c9cc4f10f63712469a39a13f6",
+  "after_commit": "171868f083a7037d0ae1f3d8bd14ede22b02c76b",
+  "captured_on": "2026-11-16",
+  "platform": "macOS arm64",
+  "method": "Native Electron capturePage from successful CI packaged artifacts; native window zoom 80%. Crops show the complete named feature panel.",
+  "fixtures": "Isolated temporary profiles; synthetic project/data/credential labels. Provider HTTP and model worker responses are controlled fixtures. No live service, credentials, inference or training was used. Application renderer and production IPC/store paths were not replaced.",
+  "images": [
+    {
+      "filename": "before.png",
+      "path": "docs/egm/ui-evidence/50/before.png",
+      "sha256": "b829030de160c36c9a2f56f6a4861ca746ee4f6e573d134825f0a1756847984f",
+      "region": "application window",
+      "zoom": 0.8,
+      "build_run": 43865144777,
+      "source_commit": "30e3be6d35919c4c9cc4f10f63712469a39a13f6"
+    },
+    {
+      "filename": "after.png",
+      "path": "docs/egm/ui-evidence/50/after.png",
+      "sha256": "c259facfc155a3809d71a62f1f001da2b13b00679f71d76f265f7ad00817fdb4",
+      "region": "Claude settings",
+      "zoom": 0.8,
+      "build_run": 43865158328,
+      "source_commit": "171868f083a7037d0ae1f3d8bd14ede22b02c76b"
+    }
+  ]
+}
