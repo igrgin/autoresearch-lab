@@ -1,8 +1,7 @@
 # Build and run on macOS
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
-Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults saved run configurations and recoverable local dataset imports. Runs
-and Compute provide empty states; Credential settings use a separate trusted window; provider connections, agents and training
+Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults, saved run configurations and recoverable local dataset imports. Compute discovers existing Runpod GPU Pods. Credential settings use a separate trusted window; research execution, agents and training
 remain separate implementation tasks.
 
 ## Prerequisites
@@ -44,6 +43,8 @@ HMR injection is disabled for the sandboxed preload). Packaged builds load local
 alone, or `npm run package` for just the app. Catalog/reservation tests use Electron's embedded
 Node runtime and the same native SQLite payload as the packaged coordinator.
 Security tests use synthetic values and temporary stores without live adapters.
+The Runpod suite exercises the real adapter against controlled REST-v2 responses;
+it does not access a Runpod account or establish GPU/SSH readiness.
 
 ## Packaged smoke check and CI
 
@@ -63,6 +64,9 @@ synthetic credentials through the dedicated settings window, checks Keychain-bac
 ciphertext and cleared inputs, tests storage/browser recovery, and rejects
 credential IPC from unrelated renderers. Browser and clipboard endpoints are
 stubbed while validation runs. It
+also intercepts the main-process Runpod HTTPS transport to exercise the scoped vault,
+pagination, Pod details, invalid credentials, partial discovery with last-good observations,
+and complete empty results through Compute. This is fixture evidence, not a live service check. It
 writes `out/smoke/result.json` and `out/smoke/workspace.png`, then removes its test
 profile. Playwright controls Electron directly; no browser install is needed.
 It also tests both provider reservation bindings through a separate packaged
@@ -332,3 +336,28 @@ display or model delivery. Retired-value removal requires verified containment
 and a completed rescan; saving a replacement alone is insufficient. Live adapters,
 OS isolation, remote/native-history remediation and signed-update distribution
 still require integration and qualification.
+
+## Runpod discovery
+
+Open **Compute → Credential settings**, save a Runpod API key with `account:read`
+and `pods:read` access, then choose **Refresh credentials → Connect and discover**.
+The adapter uses only HTTPS GET on the fixed REST-v2 account, Pod list and Pod detail
+routes. It reads all cursor pages before showing a complete empty result, and lists
+only RUNNING GPU Pods. Canonical identity is `runpod` plus Pod ID; account IDs and
+credential labels are access metadata, so replacing a key does not rename a Pod.
+
+Failed refreshes show an explicit incomplete/error state. The current view keeps its
+last complete observation with its receipt time and marks current access/state unknown.
+Choose Refresh Pods to retry; rate-limit responses enforce the indicated retry time.
+Refresh details obtains a new account/Pod observation and distinguishes absent from
+reported-but-unverified direct SSH metadata. A 404 means missing or inaccessible,
+not confirmed deletion. Provider GPU type/count and system RAM are allocation metadata;
+they do not establish GPU UUIDs, usable VRAM, CUDA/PyTorch, SSH/SFTP or execution readiness.
+
+Discovery observations and selected credentials are kept only in the current view's
+memory. After navigation/restart, choose a saved credential and discover again; vault
+references survive restart, and each observation retains the same canonical Pod key.
+No registry/project schema or reservation state is changed. The adapter withholds raw
+responses, environment, command strings, endpoints and vendor error bodies; it validates
+allowlisted fields with the shared sanitizer before IPC/display. If a required field
+cannot pass admission, discovery is incomplete rather than silently changing identity.

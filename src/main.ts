@@ -14,6 +14,7 @@ import { assertId, newId } from './security/common';
 import type { Envelope } from './security/recording';
 import { requestImport } from './importer/host';
 import { ImportPolicyHost, type ImportPolicyRequest } from './importer/policy';
+import { RunpodAdapter } from './providers/runpod';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -211,6 +212,28 @@ if (!app.requestSingleInstanceLock()) {
       try { security.credentials.list(); }
       catch { try { await security.initialize(); } catch { /* Domain reads explain locked storage. */ } }
       return security.matcher.matchingGeneration;
+    });
+    const runpod = new RunpodAdapter(security.credentials, security.sanitizer);
+    ipcMain.handle('shell:credential-settings', event => { admit(event); return openCredentialSettings(); });
+    metadataHandle('runpod:credentials', async event => {
+      admit(event);
+      try {
+        await security.initialize();
+        return { ok: true, credentials: security.credentials.list()
+          .filter(entry => entry.category === 'runpod' && entry.status === 'active')
+          .map(entry => ({ id: entry.id, label: entry.label || 'Runpod API key' })) };
+      } catch { return { ok: false, message: 'Unlock credential storage in Credential settings, then refresh credentials.' }; }
+    });
+    // All provider reads pass through the actual host-owned adapter and scoped vault.
+    metadataHandle('runpod:discover', async (event, credentialId: string) => {
+      admit(event);
+      try { await security.initialize(); } catch { /* Adapter returns a safe authentication error. */ }
+      return runpod.discover(credentialId);
+    });
+    metadataHandle('runpod:inspect', async (event, credentialId: string, resourceId: string) => {
+      admit(event);
+      try { await security.initialize(); } catch { /* No raw storage diagnostics cross IPC. */ }
+      return runpod.inspect(credentialId, resourceId);
     });
     ipcMain.handle('credentials:register', async (event, input: unknown) => {
       if (!credentialWindow || event.sender !== credentialWindow.webContents ||

@@ -6,6 +6,7 @@ import type { ProjectRecord, ProjectReply, WorkspaceProjects } from '../projects
 import './style.css';
 import { WindowTitlebar } from './window-titlebar';
 import { DefaultsSettings, ProjectConfigurations } from './configuration';
+import { Compute } from './compute';
 
 declare global { interface Window { lab: ShellBridge } }
 
@@ -226,10 +227,10 @@ function App() {
     <div className="workspace">
     <aside className="workspace-sidebar">
       <div className="brand"><span className="brand-mark">A</span><div>Autoresearch Lab<small>Personal research workspace</small></div></div>
-      <p className="nav-label">WORKSPACE</p><nav aria-label="Workspace"><button aria-current={page === 'Projects' ? 'page' : undefined} onClick={() => setPage('Projects')}><Icon name="folder" size={19} />Projects</button><button aria-current={page === 'Settings' ? 'page' : undefined} onClick={() => setPage('Settings')}>Settings</button></nav>
-      <div className="future-navigation"><p className="nav-label">COMING LATER</p>{(['Runs', 'Compute'] as const).map((name) => <button key={name} aria-current={page === name ? 'page' : undefined} onClick={() => setPage(name)}><Icon name={name === 'Runs' ? 'runs' : 'compute'} size={19} />{name}<span className="soon-label" aria-hidden="true">Soon</span></button>)}</div>
+      <p className="nav-label">WORKSPACE</p><nav aria-label="Workspace"><button aria-current={page === 'Projects' ? 'page' : undefined} onClick={() => setPage('Projects')}><Icon name="folder" size={19} />Projects</button><button aria-current={page === 'Settings' ? 'page' : undefined} onClick={() => setPage('Settings')}>Settings</button><button aria-current={page === 'Compute' ? 'page' : undefined} onClick={() => setPage('Compute')}><Icon name="compute" size={19} />Compute</button></nav>
+      <div className="future-navigation"><p className="nav-label">COMING LATER</p>{(['Runs'] as const).map((name) => <button key={name} aria-current={page === name ? 'page' : undefined} onClick={() => setPage(name)}><Icon name="runs" size={19} />{name}<span className="soon-label" aria-hidden="true">Soon</span></button>)}</div>
     </aside>
-    <main>{startupError && <div className="error startup-error" role="alert"><strong>Workspace unavailable</strong><p>{startupError}</p></div>}{page === 'Projects' ? <Projects /> : page === 'Settings' ? <><header className="page-header"><h1>Application settings</h1></header><DefaultsSettings /></> : <><header className="page-header"><div><p className="eyebrow">Workspace / {page}</p><h1>{content.title}</h1><p>{content.description}</p></div></header><section className="empty-state" aria-label={page}><span className="empty-icon"><Icon name={page === 'Runs' ? 'runs' : 'compute'} size={28} /></span><h2>{content.empty}</h2><p>{content.hint}</p></section></>}</main>
+    <main>{startupError && <div className="error startup-error" role="alert"><strong>Workspace unavailable</strong><p>{startupError}</p></div>}{page === 'Projects' ? <Projects /> : page === 'Compute' ? <Compute /> : page === 'Settings' ? <><header className="page-header"><h1>Application settings</h1></header><DefaultsSettings /></> : <><header className="page-header"><div><p className="eyebrow">Workspace / {page}</p><h1>{content.title}</h1><p>{content.description}</p></div></header><section className="empty-state" aria-label={page}><span className="empty-icon"><Icon name={page === 'Runs' ? 'runs' : 'compute'} size={28} /></span><h2>{content.empty}</h2><p>{content.hint}</p></section></>}</main>
     </div>
   </div>;
 }

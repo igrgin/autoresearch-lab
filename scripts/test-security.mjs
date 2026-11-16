@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { test, after } from 'node:test';
+import { runpodTests } from '../tests/runpod.mjs';
 import { metadataPolicyTests } from '../tests/metadata-policy.mjs';
 
 const build = await mkdtemp(path.join(os.tmpdir(), 'lab-security-build-'));
@@ -44,6 +45,7 @@ async function fixture() {
   const recording = new SafeRecording(recordFiles, sanitizer, id => credentials.revoke(id)); await recording.initialize();
   return { directory, sanitizer, credentials, entry, recording, recordFiles, vaultFiles, crypto };
 }
+runpodTests({ require, build, fixture, newId, secret });
 metadataPolicyTests({ require, build, fixture, newId });
 async function assertAbsent(f, ids) {
   const variants = [secret, JSON.stringify(secret).slice(1, -1), encodeURIComponent(secret)];
