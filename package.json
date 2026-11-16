@@ -18,7 +18,7 @@
     "package": "electron-forge package --platform=darwin --arch=arm64",
     "make": "electron-forge make --platform=darwin --arch=arm64",
     "build": "npm run check && npm run make",
-    "smoke": "node scripts/smoke.mjs",
+    "smoke": "node scripts/smoke.mjs && node scripts/smoke-vast.mjs",
     "test": "node scripts/test.mjs && node scripts/test-security.mjs"
   },
   "dependencies": {

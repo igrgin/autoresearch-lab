@@ -1,0 +1,10 @@
+.vast-connection, .vast-instance-list > li { background: white; border: 1px solid #dce4df; border-radius: 14px; padding: 24px; }
+.vast-connection h2, .vast-instance-list h2 { margin: 0 0 8px; font-size: 19px; }
+.vast-connection p, .vast-results > p, .vast-instance-list p { color: #53685c; line-height: 1.6; }
+.vast-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+.vast-actions select { min-width: 180px; max-width: 100%; padding: 10px; border: 1px solid #cad7ce; border-radius: 8px; }
+.vast-instance-list { padding: 0; list-style: none; display: grid; gap: 16px; }
+.vast-instance-list dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.vast-instance-list dt { color: #53685c; font-size: 12px; margin-bottom: 5px; }
+.vast-instance-list dd { margin: 0; overflow-wrap: anywhere; }
+.vast-results { margin-top: 24px; }

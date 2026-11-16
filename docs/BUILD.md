@@ -1,7 +1,7 @@
 # Build and run on macOS
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
-Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults, saved run configurations and recoverable local dataset imports. Compute discovers existing Runpod GPU Pods. Credential settings use a separate trusted window; research execution, agents and training
+Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults, saved run configurations and recoverable local dataset imports. Compute discovers existing Runpod GPU Pods and Vast.ai instances. Credential settings use a separate trusted window; research execution, agents and training
 remain separate implementation tasks.
 
 ## Prerequisites
@@ -326,3 +326,47 @@ No registry/project schema or reservation state is changed. The adapter withhold
 responses, environment, command strings, endpoints and vendor error bodies; it validates
 allowlisted fields with the shared sanitizer before IPC/display. If a required field
 cannot pass admission, discovery is incomplete rather than silently changing identity.
+
+## Vast.ai connection and discovery
+
+Open **Compute → Credential settings**, save a Vast.ai API key with `instance_read`
+permission, then select it in Compute and choose **Connect and discover**. Use
+**Reload credentials** after changing settings. The app sends read-only HTTPS GETs
+to `console.vast.ai`, requests safe listing columns, and follows every v1 cursor
+with at most 25 instances per page. It bounds each scan to 100 pages/45 seconds,
+each request to 10 seconds, and each response to 1 MiB. Transport/429/5xx retries
+are finite; a long `Retry-After` returns a retry-later error instead of retrying early.
+
+Results show canonical contract identity (`vast:<contract ID>`), separate actual,
+intended and contract states, and advertised GPU/count, effective CPU and disk
+information. Missing/sentinel values stay unavailable; provider GPU memory units,
+remote device UUIDs, SSH and execution readiness remain unverified. This is
+discovery, without GPU assignment, reservations, SSH, or provider lifecycle calls.
+The [same-model replacement amendment](https://github.com/igrgin/autoresearch-lab/issues/39#issuecomment-6866658509)
+remains an input to later assignment work; discovery imposes no UUID lock.
+
+Only a complete successful scan establishes **No running Vast.ai instances** for
+the selected credential. A failed refresh keeps the last successful in-memory list
+visibly stale, including a stale previous empty scan. Discovery results are not
+persisted as research history. Restart retains encrypted API credentials and their
+account association; reconnect explicitly to read current provider state.
+Replacing a credential preserves account and canonical resource identity.
+
+Bad API keys, denied scope, provider-requested 2FA, expired sessions and service
+failures have distinct safe feedback. If the service requires 2FA, complete Vast's
+supported login externally and enter its **provider-issued session credential**
+under the selected API key's **Vast.ai two-factor session** section in trusted
+Credential settings. See [Vast's 2FA procedure](https://docs.vast.ai/cli/two-factor-authentication).
+The app does not read CLI auth files or collect passwords, OTPs, recovery codes or
+TOTP seeds. Sessions stay in the shared credential service's memory; their access ends
+on expiry, key replacement/revocation or restart. Protected matching material can
+remain in process memory until exit. After expiry, a later explicit
+scan uses the saved API key unless a new session was entered.
+
+The [Vast fixture suite](../tests/vast.test.ts) runs in `npm run check`.
+`npm run smoke` also executes [packaged Vast acceptance checks](../scripts/smoke-vast.mjs),
+with HTTP replaced by controlled fixtures through the actual settings, host,
+credential service, adapter, preload and Compute UI. Evidence is written to
+`out/smoke/vast-result.json`. These checks do not prove live account permissions,
+2FA behavior or compatibility on a real rental. No host credentials or paid
+resources are used.

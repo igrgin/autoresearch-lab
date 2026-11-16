@@ -10,6 +10,8 @@ import { CREDENTIAL_HELP, ENTRY_CATEGORIES, validEntry } from './security/entry-
 import { assertId, newId } from './security/common';
 import type { Envelope, SafeRecord } from './security/recording';
 import { RunpodAdapter } from './providers/runpod';
+import { VastConnection } from './providers/vast-connection';
+import { vastFailure } from './providers/vast';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -18,6 +20,7 @@ declare const CREDENTIAL_WINDOW_WEBPACK_ENTRY: string;
 declare const CREDENTIAL_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 let credentialWindow: BrowserWindow | null = null;
 let security: ReturnType<typeof createSecurityHost>;
+let vast: VastConnection;
 let window: BrowserWindow | null = null;
 let coordinator: ReturnType<typeof utilityProcess.fork> | null = null;
 let quitting = false;
@@ -189,6 +192,7 @@ if (!app.requestSingleInstanceLock()) {
       try { await security.initialize(); } catch { /* No raw storage diagnostics cross IPC. */ }
       return runpod.inspect(credentialId, resourceId);
     });
+    vast = new VastConnection(security.credentials, security.recording);
     ipcMain.handle('credentials:register', async (event, input: unknown) => {
       if (!credentialWindow || event.sender !== credentialWindow.webContents ||
           event.senderFrame !== credentialWindow.webContents.mainFrame || !validEntry(input)) {
@@ -208,6 +212,15 @@ if (!app.requestSingleInstanceLock()) {
       const entry = security.credentials.list().find(entry => entry.id === id);
       return entry && ENTRY_CATEGORIES.includes(entry.category as typeof ENTRY_CATEGORIES[number]);
     };
+    ipcMain.handle('credentials:vast-session', async (event, input: { id?: unknown; value?: unknown }) => {
+      if (!trustedEntry(event)) return { ok: false, message: 'This credential request is not authorized.' };
+      try {
+        assertId(input?.id);
+        if (typeof input.value !== 'string') throw new Error();
+        await security.initialize(); await vast.setSession(input.id, input.value);
+        return { ok: true, message: 'Vast session available until expiry or app restart. Retry discovery in Compute.' };
+      } catch { return { ok: false, message: 'Could not use this session. Select an active Vast API key and unlock credential storage.' }; }
+    });
     ipcMain.handle('credentials:help', async (event, category: unknown) => {
       if (!trustedEntry(event) || typeof category !== 'string' || !ENTRY_CATEGORIES.includes(category as typeof ENTRY_CATEGORIES[number])) {
         return { ok: false, message: 'This credential request is not authorized.' };
@@ -239,6 +252,7 @@ if (!app.requestSingleInstanceLock()) {
         if (typeof input.value !== 'string' || !input.value || input.value.length > 65536) throw new Error();
         await security.initialize();
         if (!userCredential(input.id)) throw new Error();
+        await vast.clearSession(input.id);
         await security.credentials.replace(input.id, input.value);
         return { ok: true, message: 'Replacement saved. This app can use the new value.' };
       } catch { return { ok: false, message: 'Replacement failed. Unlock credential storage and try again.' }; }
@@ -248,11 +262,23 @@ if (!app.requestSingleInstanceLock()) {
       try {
         assertId(id); await security.initialize();
         if (!userCredential(id)) throw new Error();
+        await vast.clearSession(id);
         await security.credentials.revoke(id);
         return { ok: true, message: 'App access revoked. Revoke the credential with its issuing service too.' };
       } catch { return { ok: false, message: 'App revocation failed. Check credential storage.' }; }
     });
     const status = await startCoordinator();
+    ipcMain.handle('vast:credentials', async event => {
+      admit(event);
+      try { await security.initialize(); return { ok: true, value: vast.choices() }; }
+      catch { return vastFailure('authentication_required', newId()); }
+    });
+    ipcMain.handle('vast:discover', async (event, id: unknown) => {
+      admit(event);
+      try { assertId(id); await security.initialize(); return await vast.discover(id); }
+      catch { return vastFailure('authentication_required', newId()); }
+    });
+    ipcMain.handle('vast:settings', async event => { admit(event); await openCredentialSettings(); });
     ipcMain.handle('shell:get-status', (event) => {
       admit(event);
       return status;

@@ -4,10 +4,27 @@ import { CredentialEntry, CREDENTIAL_HELP, ENTRY_CATEGORIES, EntryMetadata, Entr
 import './credential-entry.css';
 import { WindowTitlebar } from './window-titlebar';
 
-declare global { interface Window { credentialEntry: { save(entry: CredentialEntry): Promise<EntryReply>; list(): Promise<EntryMetadata[]>; replace(id: string, value: string): Promise<EntryReply>; revoke(id: string): Promise<EntryReply>; help(category: string): Promise<EntryReply>; copyHelp(category: string): Promise<EntryReply> } } }
+declare global { interface Window { credentialEntry: { save(entry: CredentialEntry): Promise<EntryReply>; list(): Promise<EntryMetadata[]>; replace(id: string, value: string): Promise<EntryReply>; revoke(id: string): Promise<EntryReply>; help(category: string): Promise<EntryReply>; copyHelp(category: string): Promise<EntryReply>; vastSession(id: string, value: string): Promise<EntryReply> } } }
 const names: Record<string, string> = { runpod: 'Runpod', vast: 'Vast.ai', openai: 'OpenAI · Codex', anthropic: 'Anthropic · Claude', ssh_passphrase: 'SSH passphrase', model_download: 'Model download' };
 function LockIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" /></svg>;
+}
+function VastSessionEntry({ id, disabled, notify }: { id: string; disabled: boolean; notify: (reply: EntryReply) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [sending, setSending] = useState(false);
+  return <details className="retention-details"><summary>Vast.ai two-factor session</summary>
+    <p>If Vast requests two-factor authentication, complete its supported tfa login externally and enter the provider-issued session credential here. Do not enter a password, OTP, recovery code, or TOTP seed. Session access ends at expiry or app restart; the session is never saved to disk. The API key stays in the encrypted vault.</p>
+    <form autoComplete="off" onSubmit={async event => {
+      event.preventDefault(); if (!input.current?.value || sending || disabled) return;
+      setSending(true);
+      try { notify(await window.credentialEntry.vastSession(id, input.current.value)); }
+      catch { notify({ ok: false, message: 'Could not use the Vast session. Retry in Credential settings.' }); }
+      finally { if (input.current) input.current.value = ''; setSending(false); }
+    }}><label htmlFor="vast-session">Provider-issued session credential</label>
+      <input id="vast-session" ref={input} type="password" autoComplete="off" spellCheck={false} maxLength={65536} required disabled={disabled || sending} />
+      <button className="secondary" type="submit" disabled={disabled || sending}>{sending ? 'Using session…' : 'Use session for Vast discovery'}</button>
+    </form>
+  </details>;
 }
 function CredentialSettings() {
   const [category, setCategory] = useState<CredentialEntry['category']>('runpod');
@@ -156,6 +173,7 @@ function CredentialSettings() {
               {!active && <span>Will be saved securely on this Mac</span>}</div>
           </fieldset>
         </form>
+        {active?.category === 'vast' && active.status === 'active' && <VastSessionEntry key={active.id} id={active.id} disabled={busy || storageFault} notify={notify} />}
         {active && <>
           {active.status === 'active' && <div className="revoke-section">
           <div><h3>Revoke app access</h3><p>Stops this app from using the credential.<br />Revoke it with the issuing service separately.</p></div><button className="danger-outline" disabled={busy || storageFault || active.status !== 'active'} onClick={() => setConfirmRevoke(true)}>Revoke access…</button></div>}

@@ -82,6 +82,17 @@ export class SafeRecording {
       throw new SecurityError('capture_failed');
     }
   }
+  // Account-level discovery has no research run/history envelope. Apply the same
+  // admission policy before display, without inventing a run or persisting a raw response.
+  admitProviderProjection<T>(projection: T): T {
+    if (!this.#ready) throw new SecurityError('capture_failed');
+    try {
+      const clean = this.sanitizer.filter(projection);
+      // Required identities/state must retain their meaning; withhold instead of mutating them.
+      if (clean.redacted) throw new Error();
+      return clean.body as T;
+    } catch { throw new SecurityError('capture_failed'); }
+  }
   private async saveState(): Promise<void> { await this.files.write('security-state.json', JSON.stringify(this.#state)); }
   private async fence(scope: Scope): Promise<void> {
     if (!this.#state.fencedRuns.includes(scope.runId)) this.#state.fencedRuns.push(scope.runId);
