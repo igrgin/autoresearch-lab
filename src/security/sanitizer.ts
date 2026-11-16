@@ -31,7 +31,7 @@ export class Sanitizer {
       .replace(/-----BEGIN (?:[A-Z0-9 ]*PRIVATE KEY)-----[\s\S]*?(?:-----END [A-Z0-9 ]*PRIVATE KEY-----|$)/g, REDACTED)
       .replace(/\b(?:sk-(?:proj-|ant-)?[A-Za-z0-9_-]{12,}|hf_[A-Za-z0-9]{12,}|gh[pousr]_[A-Za-z0-9]{12,}|AKIA[A-Z0-9]{16}|eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)\b/g, REDACTED)
       .replace(/\b(?:Bearer|Basic)\s+[A-Za-z0-9+/_=.%-]+/gi, REDACTED)
-      .replace(/([a-z][a-z0-9+.-]*:\/\/)[^\s/@]+@/gi, `$1${REDACTED}@`)
+      .replace(/(?<![a-z0-9+.-])([a-z][a-z0-9+.-]*:\/\/)[^\s/@]+@/gi, `$1${REDACTED}@`)
       .replace(/([?&](?:[^\s=&#]*(?:token|key|secret|password|signature|sig|credential|auth)[^\s=&#]*)=)[^\s&#]*/gi, `$1${REDACTED}`)
       .replace(/((?:--)?(?:api[_-]?key|password|token|secret|authorization)\s*(?:=|:|\s)\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi, `$1${REDACTED}`);
     return { value: result, changed: result !== value, credentialIds: [...credentialIds] };

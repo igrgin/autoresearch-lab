@@ -7,6 +7,7 @@ import type { ConfigurationReply, ConfigurationRequest, ConfigurationValue } fro
 import { createSecurityHost } from './security/electron-vault';
 import { CREDENTIAL_HELP, ENTRY_CATEGORIES, validEntry } from './security/entry-contract';
 import { assertId, newId } from './security/common';
+import type { Envelope, SafeRecord } from './security/recording';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -92,6 +93,15 @@ function startCoordinator(): Promise<ShellStatus> {
       clearTimeout(waiting.timer);
       pending.delete(message.id);
       waiting.resolve(message.reply);
+    });
+    child.on('message', (message: { channel?: string; id?: string; kind?: string; value?: { meta: Envelope; raw: unknown } | SafeRecord }) => {
+      if (message?.channel !== 'research_security' || !message.id || !message.value) return;
+      const { id, kind, value } = message;
+      void security.initialize().then(async () => {
+        const record = kind === 'admit' && 'meta' in value ? await security.recording.admit(value.meta, value.raw)
+          : kind === 'recheck' && 'envelope' in value ? await security.recording.recheck(value) : undefined;
+        child.postMessage({ channel: 'research_security', id, ok: !!record, record });
+      }).catch(() => child.postMessage({ channel: 'research_security', id, ok: false }));
     });
     child.once('exit', () => {
       clearTimeout(timer);

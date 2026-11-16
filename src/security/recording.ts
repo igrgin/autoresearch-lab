@@ -101,6 +101,32 @@ export class SafeRecording {
     return { contractVersion: { major: 1, minor: 0 }, envelope: meta, policyRevision: POLICY_REVISION,
       body: reason ? null : body, coverage: reason ? 'omitted' : redacted ? 'redacted' : 'complete', ...(reason ? { omission: reason } : {}) };
   }
+  // Transactional stores use this memory-only admission port. It shares the
+  // capture policy without creating a second, unbounded activity-file replica.
+  async admit(meta: Envelope, raw: unknown): Promise<SafeRecord> {
+    const checked = envelope(meta); this.assertCanAct(checked);
+    const record = this.filtered(checked, raw);
+    if (record.omission === 'filter_unavailable') await this.fence(checked);
+    return record;
+  }
+  async recheck(record: SafeRecord): Promise<SafeRecord> {
+    const checked = envelope(record.envelope);
+    if (!this.#ready) throw new SecurityError('capture_failed');
+    if (this.#state.withheld.includes(checked.eventId) || this.#state.incidents.some(i => i.runId === checked.runId && i.state === 'contained')) {
+      return { ...record, body: null, coverage: 'omitted', omission: 'quarantined' };
+    }
+    if (record.coverage === 'omitted') return record;
+    const current = this.filtered(checked, record.body);
+    if (JSON.stringify(current.body) !== JSON.stringify(record.body)) {
+      let matched: string[] = [];
+      try { matched = this.sanitizer.filter(record.body).credentialIds; } catch { /* Unsafe detail stays withheld. */ }
+      await this.incident(checked, { recordIds: [checked.eventId], sessionIds: [], reach: 'exposed', destinations: ['application'],
+        reason: matched.length ? 'credential_exposure' : 'unsafe_capture', ...(matched[0] ? { credentialId: matched[0] } : {}) });
+      for (const id of matched.slice(1)) await this.revoke(id);
+      return { ...current, body: null, coverage: 'omitted', omission: 'quarantined' };
+    }
+    return { ...record, body: current.body };
+  }
   async capture(meta: Envelope, raw: unknown, reason?: Omission): Promise<SafeRecord> {
     return this.serial(async () => {
       const checked = envelope(meta); this.assertCanAct(checked);
