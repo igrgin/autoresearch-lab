@@ -210,19 +210,21 @@ const pages = {
 
 function App() {
   const [page, setPage] = useState<keyof typeof pages>('Projects');
-  const [status, setStatus] = useState('Opening workspace…');
+  const [startupError, setStartupError] = useState('');
   useEffect(() => {
-    window.lab.getStatus().then(() => setStatus('Workspace ready')).catch(() => setStatus('Workspace unavailable. Please restart the app.'));
+    window.lab.getStatus().catch(() => setStartupError('Restart Autoresearch Lab to reconnect to your workspace.'));
   }, []);
   const content = pages[page];
-  return <div className="workspace">
+  return <div className="app-frame">
+    <div className="window-titlebar" aria-hidden="true"><div className="window-drag-area" /><span>Autoresearch Lab</span></div>
+    <div className="workspace">
     <aside className="workspace-sidebar">
       <div className="brand"><span className="brand-mark">A</span><div>Autoresearch Lab<small>Personal research workspace</small></div></div>
       <p className="nav-label">WORKSPACE</p><nav aria-label="Workspace"><button aria-current={page === 'Projects' ? 'page' : undefined} onClick={() => setPage('Projects')}><Icon name="folder" size={19} />Projects</button></nav>
       <div className="future-navigation"><p className="nav-label">COMING LATER</p>{(['Runs', 'Compute'] as const).map((name) => <button key={name} aria-current={page === name ? 'page' : undefined} onClick={() => setPage(name)}><Icon name={name === 'Runs' ? 'runs' : 'compute'} size={19} />{name}<span className="soon-label" aria-hidden="true">Soon</span></button>)}</div>
-      <div className="workspace-status" role="status"><span className="status-dot" />{status}</div>
     </aside>
-    <main>{page === 'Projects' ? <Projects /> : <><header className="page-header"><div><p className="eyebrow">Workspace / {page}</p><h1>{content.title}</h1><p>{content.description}</p></div></header><section className="empty-state" aria-label={page}><span className="empty-icon"><Icon name={page === 'Runs' ? 'runs' : 'compute'} size={28} /></span><h2>{content.empty}</h2><p>{content.hint}</p></section></>}</main>
+    <main>{startupError && <div className="error startup-error" role="alert"><strong>Workspace unavailable</strong><p>{startupError}</p></div>}{page === 'Projects' ? <Projects /> : <><header className="page-header"><div><p className="eyebrow">Workspace / {page}</p><h1>{content.title}</h1><p>{content.description}</p></div></header><section className="empty-state" aria-label={page}><span className="empty-icon"><Icon name={page === 'Runs' ? 'runs' : 'compute'} size={28} /></span><h2>{content.empty}</h2><p>{content.hint}</p></section></>}</main>
+    </div>
   </div>;
 }
 

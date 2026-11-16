@@ -10,7 +10,12 @@ button.primary { background: #245947; border-color: #245947; color: #fff; }
 button.primary:hover:not(:disabled) { background: #194633; }
 button.secondary, button.icon-button { border-color: #d7e0db; background: #fff; }
 button.secondary:hover, button.icon-button:hover { background: #f0f5f2; border-color: #a8bdb1; }
-.workspace { display: flex; height: 100vh; overflow: hidden; }
+.app-frame { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.window-titlebar { position: relative; flex-shrink: 0; height: 46px; display: flex; align-items: center; justify-content: center; background: #f6f8f7; color: #52665a; border-bottom: 1px solid #e0e7e2; font-size: 13px; font-weight: 500; user-select: none; }
+.window-titlebar > span { pointer-events: none; }
+.window-drag-area { position: absolute; inset: 0 0 0 96px; -webkit-app-region: drag; }
+button, input, select, a, summary { -webkit-app-region: no-drag; }
+.workspace { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .workspace-sidebar { width: 224px; flex-shrink: 0; padding: 28px 18px 22px; background: #fff; border-right: 1px solid #e0e7e2; display: flex; flex-direction: column; }
 .brand { display: flex; gap: 10px; align-items: center; font-size: 14px; font-weight: 650; white-space: nowrap; }
 .brand-mark { width: 32px; height: 36px; display: grid; place-items: center; background: #245947; color: #fff; border-radius: 8px; font-size: 20px; }
@@ -19,7 +24,6 @@ small { display: block; font-size: 14px; font-weight: 400; color: #69776f; margi
 nav { display: grid; gap: 5px; }
 nav button { justify-content: flex-start; gap: 12px; padding: 12px 14px; font-weight: 500; color: #586c60; }
 nav button[aria-current] { background: #e7f1eb; color: #245947; font-weight: 650; }
-.workspace-status { margin-top: auto; display: flex; align-items: center; gap: 7px; padding: 22px 10px 0; color: #607269; font-size: 14px; }
 .status-dot { display: inline-block; width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: #548a6c; }
 main { flex: 1; min-width: 0; padding: 32px; overflow-y: auto; }
 .page-header { display: flex; gap: 24px; justify-content: space-between; align-items: center; margin-bottom: 30px; }
@@ -313,3 +317,5 @@ main { padding-bottom: 24px; }
 .project-facts .repository-status > p { margin: 0; font-size: 13px; }
 .repository-status > button { padding: 5px 7px; min-height: 32px; font-size: 13px; }
 .destination > .destination-header > span { line-height: 1.5; }
+
+.error.startup-error { padding-right: 18px; }

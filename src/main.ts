@@ -79,7 +79,8 @@ function startCoordinator(): Promise<ShellStatus> {
 async function createWindow() {
   window = new BrowserWindow({
     width: 1180, height: 780, minWidth: 760, minHeight: 520,
-    title: 'Autoresearch Lab', backgroundColor: '#f5f6f8',
+    title: 'Autoresearch Lab', backgroundColor: '#f6f8f7',
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 16, y: 16 } } : {}),
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       nodeIntegration: false, contextIsolation: true, sandbox: true,

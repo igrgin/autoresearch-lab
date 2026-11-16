@@ -23,7 +23,7 @@ try {
   page.on('pageerror', (error) => { rendererErrors.push(error.message); console.error(error.message); });
   page.on('requestfailed', (request) => console.error(request.url(), request.failure()));
 
-  await page.getByRole('status').filter({ hasText: 'Workspace ready' }).waitFor();
+  await page.getByRole('heading', { name: 'No projects yet', exact: true }).waitFor();
   for (const [name, heading] of [['Projects', 'No projects yet'], ['Runs', 'No runs yet'], ['Compute', 'No connected instances']]) {
     await page.getByRole('button', { name, exact: true }).click();
     await page.getByRole('heading', { name: heading, exact: true }).waitFor();
@@ -32,6 +32,14 @@ try {
   await page.getByRole('button', { name: 'Projects', exact: true }).click();
   const status = await page.evaluate(() => window.lab.getStatus());
   assert.equal(status.coordinator, 'ready');
+  assert.match(status.sqliteVersion, /^\d+\.\d+\.\d+$/);
+  assert.equal(await page.getByText('Workspace ready', { exact: true }).count(), 0);
+  const nativeWindow = await application.evaluate(({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    return { controls: win.getWindowButtonPosition(), closable: win.isClosable(), minimizable: win.isMinimizable(), maximizable: win.isMaximizable(), resizable: win.isResizable() };
+  });
+  assert.deepEqual(nativeWindow, { controls: { x: 16, y: 16 }, closable: true, minimizable: true, maximizable: true, resizable: true });
+  assert.equal(await page.locator('.window-drag-area').evaluate((node) => getComputedStyle(node).getPropertyValue('-webkit-app-region')), 'drag');
   assert.equal(await page.evaluate(() => typeof window.require), 'undefined');
   assert.equal(await page.evaluate(() => typeof window.process), 'undefined');
   const preferences = await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
@@ -163,11 +171,19 @@ try {
   await rename(`${first.location}-temporarily-unavailable`, first.location);
   await firstCard.getByRole('button', { name: 'Open project', exact: true }).click();
   await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  // A rejected startup bridge remains an accessible, actionable error without a success footer.
+  await application.evaluate(({ ipcMain }) => {
+    ipcMain.removeHandler('shell:get-status');
+    ipcMain.handle('shell:get-status', () => { throw new Error('Simulated unavailable workspace'); });
+  });
+  await restarted.reload();
+  await restarted.getByRole('alert').filter({ hasText: 'Workspace unavailable' }).waitFor();
+  await restarted.getByText('Restart Autoresearch Lab to reconnect to your workspace.', { exact: true }).waitFor();
   await application.close();
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
+  const report = { nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {
