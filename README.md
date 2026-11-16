@@ -19,7 +19,11 @@ npm run build
 open "out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app"
 ```
 
-The initial shell provides Projects, Runs and Compute navigation. See the
+The workspace creates separate project folders and Git repositories, saves them
+locally, and reopens the same projects after restart. Search and recently-opened
+ordering help find saved work; each project has inspectable paths and Finder
+access. Runs and Compute currently
+provide navigation and empty states. See the
 [build instructions](./docs/BUILD.md) for prerequisites, development, packaged
 smoke checks, CI output and current limitations.
 
