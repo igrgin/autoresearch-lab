@@ -14,6 +14,9 @@ module.exports = {
         entryPoints: [{
           name: 'main_window', html: './src/renderer/index.html', js: './src/renderer/index.tsx',
           preload: { js: './src/preload.ts' },
+        }, {
+          name: 'credential_window', html: './src/renderer/credential-entry.html', js: './src/renderer/credential-entry.tsx',
+          preload: { js: './src/credential-preload.ts' },
         }],
       },
     } },

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import type { ShellBridge } from '../shell';
 import type { ProjectRecord, ProjectReply, WorkspaceProjects } from '../projects';
 import './style.css';
+import { WindowTitlebar } from './window-titlebar';
 
 declare global { interface Window { lab: ShellBridge } }
 
@@ -216,7 +217,7 @@ function App() {
   }, []);
   const content = pages[page];
   return <div className="app-frame">
-    <div className="window-titlebar" aria-hidden="true"><div className="window-drag-area" /><span>Autoresearch Lab</span></div>
+    <WindowTitlebar title="Autoresearch Lab" />
     <div className="workspace">
     <aside className="workspace-sidebar">
       <div className="brand"><span className="brand-mark">A</span><div>Autoresearch Lab<small>Personal research workspace</small></div></div>

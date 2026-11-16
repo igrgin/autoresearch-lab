@@ -2,7 +2,7 @@
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
 Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing and reopening. Runs
-and Compute provide empty states; provider connections, agents and training
+and Compute provide empty states; Credential settings use a separate trusted window; provider connections, agents and training
 remain separate implementation tasks.
 
 ## Prerequisites
@@ -26,7 +26,7 @@ npm run build
 open "out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app"
 ```
 
-`build` runs TypeScript checking, linting, catalog/recovery tests, webpack compilation, native-module
+`build` runs TypeScript checking, linting, catalog/recovery and synthetic security tests, webpack compilation, native-module
 rebuilding and Forge packaging/making. Dependencies are pinned in
 [`package-lock.json`](../package-lock.json). Forge produces:
 
@@ -40,9 +40,10 @@ tools. Do not bypass Gatekeeper to install an untrusted download.
 For interactive development, use `npm start`. It uses Forge's local webpack
 development server. Use View → Reload after renderer edits (automatic browser
 HMR injection is disabled for the sandboxed preload). Packaged builds load local files and need no server. Use
-`npm run check` for source checks and catalog tests, `npm test` for catalog tests
-alone, or `npm run package` for just the app. Tests use Electron's embedded Node
-runtime and the same native SQLite payload as the packaged coordinator.
+`npm run check` for source checks and both catalog and security tests, `npm test` for both suites
+alone, or `npm run package` for just the app. Catalog tests use Electron's embedded
+Node runtime and the same native SQLite payload as the packaged coordinator.
+Security tests use synthetic values and temporary stores without live adapters.
 
 ## Packaged smoke check and CI
 
@@ -57,7 +58,11 @@ checks native SQLite loading and durable storage in the utility coordinator, all
 three navigation pages, renderer isolation, native window close/reopen and normal
 app quit. It also creates two projects through the UI, preserves a source file on
 a conflicting creation, restarts the entire application, reopens the same
-project identity/repository, and checks unavailable-folder restoration. It
+project identity/repository, and checks unavailable-folder restoration. It also saves, replaces and revokes
+synthetic credentials through the dedicated settings window, checks Keychain-backed
+ciphertext and cleared inputs, tests storage/browser recovery, and rejects
+credential IPC from unrelated renderers. Browser and clipboard endpoints are
+stubbed while validation runs. It
 writes `out/smoke/result.json` and `out/smoke/workspace.png`, then removes its test
 profile. Playwright controls Electron directly; no browser install is needed.
 It does not prove active-run Pause or remote recovery, which the shell cannot yet
@@ -142,7 +147,7 @@ supplies an arbitrary native path or clipboard payload. The utility coordinator
 owns all registry/history, filesystem and Git work,
 requires actual SQLite 3.51.3 or later, and serializes requests. No raw SQL or
 filesystem operation is exposed through the preload. The project history schema
-currently contains identity only; run history, adapters, credentials, active-run
+currently contains identity only; run history, adapters, active-run
 close handling and remote supervision belong to their dependent tasks.
 
 These boundaries follow the complete decisions in
@@ -151,3 +156,16 @@ and [#16](https://github.com/igrgin/autoresearch-lab/issues/16). The main/preloa
 renderer and coordinator entrypoints stay separate so platform-specific host
 code does not become a renderer or shared integration dependency. Future targets
 still require their own native module, packaging and lifecycle qualification.
+
+Credential settings are available from the application menu. Saving, replacing
+and revoking app access use the separate trusted window; ordinary project views
+cannot retrieve stored values. Replacement does not revoke the old credential at
+its provider: complete issuer-side revocation before resuming affected work.
+Locked/unavailable Keychain storage fails without a plaintext fallback.
+
+Integrations must use [scoped credential handles](../src/security/credentials.ts)
+and [safe-record admission](../src/security/recording.ts) before persistence,
+display or model delivery. Retired-value removal requires verified containment
+and a completed rescan; saving a replacement alone is insufficient. Live adapters,
+OS isolation, remote/native-history remediation and signed-update distribution
+still require integration and qualification.

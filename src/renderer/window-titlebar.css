@@ -1,0 +1,21 @@
+body:has(.window-titlebar) { --window-titlebar-height: 46px; }
+.window-titlebar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 46px;
+  flex-shrink: 0;
+  padding: 0 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f8f7;
+  color: #52665a;
+  font-size: 12px;
+  font-weight: 500;
+  user-select: none;
+}
+.window-titlebar > span { pointer-events: none; }
+.window-drag-area { position: absolute; inset: 0 0 0 96px; -webkit-app-region: drag; }
+.window-titlebar--settings { background: #f5f7f6; color: #63726a; }
+button, input, select, textarea, a, summary { -webkit-app-region: no-drag; }
