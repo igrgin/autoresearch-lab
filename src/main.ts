@@ -2,6 +2,7 @@ import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell, utilityPro
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { CreateProject, ProjectReply, ProjectRequest, ProjectRecord, WorkspaceProjects } from './projects';
+import type { ImportAction, ImportRecord, ImportRequest, StartImport } from './imports';
 import type { ShellStatus } from './shell';
 import type { ConfigurationReply, ConfigurationRequest, ConfigurationValue } from './configuration';
 import { createSecurityHost } from './security/electron-vault';
@@ -20,9 +21,11 @@ let window: BrowserWindow | null = null;
 let coordinator: ReturnType<typeof utilityProcess.fork> | null = null;
 let quitting = false;
 let startupFailure = 'Workspace startup failed. Restart the application.';
-const pending = new Map<string, { resolve: (reply: ProjectReply<ProjectRecord | WorkspaceProjects>) => void; timer: ReturnType<typeof setTimeout> }>();
+type HostValue = ProjectRecord | WorkspaceProjects | ImportRecord[];
+const selections = new Map<string, { paths: string[]; directory: boolean }>();
+const pending = new Map<string, { resolve: (reply: ProjectReply<HostValue>) => void; timer: ReturnType<typeof setTimeout> }>();
 
-function requestProjects(request: ProjectRequest): Promise<ProjectReply<ProjectRecord | WorkspaceProjects>> {
+function requestProjects(request: ProjectRequest | ImportRequest): Promise<ProjectReply<HostValue>> {
   return new Promise((resolve) => {
     const id = randomUUID();
     const timer = setTimeout(() => {
@@ -81,10 +84,16 @@ function startCoordinator(): Promise<ShellStatus> {
       ready = true;
       resolve({ coordinator: 'ready', sqliteVersion: message.sqliteVersion });
     });
-    child.on('message', (message: { id?: string; reply?: ProjectReply<ProjectRecord | WorkspaceProjects>; configurationReply?: ConfigurationReply<ConfigurationValue> }) => {
+    child.on('message', async (message: { id?: string; reply?: ProjectReply<HostValue>; configurationReply?: ConfigurationReply<ConfigurationValue>; importAdmissionId?: string; names?: string[] }) => {
       if (message?.id && message.configurationReply) {
         const waiting = configurationPending.get(message.id);
         if (waiting) { clearTimeout(waiting.timer); configurationPending.delete(message.id); waiting.resolve(message.configurationReply); }
+        return;
+      }
+      if (message?.importAdmissionId) {
+        let allowed = false;
+        try { await security.initialize(); allowed = security.checkImportNames(message.names); } catch { /* Fail closed without recording raw names or storage diagnostics. */ }
+        child.postMessage({ importAdmissionId: message.importAdmissionId, allowed });
         return;
       }
       if (!message?.id || !message.reply) return;
@@ -255,6 +264,29 @@ if (!app.requestSingleInstanceLock()) {
         return requestProjects({ kind, operationId: randomUUID(), projectId });
       });
     }
+    ipcMain.handle('imports:select', async (event, kind: unknown) => {
+      admit(event);
+      if (kind !== 'directory' && kind !== 'files') throw new Error('Invalid selection');
+      const result = await dialog.showOpenDialog(window!, { title: 'Select local dataset', properties: kind === 'directory' ? ['openDirectory'] : ['openFile', 'multiSelections'],
+        ...(kind === 'files' ? { filters: [{ name: 'Supported dataset files', extensions: ['jpg', 'jpeg', 'png', 'csv', 'jsonl', 'txt'] }] } : {}) });
+      if (result.canceled || !result.filePaths.length) return null;
+      const selectionId = randomUUID();
+      if (selections.size >= 100) selections.clear();
+      selections.set(selectionId, { paths: result.filePaths, directory: kind === 'directory' });
+      return { selectionId, fileCount: result.filePaths.length, directory: kind === 'directory' };
+    });
+    ipcMain.handle('imports:start', (event, projectId: string, input: StartImport) => {
+      admit(event);
+      const selected = selections.get(input?.selectionId);
+      if (!selected || (input.mode === 'move' && !selected.directory)) throw new Error('Select the dataset again. Move needs one dedicated directory.');
+      return requestProjects({ kind: 'imports:start', operationId: input.requestId, projectId, sourcePaths: selected.paths, destinationName: input.destinationName, mode: input.mode });
+    });
+    ipcMain.handle('imports:list', (event, projectId: string) => {
+      admit(event); return requestProjects({ kind: 'imports:list', operationId: randomUUID(), projectId });
+    });
+    ipcMain.handle('imports:action', (event, projectId: string, importId: string, expectedRevision: number, action: ImportAction) => {
+      admit(event); return requestProjects({ kind: 'imports:action', operationId: randomUUID(), projectId, importId, expectedRevision, action });
+    });
     ipcMain.handle('projects:copy-workspace-location', async (event) => {
       admit(event);
       const operationId = randomUUID();

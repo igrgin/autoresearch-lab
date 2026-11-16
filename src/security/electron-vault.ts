@@ -24,6 +24,10 @@ export function createSecurityHost() {
     assertSafeConfiguration: (value: unknown) => {
       if (matcher.filter(value).redacted) throw new SecurityError('invalid_input');
     },
+    // Trusted import metadata admission only; never return the matched value or
+    // alter a filesystem name. Caller initializes current/remediation matching.
+    checkImportNames: (names: unknown): boolean => Array.isArray(names) && names.length <= 10001 &&
+      names.every(name => typeof name === 'string' && name.length <= 4096 && !matcher.text(name).changed),
     // No recording/access until all current + remediation matching material has been loaded.
     initialize: () => {
       initialized ??= credentials.initialize().then(() => recording.initialize()).catch(() => {

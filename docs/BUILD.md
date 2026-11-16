@@ -1,7 +1,7 @@
 # Build and run on macOS
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
-Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults and saved run configurations. Runs
+Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults saved run configurations and recoverable local dataset imports. Runs
 and Compute provide empty states; Credential settings use a separate trusted window; provider connections, agents and training
 remain separate implementation tasks.
 
@@ -195,11 +195,77 @@ full application restart, known synthetic credential rejection and unrelated
 renderer IPC rejection. These are controlled local checks; no provider, agent
 model access or training is qualified.
 
+## Local dataset import
+
+The open-project panel provides native directory/file selection, a project-relative
+destination preview, copy/move selection, progress, cancellation and recovery.
+Select one self-contained directory or explicit files. Byte formats accepted by
+this slice are JPEG/PNG, CSV/JSONL and text; decoding, supported task interpretation,
+labels, exclusions and split preparation belong to #24/#25. Archives, custom
+scripts, special files and symlinks (including selected-path ancestors) are rejected.
+All files in a selected directory are included explicitly; remove unsupported or
+unwanted entries first, or select files instead. This does not confirm that every
+imported file should become a training example.
+
+**Copy is the default.** The preparation owner inventories files, records SHA-256
+content/size and source identity, estimates space, and copies bounded chunks into
+`.lab/imports/<import-id>/`. Source changes block publication. Names are checked
+under conservative case/Unicode normalization and probed using exclusive creation
+on the destination filesystem. Existing destinations and source/project ancestry
+overlap are rejected. Publication exclusively inserts verified staged files into
+`dataset/<chosen-name>/files/`; it never overwrites a destination entry. Temporary
+hard links are only between the app's verified staging and destination on the same
+project filesystem, never to source files. Staging is removed before completion,
+leaving the imported copy independent of its source.
+
+The coordinator alone writes `.lab/imports.sqlite` with the operation/import IDs,
+revision, file inventory, digests, relative location, progress and outcome. This
+independent version-1 store does not migrate registry/history schemas. Original
+source paths and per-file inventory remain private preparation state, outside the
+renderer projection and agent context. Main's existing current/retired credential
+matcher admits path metadata before persistence; locked/failed protection blocks
+that admission. Dataset payloads are copied as selected bytes, never reproduced
+in diagnostics or activity records.
+
+Interrupted/failed imports remain named **Partial import** records. **Retry import**
+rechecks source stability and staged files; corrupt/truncated staging is copied
+again. **Discard staging** removes only the import's staging, preserving sources,
+existing project data and any incomplete destination publication. Incomplete
+published bytes are kept with an instruction to move them aside before reusing the
+name. A fully published copy interrupted before registration must be reconciled
+with Retry before discard. A crash before a destination ownership marker is durable
+can require manually preserving/moving the ambiguous folder aside; the app never
+adopts an unproven folder. Free-space estimates are conservative; actual write,
+verification and storage errors still produce partial recovery, not completion.
+
+**Move is explicit and requires one dedicated directory.** It first follows the
+same verified-copy path. The usable byte copy is retained with source cleanup
+pending until the trusted preparation owner calls `DatasetImports.confirmPreparation`
+with a persisted layout/interpretation/split confirmation reference and expected
+import revision. This port is deliberately absent from renderer IPC. #24/#25 must
+supply that confirmation; the current UI states that preparation is not available
+yet and retains the source. Confirmation does not assert full run readiness.
+Cleanup verifies the destination again and deletes only inventoried source files
+whose content and identity still match. Durable deletion intents reconcile crashes
+between unlink and progress recording. Non-recursive directory removal preserves
+new/changed/replaced entries. Cleanup failures keep the project copy and show
+**import complete; source cleanup incomplete**, remaining inventoried-file count,
+and **Retry source cleanup**. No destination rollback or provider action occurs.
+
+`npm run check` includes importer acceptance/failure tests and real SIGKILL recovery
+checks. Packaged `npm run smoke` exercises native-picker-backed UI/IPC (the picker
+is stubbed to controlled temporary fixtures), copy/default and explicit move,
+source-unavailable retry/discard, occupied-destination preservation, metadata
+admission, sender isolation and full-application restart persistence. These checks
+qualify local byte handling, not semantic preparation, large-dataset performance,
+hostile same-user filesystem mutation, power-loss durability, cloud services or
+research readiness.
+
 ## Host boundaries and follow-up work
 
-The React renderer has no Node access; a sandboxed preload exposes status and
-typed configuration operations and four catalog operations (list/create/open/recover) and five narrow native
-actions (reveal validated project or Git folders, copy either validated path, and
+The React renderer has no Node access; a sandboxed preload exposes status,
+typed catalog operations (list/create/open/recover), narrow dataset-import
+operations and five native actions (reveal validated project or Git folders, copy either validated path, and
 copy the known workspace projects path). Main validates the
 requesting window/frame and owns native windows and utility-process lifecycle.
 Main resolves native-action locations through the catalog; the renderer never

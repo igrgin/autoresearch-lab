@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm, mkdir, writeFile, readFile, rename, stat } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, writeFile, readFile, realpath, rename, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { _electron as electron } from 'playwright';
@@ -9,6 +9,7 @@ import { checkPackagedReservations } from './reservation-smoke.mjs';
 
 const executablePath = path.resolve('out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app/Contents/MacOS/Autoresearch Lab');
 const userData = await mkdtemp(path.join(os.tmpdir(), 'autoresearch-lab-smoke-'));
+const importSource = await realpath(await mkdtemp(path.join(os.tmpdir(), 'autoresearch-lab-import-smoke-')));
 // Some coding hosts export this for their own Node subprocesses.
 const launchEnv = { ...process.env };
 delete launchEnv.ELECTRON_RUN_AS_NODE;
@@ -195,7 +196,7 @@ try {
     const probe = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true, contextIsolation: false, sandbox: false } });
     try {
       await probe.loadURL('data:text/html,<html></html>');
-      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('configuration:request', {kind:'global:get',operationId:'00000000-0000-4000-8000-000000000000'}).then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false}))])`);
+      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('configuration:request', {kind:'global:get',operationId:'00000000-0000-4000-8000-000000000000'}).then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:list', 'not-a-project').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:select', 'directory').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false}))])`);
     } finally { probe.destroy(); }
   });
   assert.equal(unauthorized.every(reply => reply.ok === false), true);
@@ -222,6 +223,75 @@ try {
   const second = secondReply.value.projects.find((entry) => entry.project.projectId !== first.projectId).project;
   assert.notEqual(first.repository, second.repository);
   assert.equal((await stat(second.repository)).isDirectory(), true);
+  // Exercise the actual sandbox/preload/main/coordinator importer. Only the
+  // native picker is stubbed; filesystem, byte verification and SQLite are real.
+  await writeFile(path.join(importSource, 'records.csv'), 'input,target\n1,yes\n2,no\n');
+  await writeFile(path.join(importSource, 'notes.txt'), 'Synthetic dataset document\n');
+  await application.evaluate(({ dialog }, source) => {
+    globalThis.originalImportPicker = dialog.showOpenDialog;
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [source] });
+  }, importSource);
+  const importsPanel = details.getByRole('region', { name: 'Local dataset imports', exact: true });
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  assert.equal(await importsPanel.getByLabel('Import policy', { exact: true }).inputValue(), 'copy');
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('../invalid');
+  assert.equal(await importsPanel.getByLabel('Dataset folder name', { exact: true }).evaluate(element => element.checkValidity()), false);
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('local-data');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText('Byte import complete', { exact: true }).waitFor();
+  assert.equal(await readFile(path.join(second.location, 'dataset/local-data/files/records.csv'), 'utf8'), 'input,target\n1,yes\n2,no\n');
+  assert.equal(await readFile(path.join(importSource, 'notes.txt'), 'utf8'), 'Synthetic dataset document\n');
+  await importsPanel.getByText('Research readiness: task, layout, interpretation and splits still require preparation.', { exact: true }).waitFor();
+  // Explicit move is a staged copy; preparation confirmation is not forgeable by UI.
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('move-data');
+  await importsPanel.getByLabel('Import policy', { exact: true }).selectOption('move');
+  await importsPanel.getByText(/Source files will be removed only after/).waitFor();
+  await importsPanel.getByRole('button', { name: 'Start move import', exact: true }).click();
+  await importsPanel.getByText('Byte import complete · source cleanup pending', { exact: true }).waitFor();
+  assert.equal(await importsPanel.getByRole('button', { name: 'Retry source cleanup', exact: true }).count(), 0);
+  assert.equal(await readFile(path.join(importSource, 'notes.txt'), 'utf8'), 'Synthetic dataset document\n');
+  // Occupied destination is visible and discard removes only private staging.
+  await mkdir(path.join(second.location, 'dataset/occupied'));
+  const importSentinel = path.join(second.location, 'dataset/occupied/existing.txt');
+  await writeFile(importSentinel, 'preserve existing dataset');
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('occupied');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText('Partial import', { exact: true }).waitFor();
+  await importsPanel.getByText(/destination is occupied or its ownership is unproven/).waitFor();
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).click();
+  await importsPanel.getByText('Staging discarded', { exact: true }).waitFor();
+  assert.equal(await readFile(importSentinel, 'utf8'), 'preserve existing dataset');
+  // A source disappearing after native selection produces actionable recovery.
+  const disappearing = path.join(importSource, 'temporary-selection'); await mkdir(disappearing);
+  await writeFile(path.join(disappearing, 'data.txt'), 'temporary');
+  await application.evaluate(({ dialog }, source) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [source] }); }, disappearing);
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await rm(disappearing, { recursive: true });
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('unavailable');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText('Partial import', { exact: true }).waitFor();
+  await importsPanel.getByText(/The source or an import folder is unavailable/).waitFor();
+  await importsPanel.getByRole('button', { name: 'Retry import', exact: true }).click();
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).waitFor();
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).click();
+  // The existing credential matcher also guards retained import filenames.
+  const protectedDir = path.join(importSource, 'credential-name-fixture'); await mkdir(protectedDir);
+  await writeFile(path.join(protectedDir, `${synthetic}.txt`), 'synthetic credential-name fixture');
+  await application.evaluate(({ dialog }, source) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [source] }); }, protectedDir);
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('protected-name');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText(/A source filename was withheld by credential protection/).waitFor();
+  assert.equal((await importsPanel.innerText()).includes(synthetic), false);
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).click();
+  for (const filename of ['imports.sqlite', 'imports.sqlite-wal']) assert.equal((await readFile(path.join(second.location, '.lab', filename))).includes(Buffer.from(synthetic)), false);
+  await application.evaluate(({ dialog }) => { dialog.showOpenDialog = globalThis.originalImportPicker; });
+  const importReply = await page.evaluate(id => window.lab.listImports(id), second.projectId);
+  assert.equal(importReply.ok, true);
+  assert.equal(importReply.value.filter(record => record.bytesUsable).length, 2);
+  assert.ok(importReply.value.every(record => record.researchReadiness === 'not_prepared'));
   // A conflict must preserve the first project's source and expose an error.
   await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
@@ -270,6 +340,9 @@ try {
   assert.equal(await restartedEntry.locator('.credential-list > li').count(), 2);
   assert.equal(await restartedEntry.evaluate(() => typeof window.lab), 'undefined');
   await restartedEntry.close();
+  const restoredImports = await restarted.evaluate(id => window.lab.listImports(id), second.projectId);
+  assert.equal(restoredImports.ok, true);
+  assert.deepEqual(restoredImports.value, importReply.value);
   const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
   await firstCard.getByText(/^Opened/).waitFor();
   await firstCard.getByRole('button', { name: 'Show folder path for First research', exact: true }).click();
@@ -350,11 +423,12 @@ try {
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', ...status };
+  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', localDatasetCopyMoveRecoveryConflict: 'passed', datasetOutcomeRestart: 'passed', importSenderIsolation: 'passed', importMetadataAdmission: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {
   if (application && child.exitCode === null) await application.close();
   if (child) assert.notEqual(child.exitCode, null, 'Synthetic app must exit before profile cleanup.');
   await rm(userData, { recursive: true, force: true });
+  await rm(importSource, { recursive: true, force: true });
 }

@@ -31,7 +31,7 @@ export interface CreateProject {
 
 export interface ProjectError {
   code: 'invalid_input' | 'conflict' | 'not_found' | 'permission_denied' | 'unavailable' | 'incompatible_version' | 'internal' | 'idempotency_conflict';
-  origin: 'project_catalog';
+  origin: 'project_catalog' | 'dataset_import';
   operationId: string;
   message: string;
   effect: 'none' | 'partial';
