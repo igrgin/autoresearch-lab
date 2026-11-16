@@ -1,0 +1,30 @@
+{
+  "issue": 40,
+  "pull_request": "https://github.com/igrgin/autoresearch-lab/pull/110",
+  "before_commit": "7606e558ac3f8e8f47f4495db569e25db546ba04",
+  "after_commit": "c53bf7f1badb1bfc9b648bc566a5d5c79c6a233c",
+  "captured_on": "2026-11-16",
+  "platform": "macOS arm64",
+  "method": "Native Electron capturePage from successful CI packaged artifacts; native window zoom 80%. Crops show the complete named feature panel.",
+  "fixtures": "Isolated temporary profiles; synthetic project/data/credential labels. Provider HTTP and model worker responses are controlled fixtures. No live service, credentials, inference or training was used. Application renderer and production IPC/store paths were not replaced.",
+  "images": [
+    {
+      "filename": "before.png",
+      "path": "docs/egm/ui-evidence/40/before.png",
+      "sha256": "a99a17809c03c188ce3ece35b3f0683c4205a1011842b1eaba11d6e3b8280893",
+      "region": "application window",
+      "zoom": 0.8,
+      "build_run": 43865099005,
+      "source_commit": "7606e558ac3f8e8f47f4495db569e25db546ba04"
+    },
+    {
+      "filename": "after.png",
+      "path": "docs/egm/ui-evidence/40/after.png",
+      "sha256": "80429af45622ba10a0c4c58d34279274bc65c4f593f48b87e87a3f5e8b588d1d",
+      "region": "application window",
+      "zoom": 0.8,
+      "build_run": 43865135334,
+      "source_commit": "c53bf7f1badb1bfc9b648bc566a5d5c79c6a233c"
+    }
+  ]
+}
