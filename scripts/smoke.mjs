@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { _electron as electron } from 'playwright';
 import { setGlobalDefaults, checkDefaultsBeforeRestart, checkDefaultsAfterRestart } from './smoke-defaults.mjs';
+import { checkPackagedReservations } from './reservation-smoke.mjs';
 
 const executablePath = path.resolve('out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app/Contents/MacOS/Autoresearch Lab');
 const userData = await mkdtemp(path.join(os.tmpdir(), 'autoresearch-lab-smoke-'));
@@ -63,6 +64,7 @@ try {
   assert.equal(preferences.contextIsolation, true);
   assert.equal(preferences.nodeIntegration, false);
   assert.deepEqual(rendererErrors, []);
+  await checkPackagedReservations(application);
   // Ordinary renderer cannot read or enter credentials through its bridge.
   assert.equal(await page.evaluate(() => typeof window.credentialEntry), 'undefined');
   const entryOpening = application.waitForEvent('window');
@@ -348,7 +350,7 @@ try {
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', ...status };
+  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {

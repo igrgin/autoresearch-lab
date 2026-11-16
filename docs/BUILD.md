@@ -26,7 +26,7 @@ npm run build
 open "out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app"
 ```
 
-`build` runs TypeScript checking, linting, catalog/recovery and synthetic security tests, webpack compilation, native-module
+`build` runs TypeScript checking, linting, catalog/reservation recovery and synthetic security tests, webpack compilation, native-module
 rebuilding and Forge packaging/making. Dependencies are pinned in
 [`package-lock.json`](../package-lock.json). Forge produces:
 
@@ -40,8 +40,8 @@ tools. Do not bypass Gatekeeper to install an untrusted download.
 For interactive development, use `npm start`. It uses Forge's local webpack
 development server. Use View → Reload after renderer edits (automatic browser
 HMR injection is disabled for the sandboxed preload). Packaged builds load local files and need no server. Use
-`npm run check` for source checks and both catalog and security tests, `npm test` for both suites
-alone, or `npm run package` for just the app. Catalog tests use Electron's embedded
+`npm run check` for source checks and catalog, reservation and security tests, `npm test` for all suites
+alone, or `npm run package` for just the app. Catalog/reservation tests use Electron's embedded
 Node runtime and the same native SQLite payload as the packaged coordinator.
 Security tests use synthetic values and temporary stores without live adapters.
 
@@ -65,8 +65,10 @@ credential IPC from unrelated renderers. Browser and clipboard endpoints are
 stubbed while validation runs. It
 writes `out/smoke/result.json` and `out/smoke/workspace.png`, then removes its test
 profile. Playwright controls Electron directly; no browser install is needed.
-It does not prove active-run Pause or remote recovery, which the shell cannot yet
-exercise.
+It also tests both provider reservation bindings through a separate packaged
+utility fixture: whole-instance conflict, unknown stop, no-proof release rejection
+and restart retention. It does not prove active-run Pause or live remote recovery,
+which the shell cannot yet exercise.
 
 [macOS CI](../.github/workflows/macos-build.yml) runs on every pull request and
 push to `main`. It checks the arm64 runner, installs from the lockfile, runs the
@@ -121,10 +123,14 @@ can be inspected before opening. The current panel provides Finder access,
 validated project/Git-path copying and a disclosure for Git metadata and project identity. The project folder is also the Git working repository; Git metadata utilities are secondary. A code editor
 and task setup are separate work.
 
-Stores use versioned, checksummed SQL initialization, WAL, FULL synchronization,
+Stores use versioned, checksummed SQL migrations, WAL, FULL synchronization,
 foreign keys and a bounded busy timeout. A newer/unknown schema is rejected
-without resetting it. This initial slice adds version 1 only; future upgrades
-must add consistent backups and transactional forward migrations. Use supported
+without resetting it. Version 2 adds shared compute reservations and project
+release intents. Existing registry stores upgrade on startup; existing project
+histories upgrade when reservation work first needs them. A consistent SQLite
+backup named `<database>.before-v2-<uuid>.sqlite` precedes each upgrade, and failed
+migrations roll back. Older application versions reject upgraded stores; rolling
+back requires restoring their pre-upgrade backups with the app stopped. Use supported
 local storage only: network and sync-folder operation, power-loss durability,
 and moving/backup UX remain unqualified. SIGKILL recovery tests do not prove
 power-loss or disk-full safety.
@@ -201,7 +207,7 @@ supplies an arbitrary native path or clipboard payload. The utility coordinator
 owns all registry/history, filesystem and Git work,
 requires actual SQLite 3.51.3 or later, and serializes requests. No raw SQL or
 filesystem operation is exposed through the preload. The project history schema
-currently contains identity only; run history, adapters, active-run
+contains project identity and compute release evidence; run history, adapters, active-run
 close handling and remote supervision belong to their dependent tasks.
 
 These boundaries follow the complete decisions in

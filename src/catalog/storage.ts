@@ -1,10 +1,16 @@
 import Database from 'better-sqlite3';
-import { createHash } from 'node:crypto';
-import { existsSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { chmodSync, closeSync, existsSync, fsyncSync, openSync } from 'node:fs';
+import path from 'node:path';
+
+function sync(filename: string) {
+  const fd = openSync(filename, 'r');
+  try { fsyncSync(fd); } finally { closeSync(fd); }
+}
 
 // Each store owns an independent, append-only numbered migration sequence.
 // No existing schema is reset, including a database from a newer application.
-export function openStore(filename: string, initialSql: string): Database.Database {
+export function openStore(filename: string, initialSql: string, upgrades: readonly string[] = []): Database.Database {
   const existed = existsSync(filename);
   const db = new Database(filename);
   try {
@@ -18,30 +24,46 @@ export function openStore(filename: string, initialSql: string): Database.Databa
     if (tables.length && !db.prepare("SELECT 1 FROM sqlite_master WHERE name = 'schema_migrations'").get()) {
       throw new Error('Unrecognized database schema. Restore a supported backup; the database was left intact.');
     }
-    const checksum = createHash('sha256').update(initialSql).digest('hex');
+    const scripts = [initialSql, ...upgrades];
+    const checksums = scripts.map((sql) => createHash('sha256').update(sql).digest('hex'));
+    let current = 0;
     if (tables.length) {
       const migrations = db.prepare('SELECT version, checksum FROM schema_migrations ORDER BY version').all() as { version: number; checksum: string }[];
-      if (migrations.length !== 1 || migrations[0].version !== 1 || migrations[0].checksum !== checksum) {
+      if (!migrations.length || migrations.length > scripts.length || migrations.some((m, i) => m.version !== i + 1 || m.checksum !== checksums[i])) {
         throw new Error('Unsupported database schema version. Open it with a compatible application; the database was left intact.');
       }
+      current = migrations.length;
     } else {
-      // A consistent backup is required before future upgrades. Version 1 only
-      // initializes empty stores and never upgrades existing user records.
+      // Empty stores initialize the entire supported sequence atomically.
       if (existed && tables.length === 0 && db.pragma('user_version', { simple: true }) !== 0) {
         throw new Error('Unsupported empty database version. Restore a supported backup.');
       }
-      db.transaction(() => {
-        db.exec('CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, checksum TEXT NOT NULL)');
-        db.exec(initialSql);
-        db.prepare('INSERT INTO schema_migrations VALUES (1, ?)').run(checksum);
-        db.pragma('user_version = 1');
-      })();
     }
     if (db.pragma('journal_mode = WAL', { simple: true }) !== 'wal') throw new Error('Local WAL storage is unavailable. Use a local writable workspace.');
     db.pragma('foreign_keys = ON');
     db.pragma('synchronous = FULL');
     if (db.pragma('foreign_keys', { simple: true }) !== 1 || db.pragma('synchronous', { simple: true }) !== 2) {
       throw new Error('Required durable storage settings are unavailable.');
+    }
+    if (current < scripts.length) {
+      // A consistent SQLite snapshot includes committed WAL content. Never
+      // overwrite a backup. Failed migrations roll back without resetting data.
+      if (current) {
+        const backup = `${filename}.before-v${current + 1}-${randomUUID()}.sqlite`;
+        db.exec(`VACUUM INTO '${backup.replace(/'/g, "''")}'`);
+        chmodSync(backup, 0o600);
+        sync(backup); sync(path.dirname(backup));
+      }
+      db.transaction(() => {
+        if (!current) db.exec('CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, checksum TEXT NOT NULL)');
+        for (let i = current; i < scripts.length; i++) {
+          db.exec(scripts[i]);
+          db.prepare('INSERT INTO schema_migrations VALUES (?, ?)').run(i + 1, checksums[i]);
+        }
+        db.pragma(`user_version = ${scripts.length}`);
+        const foreignKeys = db.pragma('foreign_key_check');
+        if (db.pragma('quick_check', { simple: true }) !== 'ok' || !Array.isArray(foreignKeys) || foreignKeys.length) throw new Error('Database migration validation failed. Restore the consistent backup.');
+      }).immediate();
     }
     return db;
   } catch (error) {
