@@ -1,7 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ShellBridge } from './shell';
+import type { ConfigurationReply, ConfigurationRequest } from './configuration';
+const configuration = <T>(request: ConfigurationRequest): Promise<ConfigurationReply<T>> => ipcRenderer.invoke('configuration:request', request);
+const operationId = () => crypto.randomUUID();
 
 const bridge: ShellBridge = {
+  getGlobalDefaults: () => configuration({ kind: 'global:get', operationId: operationId() }),
+  updateGlobalDefaults: input => configuration({ kind: 'global:update', operationId: input.requestId, input }),
+  getProjectDefaults: projectId => configuration({ kind: 'project:get', operationId: operationId(), projectId }),
+  updateProjectDefaults: (projectId, input) => configuration({ kind: 'project:update', operationId: input.requestId, projectId, input }),
+  prepareConfiguration: projectId => configuration({ kind: 'prepare', operationId: operationId(), projectId }),
+  saveConfiguration: input => configuration({ kind: 'save', operationId: input.requestId, input }),
+  listConfigurations: projectId => configuration({ kind: 'snapshots', operationId: operationId(), projectId }),
+  getConfiguration: (projectId, snapshotId) => configuration({ kind: 'snapshot', operationId: operationId(), projectId, snapshotId }),
   getStatus: () => ipcRenderer.invoke('shell:get-status'),
   listProjects: () => ipcRenderer.invoke('projects:list'),
   createProject: (input) => ipcRenderer.invoke('projects:create', input),

@@ -21,6 +21,9 @@ export function createSecurityHost() {
   let initialized: Promise<void> | undefined;
   return {
     credentials, recording,
+    assertSafeConfiguration: (value: unknown) => {
+      if (matcher.filter(value).redacted) throw new SecurityError('invalid_input');
+    },
     // No recording/access until all current + remediation matching material has been loaded.
     initialize: () => {
       initialized ??= credentials.initialize().then(() => recording.initialize()).catch(() => {

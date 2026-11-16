@@ -315,3 +315,25 @@ main { padding-bottom: 24px; }
 .destination > .destination-header > span { line-height: 1.5; }
 
 .error.startup-error { padding-right: 18px; }
+
+.defaults-settings { max-width: 640px; }
+.defaults-settings > p, .project-configurations p { line-height: 1.6; color: #52685b; overflow-wrap: anywhere; }
+.project-configurations { margin-top: 24px; border-top: 1px solid #dce5df; padding-top: 20px; }
+.project-configurations > details { margin-bottom: 24px; }
+.project-configurations > details > summary { font-weight: 600; padding: 8px 0; }
+.project-configurations .defaults-settings { padding-top: 16px; }
+.choices-editor { display: grid; gap: 16px; margin: 18px 0; }
+.choices-editor fieldset { border: 1px solid #dce5df; border-radius: 7px; padding: 12px; min-width: 0; margin: 0; }
+.choices-editor legend { font-weight: 600; padding: 0 5px; }
+.choices-editor label { display: grid; gap: 6px; margin-bottom: 10px; font-size: 13px; }
+.choices-editor input, .choices-editor select { width: 100%; min-width: 0; border: 1px solid #cbdad0; border-radius: 5px; background: white; padding: 9px; color: #24352f; }
+.inherited-choice { margin: 8px 0 0; }
+.configuration-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.configuration-actions button { white-space: normal; }
+.saved-configurations { list-style: none; padding: 0; display: grid; gap: 12px; }
+.saved-configurations li { display: grid; gap: 5px; }
+.saved-configurations span { color: #52685b; font-size: 12px; }
+.saved-configuration { border-top: 1px solid #dce5df; margin-top: 18px; padding-top: 18px; }
+.choices-summary dt { font-weight: 600; margin-top: 12px; }
+.choices-summary dt small { font-size: 12px; margin: 3px 0; }
+.choices-summary dd { margin: 6px 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }

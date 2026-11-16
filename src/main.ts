@@ -3,6 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { CreateProject, ProjectReply, ProjectRequest, ProjectRecord, WorkspaceProjects } from './projects';
 import type { ShellStatus } from './shell';
+import type { ConfigurationReply, ConfigurationRequest, ConfigurationValue } from './configuration';
 import { createSecurityHost } from './security/electron-vault';
 import { CREDENTIAL_HELP, ENTRY_CATEGORIES, validEntry } from './security/entry-contract';
 import { assertId, newId } from './security/common';
@@ -30,6 +31,20 @@ function requestProjects(request: ProjectRequest): Promise<ProjectReply<ProjectR
     }, 90_000);
     pending.set(id, { resolve, timer });
     coordinator?.postMessage({ id, request });
+  });
+}
+
+const configurationPending = new Map<string, { resolve: (reply: ConfigurationReply<ConfigurationValue>) => void; timer: ReturnType<typeof setTimeout> }>();
+function requestConfiguration(request: ConfigurationRequest): Promise<ConfigurationReply<ConfigurationValue>> {
+  return new Promise(resolve => {
+    const id = randomUUID();
+    const timer = setTimeout(() => {
+      configurationPending.delete(id);
+      resolve({ ok: false, error: { code: 'unavailable', origin: 'run_configuration', operationId: request.operationId,
+        message: 'Configuration storage did not reply. Retry the same save to reconcile it before making another change.', effect: 'unknown', retry: 'same_key' } });
+    }, 90_000);
+    configurationPending.set(id, { resolve, timer });
+    coordinator?.postMessage({ id, configuration: request });
   });
 }
 
@@ -65,7 +80,12 @@ function startCoordinator(): Promise<ShellStatus> {
       ready = true;
       resolve({ coordinator: 'ready', sqliteVersion: message.sqliteVersion });
     });
-    child.on('message', (message: { id?: string; reply?: ProjectReply<ProjectRecord | WorkspaceProjects> }) => {
+    child.on('message', (message: { id?: string; reply?: ProjectReply<ProjectRecord | WorkspaceProjects>; configurationReply?: ConfigurationReply<ConfigurationValue> }) => {
+      if (message?.id && message.configurationReply) {
+        const waiting = configurationPending.get(message.id);
+        if (waiting) { clearTimeout(waiting.timer); configurationPending.delete(message.id); waiting.resolve(message.configurationReply); }
+        return;
+      }
       if (!message?.id || !message.reply) return;
       const waiting = pending.get(message.id);
       if (!waiting) return;
@@ -77,6 +97,8 @@ function startCoordinator(): Promise<ShellStatus> {
       clearTimeout(timer);
       for (const waiting of pending.values()) clearTimeout(waiting.timer);
       pending.clear();
+      for (const waiting of configurationPending.values()) clearTimeout(waiting.timer);
+      configurationPending.clear();
       if (!ready) reject(new Error('The workspace coordinator exited during startup.'));
       else if (!quitting) {
         dialog.showErrorBox('Workspace unavailable', 'The workspace coordinator stopped. Please restart Autoresearch Lab.');
@@ -192,6 +214,22 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle('shell:get-status', (event) => {
       admit(event);
       return status;
+    });
+    ipcMain.handle('configuration:request', async (event, request: ConfigurationRequest) => {
+      admit(event);
+      try {
+        assertId(request?.operationId);
+        // Load app-owned current/retired matching values before admitting semantic
+        // settings. Reject unsafe settings instead of saving redacted semantics.
+        await security.initialize();
+        security.assertSafeConfiguration(request);
+        const reply = await requestConfiguration(request);
+        security.assertSafeConfiguration(reply);
+        return reply;
+      } catch {
+        return { ok: false, error: { code: 'unavailable', origin: 'run_configuration', operationId: '',
+          message: 'Settings could not be safely admitted. Remove credentials from choices, unlock credential storage and reload. Saved choices may need review if a credential was registered later.', effect: 'unknown', retry: 'after_reconcile' } };
+      }
     });
     ipcMain.handle('projects:list', (event) => {
       admit(event);
