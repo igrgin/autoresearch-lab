@@ -1,5 +1,5 @@
 module.exports = {
-  entry: { index: './src/main.ts', coordinator: './src/coordinator.ts', 'claude-worker': './src/claude/worker.ts' },
+  entry: { 'index': './src/main.ts', 'coordinator': './src/coordinator.ts', 'claude-worker': './src/claude/worker.ts', 'execution-guardian': './src/execution/guardian-process.ts' },
   output: { filename: '[name].cjs' },
   module: { rules: require('./webpack.rules.cjs') },
   // Select the supported target at build time, keeping OS choices out of the coordinator.
