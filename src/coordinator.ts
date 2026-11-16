@@ -1,3 +1,5 @@
+import { ClaudeSelectionStore, type SelectionCommand } from './claude/store';
+import { ClaudeFailure, failureReply } from './claude/contracts';
 import { CodexStore } from './codex/store';
 import { codexFailure } from './codex/errors';
 import type { CodexStoreCommand } from './codex/contract';
@@ -37,10 +39,12 @@ if (!applicationData) throw new Error('The workspace application-data location i
 let catalog: ProjectCatalog | undefined;
 let configurations: ConfigurationStore;
 let codex: CodexStore;
+let agentSettings: ClaudeSelectionStore;
 try {
   catalog = new ProjectCatalog(applicationData);
   configurations = new ConfigurationStore(applicationData, catalog);
   codex = new CodexStore(applicationData);
+  agentSettings = new ClaudeSelectionStore(applicationData);
 } catch {
   catalog?.close(); catalog = undefined;
   process.parentPort.postMessage({ coordinator: 'failed', message: 'Workspace storage could not open. Check application-data folder permissions and free disk space. If this workspace was created by a newer app, reopen it with that version. Existing files were left intact.' });
@@ -61,8 +65,14 @@ if (catalog) {
     process.parentPort.postMessage({ importAdmissionId: id, names });
   }) });
 
-  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; codex?: CodexStoreCommand; record?: SafeRecord; ok?: boolean } }) => {
+  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; codex?: CodexStoreCommand; selection?: SelectionCommand; record?: SafeRecord; ok?: boolean } }) => {
     if (data.importAdmissionId) { admissions.get(data.importAdmissionId)?.(data.allowed === true); return; }
+    if (data.selection) {
+      try { process.parentPort.postMessage({ id: data.id, selectionReply: { ok: true, value: agentSettings.handle(data.selection) } }); }
+      catch (error) { process.parentPort.postMessage({ id: data.id, selectionReply: failureReply(error instanceof ClaudeFailure ? error.reason : 'unavailable', data.id) }); }
+
+      return;
+    }
     if (data.codex) {
       try {
         if ('projectId' in data.codex) {
@@ -90,5 +100,5 @@ if (catalog) {
     process.parentPort.postMessage({ id: data.id, reply });
   });
   process.parentPort.postMessage({ coordinator: 'ready', sqliteVersion: activeCatalog.sqliteVersion });
-  process.on('exit', () => { codex.close(); imports.close(); configurations.close(); activeCatalog.close(); });
+  process.on('exit', () => { agentSettings.close(); codex.close(); imports.close(); configurations.close(); activeCatalog.close(); });
 }

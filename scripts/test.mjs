@@ -12,4 +12,4 @@ await new Promise((resolve, reject) => {
     resolve();
   });
 });
-execFileSync(electron, ['--test', '.webpack/tests/catalog.cjs', '.webpack/tests/configuration.cjs', '.webpack/tests/reservations.cjs', '.webpack/tests/research.cjs', '.webpack/tests/imports.cjs', '.webpack/tests/vast.cjs', '.webpack/tests/codex.cjs'], { stdio: 'inherit', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
+execFileSync(electron, ['--test', '.webpack/tests/catalog.cjs', '.webpack/tests/configuration.cjs', '.webpack/tests/reservations.cjs', '.webpack/tests/research.cjs', '.webpack/tests/imports.cjs', '.webpack/tests/vast.cjs', '.webpack/tests/codex.cjs', '.webpack/tests/claude.cjs'], { stdio: 'inherit', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });

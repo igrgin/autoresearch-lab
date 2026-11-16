@@ -4,6 +4,7 @@ import type { CodexBridge } from './codex/contract';
 import type { CreateProject, ProjectRecord, ProjectReply, WorkspaceProjects } from './projects';
 import type { Discovery, Inspection, RunpodCredentials } from './providers/contract';
 import type { VastCredentialChoice, VastDiscovery, VastReply } from './providers/vast-contract';
+import type { ClaudeBridge } from './claude/contracts';
 
 export interface ShellStatus {
   coordinator: 'ready';
@@ -23,6 +24,7 @@ export interface ShellBridge extends ConfigurationBridge {
   discoverVast(credentialId: string): Promise<VastReply<VastDiscovery>>;
   openVastSettings(): Promise<void>;
   codex: CodexBridge;
+  claude: ClaudeBridge;
   getStatus(): Promise<ShellStatus>;
   listProjects(): Promise<ProjectReply<WorkspaceProjects>>;
   createProject(input: CreateProject): Promise<ProjectReply<ProjectRecord>>;

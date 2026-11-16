@@ -16,6 +16,10 @@ import type { Envelope, SafeRecord } from './security/recording';
 import { RunpodAdapter } from './providers/runpod';
 import { VastConnection } from './providers/vast-connection';
 import { vastFailure } from './providers/vast';
+import { ClaudeHost } from './claude/host';
+import { runClaudeWorker } from './claude/electron-worker';
+import { ClaudeChoice, ClaudeFailure, ClaudeReply, failureReply } from './claude/contracts';
+import type { SelectionCommand, SelectionValue } from './claude/store';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -40,6 +44,17 @@ let startupFailure = 'Workspace startup failed. Restart the application.';
 type HostValue = ProjectRecord | WorkspaceProjects | ImportRecord[];
 const selections = new Map<string, { paths: string[]; directory: boolean }>();
 const pending = new Map<string, { resolve: (reply: ProjectReply<HostValue>) => void; timer: ReturnType<typeof setTimeout> }>();
+const selectionPending = new Map<string, { resolve: (reply: ClaudeReply<SelectionValue>) => void; timer: ReturnType<typeof setTimeout> }>();
+async function requestSelection(selection: SelectionCommand): Promise<SelectionValue> {
+  const reply = await new Promise<ClaudeReply<SelectionValue>>(resolve => {
+    const id = randomUUID();
+    const timer = setTimeout(() => { selectionPending.delete(id); resolve(failureReply('unavailable', id)); }, 15_000);
+    selectionPending.set(id, { resolve, timer });
+    coordinator?.postMessage({ id, selection });
+  });
+  if (!reply.ok) throw new ClaudeFailure(reply.error.reason);
+  return reply.value;
+}
 
 function requestProjects(request: ProjectRequest | ImportRequest): Promise<ProjectReply<HostValue>> {
   return new Promise((resolve) => {
@@ -134,6 +149,12 @@ function startCoordinator(): Promise<ShellStatus> {
       clearTimeout(waiting.timer); codexPending.delete(message.id);
       if (message.codexReply.ok) waiting.resolve(message.codexReply.value);
       else waiting.reject(new CodexFailure(message.codexReply.error.code));
+    });
+    child.on('message', (message: { id?: string; selectionReply?: ClaudeReply<SelectionValue> }) => {
+      if (!message?.id || !message.selectionReply) return;
+      const waiting = selectionPending.get(message.id);
+      if (!waiting) return;
+      clearTimeout(waiting.timer); selectionPending.delete(message.id); waiting.resolve(message.selectionReply);
     });
     child.once('exit', () => {
       for (const waiting of codexPending.values()) { clearTimeout(waiting.timer); waiting.reject(new CodexFailure('unavailable')); }
@@ -313,6 +334,20 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle('codex:run-get', (event, projectId: string) => { admit(event); return codex.execute(() => codex.runSelection(projectId)); });
     ipcMain.handle('codex:run-save', (event, projectId: string, expectedRevision: number, choice: ChooseAgent) => {
       admit(event); return codex.execute(() => codex.saveRunSelection(projectId, expectedRevision, choice));
+    });
+    const claude = new ClaudeHost(security.credentials, security.recording, security.initialize, runClaudeWorker, requestSelection,
+      async projectId => (await requestProjects({ kind: 'open', projectId, operationId: randomUUID() })).ok);
+    ipcMain.handle('claude:settings', event => { admit(event); return claude.reply(() => claude.settings()); });
+    ipcMain.handle('claude:credentials', event => { admit(event); return openCredentialSettings(); });
+    ipcMain.handle('claude:discover', (event, id: string) => { admit(event); return claude.reply(() => { assertId(id); return claude.discover(id); }); });
+    ipcMain.handle('claude:save', (event, choice: ClaudeChoice, revision: number) => { admit(event); return claude.reply(() => claude.save(choice, revision)); });
+    ipcMain.handle('claude:qualify', (event, choice: ClaudeChoice) => { admit(event); return claude.reply(() => claude.qualify(choice)); });
+    ipcMain.handle('claude:runs', (event, projectId: string) => { admit(event); return claude.reply(() => { assertId(projectId); return claude.runs(projectId); }); });
+    ipcMain.handle('claude:save-run', (event, input: { projectId: string; runId: string; snapshotId: string; choice: ClaudeChoice }) => {
+      admit(event); return claude.reply(() => {
+        assertId(input?.projectId); assertId(input?.runId); assertId(input?.snapshotId);
+        return claude.saveRun(input);
+      });
     });
     ipcMain.handle('shell:get-status', (event) => {
       admit(event);

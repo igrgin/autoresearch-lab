@@ -197,7 +197,7 @@ try {
     const probe = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true, contextIsolation: false, sandbox: false } });
     try {
       await probe.loadURL('data:text/html,<html></html>');
-      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('configuration:request', {kind:'global:get',operationId:'00000000-0000-4000-8000-000000000000'}).then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:list', 'not-a-project').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:select', 'directory').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:credentials').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:discover', 'synthetic-reference').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:inspect', 'synthetic-reference', 'pod').then(() => ({ok:true}), () => ({ok:false}))])`);
+      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('configuration:request', {kind:'global:get',operationId:'00000000-0000-4000-8000-000000000000'}).then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:list', 'not-a-project').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:select', 'directory').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:credentials').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:discover', 'synthetic-reference').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:inspect', 'synthetic-reference', 'pod').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('claude:settings').then(() => ({ok:true}), () => ({ok:false}))])`);
     } finally { probe.destroy(); }
   });
   assert.equal(unauthorized.every(reply => reply.ok === false), true);
@@ -294,6 +294,93 @@ try {
   assert.equal(importReply.ok, true);
   assert.equal(importReply.value.filter(record => record.bytesUsable).length, 2);
   assert.ok(importReply.value.every(record => record.researchReadiness === 'not_prepared'));
+  // Launch the actual packaged worker and SDK with a fixed Models API fixture.
+  // Its native subprocess has external networking denied; no inference is sent.
+  const packagedClaude = await application.evaluate(async ({ app, utilityProcess }) => {
+    const fs = process.getBuiltinModule('node:fs/promises'); const path = process.getBuiltinModule('node:path');
+    const directory = await fs.realpath(await fs.mkdtemp(path.join(app.getPath('temp'), 'lab-packaged-claude-')));
+    const bootstrap = path.join(directory, 'fixture-bootstrap.cjs');
+    const workerPath = path.join(app.getAppPath(), '.webpack/main/claude-worker.cjs');
+    await fs.writeFile(bootstrap, `
+      global.fetch=async()=>new Response(JSON.stringify({data:[{id:'claude-opus-5-5',lifecycle:'active'}],has_more:false,last_id:null}));
+      const cp=require('node:child_process'),original=cp.spawn;
+      cp.spawn=(command,args,options)=>original(command,args.map(arg=>typeof arg==='string'?arg.replace('(allow network-outbound)',''):arg),options);
+      require(process.argv[2]);
+    `);
+    const worker = utilityProcess.fork(bootstrap, [workerPath], { env: { HOME: directory, TMPDIR: directory, PATH: '/usr/bin:/bin', LANG: 'en_US.UTF-8' }, stdio: 'pipe' });
+    worker.stdout?.resume(); worker.stderr?.resume();
+    let result; let nativePid;
+    try {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => { worker.kill(); reject(new Error('Packaged Claude worker fixture timed out.')); }, 50_000);
+        worker.on('message', message => { if (message.childPid) nativePid = message.childPid; if (message.result) result = message.result; });
+        worker.once('exit', () => { clearTimeout(timer); resolve(); });
+        worker.postMessage({ kind: 'discover', directory, executable: path.join(process.resourcesPath, 'claude-agent-sdk-darwin-arm64/claude'),
+          credentialId: '00500000-0000-4000-8000-000000000050', key: 'synthetic-packaged-native-claude-key' });
+      });
+      return result;
+    } finally {
+      if (nativePid) { try { process.kill(-nativePid, 'SIGKILL'); } catch { /* already gone */ } }
+      await fs.rm(directory, { recursive: true, force: true });
+    }
+  });
+  assert.equal(packagedClaude?.catalog?.complete, true);
+  assert.deepEqual(packagedClaude.catalog.models, [{ id: 'claude-opus-5-5', lifecycle: 'active' }]);
+  // Claude UI/IPC/store acceptance uses a controlled worker fixture, not live inference.
+  // Real SDK initialization and sandbox checks run separately with network denied.
+  await application.evaluate(({ utilityProcess }) => {
+    const { EventEmitter } = process.getBuiltinModule('node:events');
+    globalThis.originalUtilityFork = utilityProcess.fork;
+    globalThis.claudeFixtureCalls = [];
+    utilityProcess.fork = (file, args, options) => {
+      if (options?.serviceName !== 'Claude model access') return globalThis.originalUtilityFork(file, args, options);
+      const child = new EventEmitter();
+      child.kill = () => { child.emit('exit', 0); return true; };
+      child.postMessage = input => {
+        // Never record the raw private request carrying the fixture credential.
+        globalThis.claudeFixtureCalls.push(input.kind);
+        const catalog = { credentialId: input.credentialId, observedAt: new Date().toISOString(), complete: true,
+          source: 'anthropic_models+sdk_supportedModels', sdkVersion: '0.3.323', models: globalThis.claudeFixtureUnavailable ? [] : [{ id: 'claude-packaged-fixture-20261101', lifecycle: 'active' }] };
+        setImmediate(() => { child.emit('message', { result: input.kind === 'discover' ? { catalog } : { qualified: true } }); child.emit('exit', 0); });
+      };
+      return child;
+    };
+  });
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('heading', { name: 'Claude authentication and model', exact: true }).waitFor();
+  await page.getByLabel('Anthropic API key reference').selectOption({ label: 'Synthetic Claude access' });
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByLabel('Canonical Claude model').selectOption('claude-packaged-fixture-20261101');
+  await page.getByRole('button', { name: 'Save Claude default', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Claude default saved.' }).waitFor();
+  await application.evaluate(() => { globalThis.claudeFixtureUnavailable = true; });
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'The selected Claude model is unavailable' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Save Claude default', exact: true }).isDisabled(), true);
+  await application.evaluate(() => { globalThis.claudeFixtureUnavailable = false; });
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByRole('button', { name: 'Run bounded API access check', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Access check passed' }).waitFor();
+  const claudeSettings = await page.evaluate(() => window.lab.claude.settings());
+  assert.equal(claudeSettings.ok, true);
+  const claudeChoice = { integration: 'claude', credentialId: claudeSettings.value.selection.credentialId, modelId: claudeSettings.value.selection.modelId };
+  const invalidClaude = await page.evaluate(choice => window.lab.claude.save({ ...choice, modelId: 'sonnet' }, 1), claudeChoice);
+  assert.equal(invalidClaude.error.reason, 'invalid_model');
+  const unavailableClaude = await page.evaluate(choice => window.lab.claude.save({ ...choice, modelId: 'claude-missing-1' }, 1), claudeChoice);
+  assert.equal(unavailableClaude.error.reason, 'unavailable_model');
+  await page.getByRole('button', { name: 'Runs', exact: true }).click();
+  await page.getByRole('heading', { name: 'Run agent configuration', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByLabel('Project for run configuration').selectOption(first.projectId);
+  await page.getByRole('button', { name: 'Save run agent configuration', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Run agent configuration saved.' }).waitFor();
+  const runAgents = await page.evaluate(id => window.lab.claude.runInputs(id), first.projectId);
+  assert.equal(runAgents.ok, true); assert.equal(runAgents.value.length, 1);
+  assert.equal(runAgents.value[0].modelId, claudeChoice.modelId);
+  assert.ok(!JSON.stringify(runAgents).includes('synthetic-second-integration-check'));
+  await application.evaluate(({ utilityProcess }) => { utilityProcess.fork = globalThis.originalUtilityFork; });
+  await page.getByRole('button', { name: 'Projects', exact: true }).click();
+  await page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Second research', exact: true }) }).getByRole('button', { name: 'Open project', exact: true }).click();
   // A conflict must preserve the first project's source and expose an error.
   await page.getByRole('button', { name: 'New project', exact: true }).click();
   await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
@@ -314,7 +401,8 @@ try {
   const closing = page.waitForEvent('close');
   await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close());
   await closing;
-  assert.equal(await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length), 0);
+  const remainingWindows = await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map(window => ({ title: window.getTitle(), id: window.id })));
+  assert.deepEqual(remainingWindows, [], 'Native close should leave no application windows.');
   const reopening = application.waitForEvent('window');
   await application.evaluate(({ app }) => app.emit('activate'));
   const reopened = await reopening;
@@ -404,6 +492,12 @@ try {
   const openedReply = await restarted.evaluate((id) => window.lab.openProject(id), first.projectId);
   assert.deepEqual(openedReply, { ok: true, value: first });
   assert.equal(await readFile(path.join(first.location, 'research.py'), 'utf8'), '# retained source file\n');
+  const restoredClaude = await restarted.evaluate(() => window.lab.claude.settings());
+  assert.equal(restoredClaude.value.selection.modelId, claudeChoice.modelId);
+  const restoredRunAgents = await restarted.evaluate(id => window.lab.claude.runInputs(id), first.projectId);
+  assert.deepEqual(restoredRunAgents.value, runAgents.value);
+  const staleClaude = await restarted.evaluate(choice => window.lab.claude.save(choice, 1), claudeChoice);
+  assert.equal(staleClaude.error.reason, 'stale_catalog');
   // Unavailable folders stay listed; opening must never silently recreate them.
   await rename(first.location, `${first.location}-temporarily-unavailable`);
   await restarted.getByRole('button', { name: 'Refresh projects', exact: true }).click();
@@ -426,7 +520,7 @@ try {
   assert.equal(child.exitCode, 0);
   assert.deepEqual(rendererErrors, []);
   assert.deepEqual(consoleErrors, []);
-  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', localDatasetCopyMoveRecoveryConflict: 'passed', datasetOutcomeRestart: 'passed', importSenderIsolation: 'passed', importMetadataAdmission: 'passed', runpodDiscoveryFixturesAndIpc: 'passed', ...status };
+  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', localDatasetCopyMoveRecoveryConflict: 'passed', datasetOutcomeRestart: 'passed', importSenderIsolation: 'passed', importMetadataAdmission: 'passed', runpodDiscoveryFixturesAndIpc: 'passed', claudePackagedNativeWorkerOffline: 'passed', claudeSettingsAndRunPersistenceFixture: 'passed', ...status };
   await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report));
 } finally {
