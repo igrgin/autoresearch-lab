@@ -102,7 +102,7 @@ export function DefaultsSettings({ projectId }: { projectId?: string }) {
       finally { if (cache.current(generation)) setBusy(false); }
     }}>
       {record && <ChoicesEditor scope={projectId ? 'Project' : 'Global'} values={values} base={base} baseAvailable={baseAvailable} disabled={busy} onChange={next => { setValues(next); setRequestId(crypto.randomUUID()); setMessage(''); }} />}
-      <div className="configuration-actions"><button className="primary" disabled={busy || !record}>Save {projectId ? 'project' : 'global'} defaults</button><button type="button" className="secondary" disabled={busy} onClick={() => void load()}>Reload defaults</button></div>
+      <div className="configuration-actions"><button className="primary" disabled={busy || !record}>Save {projectId ? 'project' : 'global'} defaults</button><button type="button" className="secondary" disabled={busy} onClick={() => load()}>Reload defaults</button></div>
     </form>
     {message && <p role="status">{message}</p>}
   </section>;
@@ -135,7 +135,7 @@ export function ProjectConfigurations({ projectId }: { projectId: string }) {
     <section aria-label="Run configurations"><h2>Run configurations</h2>
       <p>Save choices for a new run. Data, initialization, hardware, evaluation and stopping setup are still required before research can start.</p>
       {error && <p className="error" role="alert">{error}</p>}
-      <div className="configuration-actions"><button type="button" className="secondary" disabled={busy} onClick={() => void prepare()}>{draft ? 'Prepare again from defaults' : 'Prepare new configuration'}</button><button type="button" className="secondary" disabled={busy} onClick={() => void refresh()}>Refresh saved configurations</button></div>
+      <div className="configuration-actions"><button type="button" className="secondary" disabled={busy} onClick={() => prepare()}>{draft ? 'Prepare again from defaults' : 'Prepare new configuration'}</button><button type="button" className="secondary" disabled={busy} onClick={() => refresh()}>Refresh saved configurations</button></div>
       {draft && <form aria-label="New run configuration" onSubmit={event => {
         event.preventDefault();
         void revalidate(async () => {
@@ -143,7 +143,7 @@ export function ProjectConfigurations({ projectId }: { projectId: string }) {
           return { selected: saved, snapshots: value(await window.lab.listConfigurations(projectId)) };
         });
       }}><ChoicesEditor scope="Run" values={overrides} base={draft.choices} disabled={busy} onChange={next => { setOverrides(next); setRequestId(crypto.randomUUID()); }} /><button className="primary" disabled={busy}>Save configuration</button></form>}
-      <ul className="saved-configurations">{snapshots.map((snapshot, index) => <li key={snapshot.snapshotId}><button type="button" className="secondary" disabled={busy} onClick={() => void revalidate(async () => ({
+      <ul className="saved-configurations">{snapshots.map((snapshot, index) => <li key={snapshot.snapshotId}><button type="button" className="secondary" disabled={busy} onClick={() => revalidate(async () => ({
         selected: value(await window.lab.getConfiguration(projectId, snapshot.snapshotId)), snapshots: value(await window.lab.listConfigurations(projectId)),
       }))}>View saved configuration {snapshots.length - index}</button><span>{new Date(snapshot.createdAt).toLocaleString()} · Unprepared</span></li>)}</ul>
       {selected && <section aria-label="Saved configuration" className="saved-configuration"><h3>Saved configuration</h3><p>Unprepared · Choices are fixed. Later default changes leave these values unchanged.</p><ChoicesSummary draft={selected} /><details><summary>Configuration identity</summary><p>Snapshot: {selected.snapshotId}</p><p>Run: {selected.runId}</p></details></section>}
