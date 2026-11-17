@@ -1,0 +1,34 @@
+{
+  "pr": "https://github.com/igrgin/autoresearch-lab/pull/109",
+  "sourceHead": "90357844fd52f7a6f642deb11c8f524d34c78907",
+  "sourceTree": "ace815a17cf9f7199c23600bb7b4bc7c28f015ab",
+  "buildCommand": "npm run package",
+  "buildPlatform": "darwin/arm64",
+  "appAsarSha256": "0588a75cb4ff38896311205e562b1939673b6d4503140e001d3ef842dfeddcce",
+  "sourceIdentity": {
+    "checkedGitBlobs": 382,
+    "changedTrackedFiles": []
+  },
+  "screenshots": [
+    {
+      "pr": 109,
+      "sourceHead": "90357844fd52f7a6f642deb11c8f524d34c78907",
+      "sourceTree": "ace815a17cf9f7199c23600bb7b4bc7c28f015ab",
+      "name": "after",
+      "description": "Saved Runpod credential reference and complete discovery of two controlled GPU Pods.",
+      "region": "Compute",
+      "zoom": 0.8,
+      "sha256": "9cb254c6f5c54924a6f416c38f8a6d063a5d05ff452c2456d0f585ef9c227b2a",
+      "dimensions": {
+        "width": 2070,
+        "height": 1526
+      },
+      "capturedAt": "2026-11-17T00:07:34.345Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "0588a75cb4ff38896311205e562b1939673b6d4503140e001d3ef842dfeddcce",
+      "file": "after.png"
+    }
+  ],
+  "conditions": "Fresh macOS arm64 package built from an exact frozen Git export of this PR head. Isolated synthetic profiles. Provider HTTP and agent processes controlled; actual application UI and host/coordinator routes. No live authentication, inference or training is implied. Captures have not been image-edited. Zoom and image hashes are recorded per file.",
+  "publication": "Stored on the existing evidence branch so the implementation head remains exactly the captured commit. Original capture artifacts and before images remain unchanged."
+}
