@@ -22,6 +22,12 @@ import { ImportPolicyHost, type ImportPolicyRequest } from './importer/policy';
 import { RunpodAdapter } from './providers/runpod';
 import { VastConnection } from './providers/vast-connection';
 import { vastFailure } from './providers/vast';
+import { ClaudeHost } from './claude/host';
+import { ownClaudePublication } from './claude/publication';
+import { runClaudeWorker } from './claude/electron-worker';
+import { ClaudeChoice, ClaudeFailure, ClaudeReply } from './claude/contracts';
+import { SelectionClient } from './claude/selection-client';
+import type { SelectionCommand, SelectionValue } from './claude/store';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -44,6 +50,14 @@ let startupFailure = 'Workspace startup failed. Restart the application.';
 type HostValue = ProjectRecord | WorkspaceProjects | ImportRecord[];
 const selections = new Map<string, { paths: string[]; directory: boolean }>();
 const pending = new Map<string, { resolve: (reply: ProjectReply<HostValue>) => void; timer: ReturnType<typeof setTimeout> }>();
+const selectionClient = new SelectionClient(message => {
+  if (!coordinator) throw new ClaudeFailure('unavailable');
+  coordinator.postMessage(message);
+}, undefined, undefined, command => {
+  if (!coordinator) throw new ClaudeFailure('unavailable');
+  return ownClaudePublication(security.matcher, security.recording, command);
+});
+const requestSelection = (selection: SelectionCommand): Promise<SelectionValue> => selectionClient.request(selection);
 
 function requestProjects(request: ProjectRequest | ImportRequest): Promise<ProjectReply<HostValue>> {
   return new Promise((resolve) => {
@@ -164,9 +178,14 @@ function startCoordinator(): Promise<ShellStatus> {
       if (!message?.id || !message.codexReply) return;
       codexClient.receive(message.id, message.codexReply);
     });
+    child.on('message', (message: { id?: string; selectionReply?: ClaudeReply<SelectionValue> }) => {
+      if (!message?.id || !message.selectionReply) return;
+      selectionClient.receive(message.id, message.selectionReply);
+    });
     child.once('exit', () => {
       researchSecurity.unavailable();
       importPolicy.close();
+      selectionClient.unavailable();
       codexClient.unavailable(); coordinator = null;
       clearTimeout(timer);
       for (const waiting of pending.values()) clearTimeout(waiting.timer);
@@ -356,6 +375,26 @@ if (!app.requestSingleInstanceLock()) {
     metadataHandle('codex:run-get', (event, projectId: string) => { admit(event); return codex.execute(() => codex.runSelection(projectId)); });
     metadataHandle('codex:run-save', (event, projectId: string, expectedRevision: number, choice: ChooseAgent, requestId: string) => {
       admit(event); return codex.execute(() => { assertId(requestId); return codex.saveRunSelection(projectId, expectedRevision, choice, requestId); });
+    });
+    const claude = new ClaudeHost(security.credentials, security.recording, security.initialize, runClaudeWorker, requestSelection,
+      async projectId => (await requestProjects({ kind: 'open', projectId, operationId: randomUUID() })).ok);
+    metadataHandle('claude:settings', event => { admit(event); return claude.reply(() => claude.settings()); });
+    metadataHandle('claude:recovery', event => { admit(event); return claude.reply(() => claude.recovery()); });
+    ipcMain.handle('claude:credentials', event => { admit(event); return openCredentialSettings(); });
+    metadataHandle('claude:discover', (event, id: string) => { admit(event); return claude.reply(() => { assertId(id); return claude.discover(id); }); });
+    metadataHandle('claude:save', (event, choice: ClaudeChoice, revision: number, requestId: string) => {
+      admit(event); return claude.reply(() => {
+        try { assertId(requestId); } catch { throw new ClaudeFailure('invalid_input'); }
+        return claude.save(choice, revision, requestId);
+      });
+    });
+    metadataHandle('claude:qualify', (event, choice: ClaudeChoice) => { admit(event); return claude.reply(() => claude.qualify(choice)); });
+    metadataHandle('claude:runs', (event, projectId: string) => { admit(event); return claude.reply(() => { assertId(projectId); return claude.runs(projectId); }); });
+    metadataHandle('claude:save-run', (event, input: { projectId: string; runId: string; snapshotId: string; choice: ClaudeChoice }) => {
+      admit(event); return claude.reply(() => {
+        assertId(input?.projectId); assertId(input?.runId); assertId(input?.snapshotId);
+        return claude.saveRun(input);
+      });
     });
     ipcMain.handle('shell:get-status', (event) => {
       admit(event);

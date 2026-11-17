@@ -1,3 +1,5 @@
+import { ClaudeSelectionStore, type SelectionCommand } from './claude/store';
+import { ClaudeFailure, failureReply } from './claude/contracts';
 import { CodexStore } from './codex/store';
 import { codexStoreFailure, CodexFailure } from './codex/errors';
 import type { CodexStoreCommand } from './codex/contract';
@@ -51,10 +53,12 @@ function admitConfiguration(configurationRequestId: string, value: unknown): Pro
   });
 }
 let codex: CodexStore;
+let agentSettings: ClaudeSelectionStore;
 try {
   catalog = new ProjectCatalog(applicationData);
   configurations = new ConfigurationStore(applicationData, catalog);
   codex = new CodexStore(applicationData);
+  agentSettings = new ClaudeSelectionStore(applicationData);
 } catch {
   catalog?.close(); catalog = undefined;
   process.parentPort.postMessage({ coordinator: 'failed', message: 'Workspace storage could not open. Check application-data folder permissions and free disk space. If this workspace was created by a newer app, reopen it with that version. Existing files were left intact.' });
@@ -75,7 +79,7 @@ if (catalog) {
     process.parentPort.postMessage({ importAdmissionId: id, names });
   }) });
 
-  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; configurationAdmissionId?: string; codex?: CodexStoreCommand; record?: SafeRecord; revision?: string; ok?: boolean } }) => {
+  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; configurationAdmissionId?: string; codex?: CodexStoreCommand; selection?: SelectionCommand; record?: SafeRecord; revision?: string; ok?: boolean } }) => {
     if (data.channel === 'import_matching') { importPolicy.receive(data as ImportPolicyReply); return; }
     if (data.channel === 'import_metadata_revision') {
       const pending = metadataRequests.get(data.id); if (!pending) return;
@@ -85,6 +89,15 @@ if (catalog) {
       return;
     }
     if (data.importAdmissionId) { admissions.get(data.importAdmissionId)?.(data.allowed === true); return; }
+    if (data.selection) {
+      let selectionReply;
+      try { selectionReply = { ok: true, value: agentSettings.handle(data.selection) }; }
+      catch (error) { selectionReply = failureReply(error instanceof ClaudeFailure ? error.reason : 'unavailable', data.id); }
+      // A reply transport failure after commit is handled as unknown in main.
+      process.parentPort.postMessage({ id: data.id, selectionReply });
+
+      return;
+    }
     if (data.codex) {
       let codexReply;
       try {
@@ -113,5 +126,5 @@ if (catalog) {
     process.parentPort.postMessage({ id: data.id, reply });
   });
   process.parentPort.postMessage({ coordinator: 'ready', sqliteVersion: activeCatalog.sqliteVersion });
-  process.on('exit', () => { codex.close(); imports.close(); configurations.close(); activeCatalog.close(); });
+  process.on('exit', () => { agentSettings.close(); codex.close(); imports.close(); configurations.close(); activeCatalog.close(); });
 }

@@ -38,7 +38,8 @@ export class CredentialService {
   }
   async initialize(): Promise<void> {
     return this.serial(async () => {
-      this.#ready = false;
+      // Publish a reload atomically. Concurrent readers retain the previously
+      // validated vault; an initial load stays unavailable until it succeeds.
       try {
         if (!await this.encryption.available()) throw new Error();
         await this.files.prepare();
@@ -58,7 +59,7 @@ export class CredentialService {
           if (entry.status === 'revoked') this.#revoked.add(entry.id);
         }
         this.#vault = vault; this.#ready = true;
-      } catch { throw new SecurityError('authentication_required'); }
+      } catch { this.#ready = false; throw new SecurityError('authentication_required'); }
     });
   }
   private async save(vault: Vault): Promise<void> {

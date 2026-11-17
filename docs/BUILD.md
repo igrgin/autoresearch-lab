@@ -464,3 +464,48 @@ is replaced by the test harness; production has no test runtime override. It
 writes `out/smoke/codex.json`. These checks prove fixture behavior and local
 integration, not live API-key validity, account/model entitlement, paid inference,
 or the future action sandbox. No real host credential is used.
+
+## Claude settings and run agent inputs
+
+Open **Settings** in the workspace, then **Manage API keys** to save an Anthropic
+API key in the existing trusted credential window. Return to settings and choose
+**Reload credentials**, the key reference, and **Refresh Claude models**. The
+picker shows only canonical resolved IDs present in both the complete authenticated
+Models API inventory and the pinned Agent SDK's `supportedModels()` catalog.
+Retired, unresolved and unsupported choices are excluded. A saved choice never
+switches automatically when an alias changes or access fails.
+
+**Save Claude default** stores the integration, canonical ID, opaque credential
+reference and catalog observation time. Catalogs expire after 15 minutes and are
+discarded on restart; restoring a choice does not reestablish access. Refresh
+before saving or checking access. Failed refresh, invalid choice, permission
+denial and stale discovery have separate diagnostics. Replacement/revocation
+requires explicitly selecting an active reference again.
+
+**Run bounded API access check** is an explicit, potentially billable inference
+request with a fixed prompt/schema, at most three SDK turns, a 45-second worker
+deadline and an estimated $0.05 SDK budget. The estimate is not a hard billing
+cap. It requires terminal success, validated structured output and matching
+observed model metadata; listing alone is never reported as inference proof.
+The integration uses Agent SDK **0.3.323** / Claude Code **2.1.323** in a private
+utility worker and an OS-sandboxed native subprocess, with isolated state/temp,
+explicit environment, no host/subscription authentication, no built-in command
+tools, no filesystem settings, disabled slash commands and no native transcript
+persistence. Only the pinned binary's known compiled-in plugin/agent metadata is
+accepted. This model-check surface executes no candidate code or research tools;
+general research actions and their enforcement remain #51/#54 work.
+
+The **Runs** page saves the agent portion of a new run configuration for a ready
+project. These immutable `RunAgentSnapshot` inputs preserve the selected model
+and reference independently of later default changes. Remaining run preparation
+and execution are separate work. The coordinator is the sole writer of the
+separate versioned `agent-settings.sqlite` store; registry/project schemas are
+unchanged, and no credential values enter configuration records.
+
+`npm test` includes Claude catalog/access/persistence/failure tests and real
+native SDK initialization with external networking denied, plus an OS sandbox
+test using synthetic files. `npm run smoke` also launches the packaged worker
+against a controlled Models API fixture with networking denied, then exercises
+settings, run-agent saving, rejected choices and restart through the actual UI,
+IPC, Keychain vault and coordinator. These tests do not prove live Anthropic
+authentication, account entitlement, inference success or signed distribution.

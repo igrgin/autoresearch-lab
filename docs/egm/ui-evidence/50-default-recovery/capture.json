@@ -1,0 +1,10 @@
+{
+  "beforePackageHead": "2d3951292d73c8e1b0d17a15133c72a994cb41ad",
+  "after": "combined repaired package; exact final head/tree correlated in parent validation receipt",
+  "runtime": "macOS arm64 / Electron45.3.2 / Node24.22.3",
+  "fixture": "Synthetic credentials and controlled clean discovery; actual renderer IPC/store; no inference",
+  "images": {
+    "before.png": "f3f2d85391fb58a78b3b7fc3f6bf39ae4ea0f6cc8b2441d48a767c9778cadb64",
+    "after.png": "1f31796611451c179ef6836dfa12f53dfe56a9f3ba54687f059fb0f5c9d3ad26"
+  }
+}

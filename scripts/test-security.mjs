@@ -46,7 +46,7 @@ async function fixture() {
   return { directory, sanitizer, credentials, entry, recording, recordFiles, vaultFiles, crypto };
 }
 runpodTests({ require, build, fixture, newId, secret });
-metadataPolicyTests({ require, build, fixture, newId });
+metadataPolicyTests({ require, build, fixture, newId, claude: true });
 async function assertAbsent(f, ids) {
   const variants = [secret, JSON.stringify(secret).slice(1, -1), encodeURIComponent(secret)];
   const authorizedScope = ids.length ? (await f.recording.read(ids[0])).envelope : scope();
@@ -347,6 +347,32 @@ test('replacement metadata persists its safe version relationship without duplic
   const s=scope(); await assert.rejects(second.bindAdapter({component:'runpod_adapter',purpose:'inspect',accountId:old.accountId,credentialId:old.id,scope:s},async()=>true).execute(s),{code:'authentication_required'});
 });
 
+// A reload must not revoke an already admitted sibling request while awaiting I/O.
+test('concurrent vault and recording reloads publish validated state atomically and fail closed on a failed reload', async () => {
+  const f = await fixture();
+  let release; let started;
+  const entered = new Promise(resolve => { started = resolve; });
+  const available = f.crypto.available;
+  f.crypto.available = async () => { started(); await new Promise(resolve => { release = resolve; }); return true; };
+  const loading = f.credentials.initialize(); await entered;
+  assert.equal(f.credentials.list().find(item => item.id === f.entry.id).status, 'active');
+  release(); await loading; f.crypto.available = available;
+  const read = f.recordFiles.read.bind(f.recordFiles);
+  let resume; let reading; const blocked = new Promise(resolve => { reading = resolve; });
+  f.recordFiles.read = async name => { if (name === 'security-state.json') { reading(); await new Promise(resolve => { resume = resolve; }); } return read(name); };
+  const reload = f.recording.initialize(); await blocked;
+  assert.doesNotThrow(() => f.recording.assertCanAct(scope()));
+  const s = scope(); const capture = f.recording.capture(meta(s), { text: 'Admitted sibling' });
+  resume(); await reload; assert.equal((await capture).coverage, 'complete');
+  f.recordFiles.read = read;
+  await writeFile(path.join(f.directory, 'records', 'security-state.json'), 'invalid state');
+  await assert.rejects(f.recording.initialize(), { code: 'capture_failed' });
+  assert.throws(() => f.recording.assertCanAct(scope()), { code: 'capture_failed' });
+  f.crypto.available = async () => false;
+  await assert.rejects(f.credentials.initialize(), { code: 'authentication_required' });
+  assert.throws(() => f.credentials.list(), { code: 'authentication_required' });
+});
+
 test('URL userinfo after diff markers and punctuation is scrubbed without quadratic scheme scanning', () => {
  const sanitizer=new Sanitizer();
  for(const prefix of ['+','-','.','++','.-','context: ']) {
@@ -355,6 +381,38 @@ test('URL userinfo after diff markers and punctuation is scrubbed without quadra
  }
  const long='q-'.repeat(1.5*1024*1024);assert.equal(sanitizer.text(long).value,long);
 });
+
+
+test('recording reload cannot erase immediate exposure quarantine before its queued persistence', async () => {
+  const f = await fixture(); const s = scope(); const sessionId = newId();
+  const canary = 'RetainedReloadRace50';
+  const saved = await f.recording.capture(meta(s), { text: canary });
+  const empty = { version: 1, incidents: [], fencedRuns: [], withheld: [], retiredSessions: [] };
+  await f.recordFiles.write('security-state.json', JSON.stringify(empty));
+  const read = f.recordFiles.read.bind(f.recordFiles); let resume, started;
+  const entered = new Promise(resolve => { started = resolve; });
+  f.recordFiles.read = async name => {
+    const bytes = await read(name);
+    if (name === 'security-state.json') { started(); await new Promise(resolve => { resume = resolve; }); }
+    return bytes;
+  };
+  const reload = f.recording.initialize(); await entered;
+  const exposed = await f.credentials.register('model_download', newId(), 'Later model metadata', canary);
+  const checking = f.recording.recheck(saved);
+  const containment = f.recording.incident(s, { recordIds: [saved.envelope.eventId], sessionIds: [sessionId], reach: 'exposed', destinations: ['application'], reason: 'unsafe_capture' });
+  assert.throws(() => f.recording.assertCanAct(s, sessionId), { code: 'capture_failed' });
+  resume(); await reload; const [, incident] = await Promise.all([checking, containment]); f.recordFiles.read = read;
+  const state = JSON.parse(await readFile(path.join(f.directory, 'records', 'security-state.json'), 'utf8'));
+  assert.ok(state.incidents.some(item => item.incidentId === incident.incidentId));
+  assert.ok(state.withheld.includes(saved.envelope.eventId)); assert.ok(state.fencedRuns.includes(s.runId)); assert.ok(state.retiredSessions.includes(sessionId));
+  assert.throws(() => f.recording.assertCanAct(s), { code: 'capture_failed' });
+  await f.credentials.finishRemediation(exposed.id);
+  const restarted = new SafeRecording(f.recordFiles, f.sanitizer, id => f.credentials.revoke(id)); await restarted.initialize();
+  assert.equal((await restarted.read(saved.envelope.eventId)).omission, 'quarantined');
+  assert.throws(() => restarted.assertCanAct(s, sessionId), { code: 'capture_failed' });
+});
+
+
 test('unchanged vault reload can finish while metadata publication owns matching policy', async () => {
   const f = await fixture(); const release = f.sanitizer.holdMatchingPolicy(); let timer;
   const reload = f.credentials.initialize();
