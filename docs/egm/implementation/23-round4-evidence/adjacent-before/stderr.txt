@@ -1,0 +1,19 @@
+node:internal/errors:986
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/node_modules/electron/dist/Electron.app/Contents/MacOS/Electron --test --test-name-pattern=import publication rejects .webpack/tests/imports.cjs
+    at genericNodeError (node:internal/errors:986:15)
+    at wrappedFn (node:internal/errors:540:14)
+    at checkExecSyncError (node:child_process:943:11)
+    at execFileSync (node:child_process:979:15)
+    at file:///private/tmp/pr113-hardlink-repair/focused.mjs:7:1 {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 33427,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v24.22.3

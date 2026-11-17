@@ -337,3 +337,11 @@ main { padding-bottom: 24px; }
 .choices-summary dt { font-weight: 600; margin-top: 12px; }
 .choices-summary dt small { font-size: 12px; margin: 3px 0; }
 .choices-summary dd { margin: 6px 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.dataset-imports { border-top: 1px solid #dce5df; margin-top: 24px; padding-top: 16px; }
+.dataset-imports p { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.dataset-imports label { display: grid; gap: 6px; margin: 12px 0; }
+.dataset-imports select { width: 100%; padding: 10px; border: 1px solid #c7d2ca; border-radius: 6px; background: white; }
+.import-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.import-record { margin-top: 14px; padding: 12px; border: 1px solid #dce5df; border-radius: 8px; }
+.import-record strong { overflow-wrap: anywhere; font-size: 13px; }
+.import-record progress { width: 100%; }

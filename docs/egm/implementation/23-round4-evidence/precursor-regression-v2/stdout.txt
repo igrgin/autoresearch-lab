@@ -1,0 +1,53 @@
+✔ ordinary tokenized directory imports without quarantine (1155.804667ms)
+✔ aggregate metadata above the string bound uses bounded pieces and rechecks cached directory identity paths (1826.140458ms)
+✔ a matcher change during a multi-piece scan invalidates earlier admitted pieces (956.174916ms)
+✔ all import replies recheck retained metadata and persist exposure quarantine before disclosure (1464.149917ms)
+✔ private import recheck fails closed on unavailable security response (1174.695459ms)
+✔ private import recheck fails closed on omitted security response (1219.024209ms)
+✔ private import recheck fails closed on changed security response (983.6055ms)
+✔ omitting the private import security port cannot silently admit or reuse metadata (276.289375ms)
+✔ background copied work stops when private metadata becomes quarantined (564.748584ms)
+✔ background before_unlink work stops when private metadata becomes quarantined (955.322375ms)
+✔ move retains source until trusted confirmation; cleanup failure and new/changed files preserve the published copy (1208.393625ms)
+✔ post-unlink failure reconciles deletion intent after the source root was removed and restart (1179.547666ms)
+✔ deletion-intent recovery preserves symlink source replacement (1049.01325ms)
+✔ deletion-intent recovery preserves new-file source replacement (1196.617625ms)
+✔ deletion-intent recovery preserves changed-file source replacement (1169.281166ms)
+✔ source replacement while deletion-intent policy checking awaits is preserved (900.081417ms)
+✔ confirmed dedicated move removes only matching files and completes cleanup; duplicate start is idempotent (992.183416ms)
+✔ confirmed move of hard-linked source aliases cleans both names and keeps independent destination bytes (850.215ms)
+✔ SIGKILL after the first hard-link unlink recovers alias cleanup after restart (1309.350334ms)
+✔ hard-link cleanup preserves changed bytes before confirmation (1187.815292ms)
+✔ hard-link cleanup preserves same-byte replacement before confirmation (1202.640584ms)
+✔ hard-link cleanup preserves symlink before confirmation (1104.549834ms)
+✔ hard-link cleanup preserves ctime only before confirmation (1211.731041ms)
+✔ hard-link cleanup preserves changed bytes after unlink restart (1560.627ms)
+✔ hard-link cleanup preserves same-byte replacement after unlink restart (1487.611333ms)
+✔ hard-link cleanup preserves symlink after unlink restart (1500.280833ms)
+✔ hard-link cleanup preserves ctime only after unlink restart (2015.698958ms)
+✔ SIGKILL before the alias unlink receipt retains uncertain source authority on every retry (2024.942167ms)
+✔ post-unlink failure retains the alias identity receipt and reconciles deletion intent after restart (1575.413792ms)
+✔ hard-link cleanup rechecks the destination before removing a surviving alias (1918.091ms)
+✔ hard-link identity refresh cannot adopt changes made while its policy receipt awaits (1199.52375ms)
+✔ SIGKILL at unlinked reopens a named partial operation and recovers without duplicate publication or source loss (1346.219959ms)
+✔ reusing a command key in another project cannot alias import identity or cross project data (1294.818083ms)
+✔ import publication rejects a stale final metadata approval before SQLite persistence (375.0795ms)
+✔ import publication without matching ownership fails closed before INSERT and preserves source bytes (901.950667ms)
+✔ import matching ownership lasts through writer completion and ignores duplicate grant replies (1.183083ms)
+✔ late import ownership grants cannot revive an expired writer or authorize persistence (0.518208ms)
+✔ import acquire cancellation before asynchronous initialization cannot leak or grant ownership (0.25025ms)
+✔ a dropped import writer release retains matching ownership until confirmed utility exit (0.293375ms)
+✔ uncertain import grant delivery retains ownership until writer release and acquisition failures grant none (0.199833ms)
+✔ leased import policy checks complete while credential reload waits for the same writer (284.261709ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42745.363541
+Native import matching ownership normal: passed; actual coordinator, SQLite and source preservation.
+Native import matching ownership late-grant: passed; actual coordinator, SQLite and source preservation.
+Native import matching ownership dropped-release: passed; actual coordinator, SQLite and source preservation.
+Native import matching ownership denied: passed; actual coordinator, SQLite and source preservation.

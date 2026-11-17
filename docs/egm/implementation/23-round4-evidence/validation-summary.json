@@ -1,0 +1,62 @@
+{
+  "findings": [
+    "PR113-F01",
+    "PR113-C01"
+  ],
+  "subject_id": "99241b6ada0fa0613e428cfd7dee5aacabf8c5f3f2e026957de33333f92b40e7",
+  "original_hardlink": {
+    "tests": 247,
+    "passed": 245,
+    "failed": 2,
+    "controlled_7000_file_ms": 494503
+  },
+  "original_stale_approval": {
+    "tests": 1,
+    "failed": 1
+  },
+  "final_focused": {
+    "tests": 41,
+    "passed": 41,
+    "native_cases": 4
+  },
+  "final_check": {
+    "tests": 389,
+    "passed": 389,
+    "native_transport_cases": 10,
+    "controlled_7000_file_ms": 319391
+  },
+  "checks": {
+    "regression": {
+      "passed": true,
+      "exit_code": 0,
+      "duration_seconds": 65.115,
+      "subject_id": "99241b6ada0fa0613e428cfd7dee5aacabf8c5f3f2e026957de33333f92b40e7"
+    },
+    "check": {
+      "passed": true,
+      "exit_code": 0,
+      "duration_seconds": 467.848,
+      "subject_id": "99241b6ada0fa0613e428cfd7dee5aacabf8c5f3f2e026957de33333f92b40e7"
+    },
+    "make": {
+      "passed": true,
+      "exit_code": 0,
+      "duration_seconds": 54.063,
+      "subject_id": "99241b6ada0fa0613e428cfd7dee5aacabf8c5f3f2e026957de33333f92b40e7"
+    },
+    "smoke": {
+      "passed": true,
+      "exit_code": 0,
+      "duration_seconds": 68.57,
+      "subject_id": "99241b6ada0fa0613e428cfd7dee5aacabf8c5f3f2e026957de33333f92b40e7"
+    }
+  },
+  "sqlite_engine_version": "3.54.1",
+  "better_sqlite3_package_version": "13.1.1",
+  "environment_label_correction": "The immutable helper environment label SQLite13.1.1 denotes the better-sqlite3 npm package, not the SQLite engine. Actual packaged SQLite 3.54.1 is reported in packaged-result.json. Previous receipts are preserved unchanged.",
+  "live_decisions_rechecked": "unchanged for all nine issues",
+  "independent_review_executed": false,
+  "independent_review_owner": "parent",
+  "push_performed": false,
+  "qualification": "Controlled local fixtures, actual native IPC/SQLite, SIGKILL, unsigned macOS arm64 package and stubbed packaged smoke; no live credentials, inference, providers, hostile filesystem mutation or power-loss qualification."
+}

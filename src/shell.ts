@@ -1,4 +1,5 @@
 import type { ConfigurationBridge } from './configuration-bridge';
+import type { ImportAction, ImportRecord, ImportSelection, StartImport } from './imports';
 import type { CreateProject, ProjectRecord, ProjectReply, WorkspaceProjects } from './projects';
 
 export interface ShellStatus {
@@ -11,6 +12,10 @@ export interface ShellBridge extends ConfigurationBridge {
   metadataGeneration(): number;
   metadataRevision(): number;
   onMetadataInvalidated(listener: () => void): () => void;
+  selectImportSource(kind: 'directory' | 'files'): Promise<ImportSelection | null>;
+  startImport(projectId: string, input: StartImport): Promise<ProjectReply<ImportRecord[]>>;
+  listImports(projectId: string): Promise<ProjectReply<ImportRecord[]>>;
+  importAction(projectId: string, importId: string, expectedRevision: number, action: ImportAction): Promise<ProjectReply<ImportRecord[]>>;
   getStatus(): Promise<ShellStatus>;
   listProjects(): Promise<ProjectReply<WorkspaceProjects>>;
   createProject(input: CreateProject): Promise<ProjectReply<ProjectRecord>>;

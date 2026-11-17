@@ -100,6 +100,26 @@ test('recursive fields, recognizable tokens, private keys and URL authority are 
   const clean = JSON.stringify(sanitizer.filter(raw).body);
   for (const value of ['unknown', 'synthetic1234567890', 'random-value', 'someone']) assert.ok(!clean.includes(value));
 });
+
+test('metadata cache revisions track matcher changes and survive unchanged vault reloads', async () => {
+  const f = await fixture(); const envelope = meta(scope(), 'file_name');
+  const original = f.recording.metadataRevision(envelope);
+  await f.credentials.initialize(); await f.recording.initialize();
+  assert.equal(f.recording.metadataRevision(envelope), original);
+  const id = newId(); f.sanitizer.register(id, 'SyntheticMetadataRevision23');
+  const registered = f.recording.metadataRevision(envelope); assert.notEqual(registered, original);
+  f.sanitizer.register(id, 'SyntheticMetadataRevision23'); assert.equal(f.recording.metadataRevision(envelope), registered);
+  f.sanitizer.register(id, 'ChangedSyntheticMetadataRevision23');
+  const changed = f.recording.metadataRevision(envelope); assert.notEqual(changed, registered);
+  f.sanitizer.forget(id); assert.notEqual(f.recording.metadataRevision(envelope), changed);
+  const fresh = new SafeRecording(f.recordFiles, f.sanitizer, value => f.credentials.revoke(value)); await fresh.initialize();
+  assert.notEqual(fresh.metadataRevision(envelope), f.recording.metadataRevision(envelope));
+  const incident = await fresh.incident(envelope, { recordIds: [envelope.eventId], sessionIds: [], reach: 'exposed', destinations: ['application'], reason: 'unsafe_capture' });
+  assert.throws(() => fresh.metadataRevision(envelope), { code: 'capture_failed' });
+  await fresh.recover(incident.incidentId, { replacementVerified: true, boundaryVerified: true, effectsReconciled: true,
+    containmentComplete: true, explicitResume: true, freshSessionId: newId() });
+  assert.throws(() => fresh.metadataRevision(envelope), { code: 'capture_failed' });
+});
 test('unsupported/cyclic/getter/nested/non-finite inputs omit without evaluating getters', async () => {
   const f = await fixture(); let invoked = false; const cycle = {}; cycle.self = cycle;
   const getter = Object.defineProperty({}, 'value', { enumerable: true, get() { invoked = true; return secret; } });

@@ -1,0 +1,78 @@
+{
+  "retrieval": "gh issue view --json number,title,state,body,comments",
+  "checkedAt": "2026-11-16T20:33:20.687081+00:00",
+  "issues": [
+    {
+      "issue": 23,
+      "state": "OPEN",
+      "comments": 0,
+      "initial_sha256": "212f7088f1e2bb8a4098780e169de864499df6c4b60fb0a7f5bd7c97d9c30b02",
+      "final_sha256": "212f7088f1e2bb8a4098780e169de864499df6c4b60fb0a7f5bd7c97d9c30b02",
+      "unchanged": true
+    },
+    {
+      "issue": 22,
+      "state": "CLOSED",
+      "comments": 1,
+      "initial_sha256": "606c016a8895ee2a9f98aa1ad9c2169163fbcabab39116ec3f26afaa54b363d0",
+      "final_sha256": "606c016a8895ee2a9f98aa1ad9c2169163fbcabab39116ec3f26afaa54b363d0",
+      "unchanged": true
+    },
+    {
+      "issue": 19,
+      "state": "CLOSED",
+      "comments": 0,
+      "initial_sha256": "6256ebad0e926a08b284ca26eafc1968937b026f1d077c4dae6908d512980861",
+      "final_sha256": "6256ebad0e926a08b284ca26eafc1968937b026f1d077c4dae6908d512980861",
+      "unchanged": true
+    },
+    {
+      "issue": 15,
+      "state": "CLOSED",
+      "comments": 5,
+      "initial_sha256": "3bfcdd19f036fd80ea32846889317767ade69851ab02ffbcdc2a19be27ee5277",
+      "final_sha256": "3bfcdd19f036fd80ea32846889317767ade69851ab02ffbcdc2a19be27ee5277",
+      "unchanged": true
+    },
+    {
+      "issue": 16,
+      "state": "CLOSED",
+      "comments": 6,
+      "initial_sha256": "b2bfa20d18c277160547b419eb4f1bf4547a091cbadd39515d5cffd4d679dab8",
+      "final_sha256": "b2bfa20d18c277160547b419eb4f1bf4547a091cbadd39515d5cffd4d679dab8",
+      "unchanged": true
+    },
+    {
+      "issue": 17,
+      "state": "CLOSED",
+      "comments": 1,
+      "initial_sha256": "e017f982fce87e44f62ce4fd23b1d0a3ec1ab0ae3540b5623b9120d421fab4e2",
+      "final_sha256": "e017f982fce87e44f62ce4fd23b1d0a3ec1ab0ae3540b5623b9120d421fab4e2",
+      "unchanged": true
+    },
+    {
+      "issue": 24,
+      "state": "OPEN",
+      "comments": 0,
+      "initial_sha256": "c2c7d89ed0f4a3217a644dd9ea50fd5169923b9cf85167451856a9ca527e1ffb",
+      "final_sha256": "c2c7d89ed0f4a3217a644dd9ea50fd5169923b9cf85167451856a9ca527e1ffb",
+      "unchanged": true
+    },
+    {
+      "issue": 25,
+      "state": "OPEN",
+      "comments": 0,
+      "initial_sha256": "15f8d9b909959ddb1a2ce193cc6937dcb07d9be32c8fd199014c3765c32aa8fe",
+      "final_sha256": "15f8d9b909959ddb1a2ce193cc6937dcb07d9be32c8fd199014c3765c32aa8fe",
+      "unchanged": true
+    },
+    {
+      "issue": 26,
+      "state": "OPEN",
+      "comments": 0,
+      "initial_sha256": "b54727042e374dfa4f49faa73efb5c724b128ddb9a13ef47db514a4d6961744e",
+      "final_sha256": "b54727042e374dfa4f49faa73efb5c724b128ddb9a13ef47db514a4d6961744e",
+      "unchanged": true
+    }
+  ]
+}

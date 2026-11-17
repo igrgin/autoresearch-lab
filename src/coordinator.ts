@@ -1,3 +1,6 @@
+import type { ImportRequest } from './imports';
+import { DatasetImports } from './importer/importer';
+import { ImportPolicyClient, type ImportPolicyReply } from './importer/policy';
 import { ConfigurationStore } from './configuration/store';
 import type { ConfigurationRequest } from './configuration';
 import { randomUUID } from 'node:crypto';
@@ -12,6 +15,19 @@ import { SecurityError } from './security/common';
 // Matching material stays in main's credential service. The database writer
 // requests memory-only admission/rechecks on this private utility-process port.
 const admission = new ResearchSecurityClient(message => process.parentPort.postMessage(message));
+const importPolicy = new ImportPolicyClient(message => process.parentPort.postMessage(message));
+// Import inventories cross the policy boundary only as bounded pieces. This
+// identity-only probe validates cached pieces against current matching and
+// durable quarantine; it carries no source paths or inventory payload.
+const metadataRequests = new Map<string, { resolve: (revision: string) => void; reject: () => void; timer: ReturnType<typeof setTimeout> }>();
+function metadataRevision(meta: Envelope): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const id = randomUUID(); const fail = () => reject(new SecurityError('capture_failed'));
+    const timer = setTimeout(() => { metadataRequests.delete(id); fail(); }, 15_000);
+    metadataRequests.set(id, { resolve, reject: fail, timer });
+    process.parentPort.postMessage({ channel: 'import_metadata_revision', id, meta });
+  });
+}
 
 // Main provides the OS application-data location; the utility coordinator is
 // the sole writer for registry/history, project files and Git operations.
@@ -42,7 +58,28 @@ try {
 }
 if (catalog) {
   const activeCatalog = catalog;
-  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest; configuration?: ConfigurationRequest; configurationAdmissionId?: string; allowed?: boolean; record?: SafeRecord; ok?: boolean } }) => {
+  const admissions = new Map<string, (allowed: boolean) => void>();
+  const imports = new DatasetImports(projectId => {
+    const reply = activeCatalog.handle({ kind: 'open', operationId: randomUUID(), projectId });
+    if (!reply.ok || !('projectId' in reply.value)) throw new Error('Project unavailable');
+    return reply.value;
+  }, { recording: { recheck:admission.recheck, metadataRevision }, ownMetadata: meta => importPolicy.authority(meta), admitNames: names => new Promise(resolve => {
+    const id = randomUUID();
+    const timer = setTimeout(() => { admissions.delete(id); resolve(false); }, 15000);
+    admissions.set(id, allowed => { clearTimeout(timer); admissions.delete(id); resolve(allowed); });
+    process.parentPort.postMessage({ importAdmissionId: id, names });
+  }) });
+
+  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest | ImportRequest; importAdmissionId?: string; allowed?: boolean; configuration?: ConfigurationRequest; configurationAdmissionId?: string; record?: SafeRecord; revision?: string; ok?: boolean } }) => {
+    if (data.channel === 'import_matching') { importPolicy.receive(data as ImportPolicyReply); return; }
+    if (data.channel === 'import_metadata_revision') {
+      const pending = metadataRequests.get(data.id); if (!pending) return;
+      clearTimeout(pending.timer); metadataRequests.delete(data.id);
+      if (data.ok && typeof data.revision === 'string' && data.revision.length > 0 && data.revision.length <= 200) pending.resolve(data.revision);
+      else pending.reject();
+      return;
+    }
+    if (data.importAdmissionId) { admissions.get(data.importAdmissionId)?.(data.allowed === true); return; }
     if (data.configurationAdmissionId) { configurationAdmissions.get(data.configurationAdmissionId)?.(data.allowed === true); return; }
     if (data.configuration) { process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, value => admitConfiguration(data.id, value)) }); return; }
     if (data.channel === 'research_security') {
@@ -54,9 +91,9 @@ if (catalog) {
         process.parentPort.postMessage({ channel: 'research', id: data.id, reply }));
       return;
     }
-    const reply = data.request?.kind?.startsWith('compute.') ? activeCatalog.reservations.handle(data.request as ReservationRequest) : activeCatalog.handle(data.request as ProjectRequest);
+    const reply = data.request?.kind?.startsWith('compute.') ? activeCatalog.reservations.handle(data.request as ReservationRequest) : data.request?.kind?.startsWith('imports:') ? await imports.handle(data.request as ImportRequest) : activeCatalog.handle(data.request as ProjectRequest);
     process.parentPort.postMessage({ id: data.id, reply });
   });
   process.parentPort.postMessage({ coordinator: 'ready', sqliteVersion: activeCatalog.sqliteVersion });
-  process.on('exit', () => { configurations.close(); activeCatalog.close(); });
+  process.on('exit', () => { imports.close(); configurations.close(); activeCatalog.close(); });
 }

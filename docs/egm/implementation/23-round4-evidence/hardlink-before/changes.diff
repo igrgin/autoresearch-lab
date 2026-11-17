@@ -1,0 +1,68 @@
+File: tests/imports.test.ts
+Before: {'sha256': '47380b7e3e2f946ef6e523c61bc41d1fcc68ad3a07eafc8f8bd420608a7813aa', 'mode': 420}
+After: {'sha256': '065c85065b69ac93dab01be38664e19f7d77709f84fddaf49e7a95f62e6bfc78', 'mode': 420}
+--- before/tests/imports.test.ts
++++ after/tests/imports.test.ts
+@@ -1,7 +1,7 @@
+ import assert from 'node:assert/strict';
+ import { spawnSync } from 'node:child_process';
+ import { randomUUID } from 'node:crypto';
+-import { chmod, mkdir, mkdtemp, readFile, realpath, readdir, rm, rename, symlink, writeFile, stat } from 'node:fs/promises';
++import { chmod, link, mkdir, mkdtemp, readFile, realpath, readdir, rm, rename, symlink, writeFile, stat } from 'node:fs/promises';
+ import os from 'node:os';
+ import path from 'node:path';
+ import { test } from 'node:test';
+@@ -577,6 +577,53 @@
+   } finally { await f.cleanup(); }
+ });
+ 
++async function sourceAliases(f: Awaited<ReturnType<typeof fixture>>) {
++  const first = path.join(f.source, 'class-one', 'one.txt'), second = path.join(f.source, 'class-two', 'two.txt');
++  await rm(second); await link(first, second);
++  assert.equal((await stat(first)).ino, (await stat(second)).ino);
++  return { first, second };
++}
++async function independentAliasCopies(f: Awaited<ReturnType<typeof fixture>>, record: ImportRecord, sourceInode: number) {
++  const first = path.join(f.project.location, record.destination, 'class-one', 'one.txt');
++  const second = path.join(f.project.location, record.destination, 'class-two', 'two.txt');
++  for (const file of [first, second]) {
++    assert.equal(await readFile(file, 'utf8'), 'first document\n');
++    assert.equal((await stat(file)).nlink, 1); assert.notEqual((await stat(file)).ino, sourceInode);
++  }
++  assert.notEqual((await stat(first)).ino, (await stat(second)).ino);
++}
++
++test('confirmed move of hard-linked source aliases cleans both names and keeps independent destination bytes', async () => {
++  const f = await fixture();
++  try {
++    const { first } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const id = await f.start('move'); let record = await f.record(id);
++    assert.equal(record.state, 'cleanup_pending');
++    await independentAliasCopies(f, record, sourceInode);
++    await f.imports.confirmPreparation(f.project.projectId, id, record.revision, randomUUID()); record = await f.record(id);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0);
++    await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
++test('SIGKILL after the first hard-link unlink recovers alias cleanup after restart', async () => {
++  const f = await fixture();
++  try {
++    const { first, second } = await sourceAliases(f); const sourceInode = (await stat(first)).ino;
++    const operationId = randomUUID();
++    const child = spawnSync(process.execPath, [path.resolve('.webpack/tests/import-crash-worker.cjs'), path.join(f.root, 'app'), f.project.projectId, f.source, operationId, 'unlinked', 'move'], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, encoding: 'utf8', timeout: 30000 });
++    assert.equal(child.signal, 'SIGKILL', child.stderr);
++    await assert.rejects(stat(first), { code: 'ENOENT' }); assert.equal(await readFile(second, 'utf8'), 'first document\n');
++    f.restart(); let record = (await f.list()).find(row => row.operationId === operationId)!;
++    assert.equal(record.state, 'cleanup_pending'); assert.ok(record.preparationRef);
++    value(await f.request(action(record, 'retry_cleanup'))); record = await f.record(record.importId);
++    assert.equal(record.state, 'complete'); assert.equal(record.remainingSourceFiles, 0);
++    await assert.rejects(stat(f.source), { code: 'ENOENT' });
++    await independentAliasCopies(f, record, sourceInode);
++  } finally { await f.cleanup(); }
++});
++
+ for (const stage of ['copied', 'reserved', 'publishing_file', 'published', 'unlinked'] as const) test(`SIGKILL at ${stage} reopens a named partial operation and recovers without duplicate publication or source loss`, async () => {
+   const f = await fixture();
+   try {

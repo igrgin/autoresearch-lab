@@ -1,3 +1,4 @@
+import { DatasetImportPanel } from './dataset-imports';
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { ShellBridge } from '../shell';
@@ -177,6 +178,7 @@ function Projects() {
           try { const reply = await window.lab.copyProjectRepository(opened.projectId); if (!reply.ok) throw new Error(reply.error.message); setCopiedGitId(opened.projectId); setMessage('Git path copied.'); }
           catch { setError('The Git path could not be copied. Reveal its full path and copy the text instead.'); }
         }}>{copiedGitId === opened.projectId ? 'Copied' : 'Copy Git path'}</button></div></div>
+        <DatasetImportPanel key={`imports:${opened.projectId}`} projectId={opened.projectId} />
         <details className="technical-details" open={detailsExpanded} onToggle={(event) => setDetailsExpanded(event.currentTarget.open)}><summary>Git metadata folder &amp; project ID</summary><p className="metadata-hint">The .git folder holds repository metadata.</p><FolderLocation disabled={busy} location={opened.repository} repository onReveal={async () => {
           setBusy(true); setError('');
           try { const reply = await window.lab.revealProjectRepository(opened.projectId); if (!reply.ok) setError(reply.error.message); else setMessage('Git folder opened in Finder.'); }

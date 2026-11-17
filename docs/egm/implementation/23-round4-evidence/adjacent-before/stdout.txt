@@ -1,0 +1,28 @@
+✖ import publication rejects a stale final metadata approval before SQLite persistence (539.054584ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 685.39575
+
+✖ failing tests:
+
+test at .webpack/tests/imports.cjs:5841:22
+✖ import publication rejects a stale final metadata approval before SQLite persistence (539.054584ms)
+  AssertionError [ERR_ASSERTION]: stale final approval must not persist a now-known credential path
+  
+  true !== false
+  
+      at TestContext.<anonymous> (/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3/.webpack/tests/imports.cjs:5861:30)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr113-hardlink-repair/original/snapshot.json",
+  "name": "regression",
+  "role": "baseline",
+  "command": [
+    "node",
+    "scripts/test.mjs"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-99f3fbe3",
+  "environment": "macOS-arm64 Node24.22.3 pinned-Electron45.3.2 SQLite13.1.1",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794858543.093314,
+  "ended": 1794859091.812358,
+  "pre_subject_id": "3ca548300386e9c59798fcfadceacd0f3dcf9c58d7551be52c5b8cd6d17e8434",
+  "post_subject_id": "3ca548300386e9c59798fcfadceacd0f3dcf9c58d7551be52c5b8cd6d17e8434",
+  "expected_exit": 1,
+  "exit_code": 1,
+  "observation": "Run original production with new hard-link completion regressions after installing pinned dependencies.",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "ce2322518f57486fe8ecb67717901e6ad2cd2551699d4a3841b3cbecc9d673e2",
+  "stderr_sha256": "ea6b59f93d09d848fb0c0d699ee969f1eb43c2d6e24c15041b12fade02018834"
+}
