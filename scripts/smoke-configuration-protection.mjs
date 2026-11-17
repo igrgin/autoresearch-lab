@@ -148,18 +148,35 @@ try {
         return reply;
       });
     }, { kind, projectId: project.projectId });
-    if (kind === 'prepare') await panel.getByRole('button', { name: 'Prepare new configuration', exact: true }).click();
-    else if (kind === 'snapshot') await panel.getByRole('button', { name: 'View saved configuration 1', exact: true }).click();
-    else await panel.getByRole('button', { name: 'Reload defaults', exact: true }).click();
+    const button = panel.getByRole('button', { name: kind === 'prepare' ? 'Prepare new configuration'
+      : kind === 'snapshot' ? 'View saved configuration 1' : 'Reload defaults', exact: true });
+    await button.click({ trial: true });
+    assert.equal(await button.isEnabled(), true);
+    // Observe the actual React action, including follow-up reads and its finally
+    // block. A cleared view or two animation frames alone cannot prove settlement.
+    // This test-only React 19 hook fails explicitly if its pinned shape changes.
+    await button.evaluate(element => {
+      const key = Object.keys(element).find(key => key.startsWith('__reactProps$'));
+      const action = key && element[key]?.onClick;
+      if (typeof action !== 'function') throw new Error('Pinned React action observer is unavailable');
+      const state = globalThis.delayedConfigurationAction = { settled: false };
+      const pending = action();
+      if (!pending || typeof pending.then !== 'function') throw new Error('Configuration action must return its completion promise');
+      state.completion = pending.then(() => { state.settled = true; }, error => { state.error = String(error); state.settled = true; });
+    });
     await application.evaluate(() => new Promise((resolve, reject) => {
       const until = Date.now() + 5000;
       const poll = () => globalThis.delayedConfiguration.held ? resolve() : Date.now() > until ? reject(new Error('Delayed reply fixture not reached')) : setTimeout(poll, 5); poll();
     }));
     await recognize(canary, true);
+    check(`${kind}: original UI action remains pending while reply is held`, await page.evaluate(() => globalThis.delayedConfigurationAction.settled), false);
     await application.evaluate(({ ipcMain }) => {
       globalThis.delayedConfiguration.resume();
       ipcMain.removeHandler('configuration:request'); ipcMain.handle('configuration:request', globalThis.delayedConfiguration.original);
     });
+    await page.waitForFunction(() => globalThis.delayedConfigurationAction.settled, undefined, { timeout: 15_000 });
+    await page.evaluate(() => globalThis.delayedConfigurationAction.completion);
+    check(`${kind}: original UI action settled without an unhandled failure`, await page.evaluate(() => globalThis.delayedConfigurationAction.error ?? null), null);
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     check(`${kind}: delayed previously admitted reply cannot restore body`, await noBody(canary), true);
     if (snapshotId) check('snapshot: explicit current-policy read denied', (await page.evaluate(({ projectId, snapshotId }) => window.lab.getConfiguration(projectId, snapshotId), { projectId: project.projectId, snapshotId })).ok, false);
