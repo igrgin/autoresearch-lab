@@ -1,0 +1,68 @@
+{
+  "pr": "https://github.com/igrgin/autoresearch-lab/pull/114",
+  "sourceHead": "056139d0033bfb70a6ddb573b8f74ff19eac56d1",
+  "sourceTree": "f06ef88cbde5e68807aca535422ad7a994b1ca3b",
+  "buildCommand": "npm run package",
+  "buildPlatform": "darwin/arm64",
+  "appAsarSha256": "291a7af5c18740d0388b56ed02177ce8f295cea069540081836a795a580a0526",
+  "sourceIdentity": {
+    "checkedGitBlobs": 430,
+    "changedTrackedFiles": []
+  },
+  "screenshots": [
+    {
+      "pr": 114,
+      "sourceHead": "056139d0033bfb70a6ddb573b8f74ff19eac56d1",
+      "sourceTree": "f06ef88cbde5e68807aca535422ad7a994b1ca3b",
+      "name": "after",
+      "description": "Controlled Codex model catalog authenticated with a synthetic key, model and reasoning effort saved.",
+      "region": "Codex settings",
+      "zoom": 0.8,
+      "sha256": "7a0b06c651edbed4aaedfdec88ef27d7a70726ab265633d3e185659516e56bfe",
+      "dimensions": {
+        "width": 1248,
+        "height": 1492
+      },
+      "capturedAt": "2026-11-17T00:07:38.368Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "291a7af5c18740d0388b56ed02177ce8f295cea069540081836a795a580a0526",
+      "file": "after.png"
+    },
+    {
+      "pr": 114,
+      "name": "codex-quarantine-after",
+      "sourceHead": "056139d0033bfb70a6ddb573b8f74ff19eac56d1",
+      "sourceTree": "f06ef88cbde5e68807aca535422ad7a994b1ca3b",
+      "description": "Explicit clean replacement of quarantined Codex settings in run configuration.",
+      "zoom": 0.8,
+      "dimensions": {
+        "width": 1248,
+        "height": 1224
+      },
+      "sha256": "603b2ec4d2f866b0af36d2ae9568afedc054b7635f001d8f46d57f88d3132728",
+      "capturedAt": "2026-11-17T00:08:21.719484+00:00",
+      "scenario": "Packaged committed recovery fixture; actual main/preload/renderer/coordinator; synthetic inputs and controlled external transport.",
+      "appAsarSha256": "291a7af5c18740d0388b56ed02177ce8f295cea069540081836a795a580a0526",
+      "file": "codex-quarantine-after.png"
+    },
+    {
+      "pr": 114,
+      "name": "codex-save-reconciliation-after",
+      "sourceHead": "056139d0033bfb70a6ddb573b8f74ff19eac56d1",
+      "sourceTree": "f06ef88cbde5e68807aca535422ad7a994b1ca3b",
+      "description": "Exact committed Codex default save reconciled after a withheld acknowledgement.",
+      "zoom": 0.8,
+      "dimensions": {
+        "width": 1248,
+        "height": 1492
+      },
+      "sha256": "c6465c956c642fe4c4a8ebe9352cac3c4be5f4d9aafc101798ee8ec9646e0509",
+      "capturedAt": "2026-11-17T00:08:15.004240+00:00",
+      "scenario": "Packaged committed recovery fixture; actual main/preload/renderer/coordinator; synthetic inputs and controlled external transport.",
+      "appAsarSha256": "291a7af5c18740d0388b56ed02177ce8f295cea069540081836a795a580a0526",
+      "file": "codex-save-reconciliation-after.png"
+    }
+  ],
+  "conditions": "Fresh macOS arm64 package built from an exact frozen Git export of this PR head. Isolated synthetic profiles. Provider HTTP and agent processes controlled; actual application UI and host/coordinator routes. No live authentication, inference or training is implied. Captures have not been image-edited. Zoom and image hashes are recorded per file.",
+  "publication": "Stored on the existing evidence branch so the implementation head remains exactly the captured commit. Original capture artifacts and before images remain unchanged."
+}
