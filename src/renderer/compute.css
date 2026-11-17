@@ -1,0 +1,9 @@
+.compute-connection { border: 1px solid #dbe3df; border-radius: 12px; background: white; padding: 24px; margin-block: 20px; }
+.compute-connection h2 { margin-top: 0; }
+.compute-actions { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin-top: 16px; }
+.compute-actions label { display: grid; gap: 8px; min-width: 240px; }
+.compute-actions select { padding: 10px; border: 1px solid #cbd7d0; border-radius: 6px; max-width: 100%; }
+.compute-limits, .compute-observations { color: #52645a; line-height: 1.6; }
+.compute-pods { padding: 0; list-style: none; display: grid; gap: 16px; }
+.compute-pods li { border: 1px solid #dbe3df; background: white; padding: 20px; border-radius: 12px; overflow-wrap: anywhere; }
+.compute code { overflow-wrap: anywhere; }
