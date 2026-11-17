@@ -1,0 +1,68 @@
+{
+  "pr": "https://github.com/igrgin/autoresearch-lab/pull/116",
+  "sourceHead": "ff96c95c1d687de8f70a6c8de622717e327a0674",
+  "sourceTree": "89d7c6a56f9aa0f5adcc60b0075fea4f6b0a2d33",
+  "buildCommand": "npm run package",
+  "buildPlatform": "darwin/arm64",
+  "appAsarSha256": "1ff946f2744e311a269fbc48f9fcef1cded3358613830951d0daeb65aae77420",
+  "sourceIdentity": {
+    "checkedGitBlobs": 458,
+    "changedTrackedFiles": []
+  },
+  "screenshots": [
+    {
+      "pr": 116,
+      "sourceHead": "ff96c95c1d687de8f70a6c8de622717e327a0674",
+      "sourceTree": "89d7c6a56f9aa0f5adcc60b0075fea4f6b0a2d33",
+      "name": "after",
+      "description": "Synthetic Anthropic credential reference and canonical controlled Claude model selected and saved.",
+      "region": "Claude settings",
+      "zoom": 1,
+      "sha256": "d4f959dae4ece5716935c81cbdfc4d1ebcf765cf9adb1f812e967c05ea00c2fa",
+      "dimensions": {
+        "width": 1560,
+        "height": 1400
+      },
+      "capturedAt": "2026-11-17T00:02:03.641Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "1ff946f2744e311a269fbc48f9fcef1cded3358613830951d0daeb65aae77420",
+      "file": "after.png"
+    },
+    {
+      "pr": 116,
+      "name": "claude-metadata-protection-after",
+      "sourceHead": "ff96c95c1d687de8f70a6c8de622717e327a0674",
+      "sourceTree": "89d7c6a56f9aa0f5adcc60b0075fea4f6b0a2d33",
+      "description": "Claude metadata withheld and cached choices removed after recognition.",
+      "zoom": 0.8,
+      "dimensions": {
+        "width": 1248,
+        "height": 1042
+      },
+      "sha256": "a7e2eb6be202600ea5656276136cb5e39e812c3225b6d74f4adfe09da0e43253",
+      "capturedAt": "2026-11-17T00:10:11.392409+00:00",
+      "scenario": "Packaged committed recovery fixture; actual main/preload/renderer/coordinator; synthetic inputs and controlled external transport.",
+      "appAsarSha256": "1ff946f2744e311a269fbc48f9fcef1cded3358613830951d0daeb65aae77420",
+      "file": "claude-metadata-protection-after.png"
+    },
+    {
+      "pr": 116,
+      "name": "claude-default-recovery-after",
+      "sourceHead": "ff96c95c1d687de8f70a6c8de622717e327a0674",
+      "sourceTree": "89d7c6a56f9aa0f5adcc60b0075fea4f6b0a2d33",
+      "description": "Clean canonical Claude replacement explicitly selected and saved after quarantine.",
+      "zoom": 0.8,
+      "dimensions": {
+        "width": 1248,
+        "height": 1110
+      },
+      "sha256": "abf8c18af069df1b8c97f8d22c4aaf9525ac2f16ca0a58475fd0eac144e88388",
+      "capturedAt": "2026-11-17T00:10:11.671989+00:00",
+      "scenario": "Packaged committed recovery fixture; actual main/preload/renderer/coordinator; synthetic inputs and controlled external transport.",
+      "appAsarSha256": "1ff946f2744e311a269fbc48f9fcef1cded3358613830951d0daeb65aae77420",
+      "file": "claude-default-recovery-after.png"
+    }
+  ],
+  "conditions": "Fresh macOS arm64 package built from an exact frozen Git export of this PR head. Isolated synthetic profiles. Provider HTTP and agent processes controlled; actual application UI and host/coordinator routes. No live authentication, inference or training is implied. Captures have not been image-edited. Zoom and image hashes are recorded per file.",
+  "publication": "Stored on the existing evidence branch so the implementation head remains exactly the captured commit. Original capture artifacts and before images remain unchanged."
+}
