@@ -1,0 +1,243 @@
+[
+  {
+    "issue": 20,
+    "pr": 107,
+    "branch": "20-manage-project-defaults",
+    "oldHead": "2c47cf294d713b438fbd3497c68fa22895b812e6",
+    "newHead": "13499c85645c858311b64736a4a4818fe69f22ae",
+    "findings": [
+      "PR107-F01",
+      "PR107-F02",
+      "PR107-C01",
+      "PR107-R3-F01"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-fix-20-check.log",
+      "/tmp/autoresearch-goldfish-fix-20-make.log",
+      "/tmp/autoresearch-goldfish-fix-20-smoke.log",
+      "/tmp/autoresearch-goldfish-early-recovery-check.log"
+    ],
+    "preRestackHead": "f4134c9c3db905eefdce19f3f8309fafdd0065cd",
+    "newBase": "70250cfb20159c3d1341ab2804859135da36312e",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "13499c85645c858311b64736a4a4818fe69f22ae",
+    "deliveryHead": "9cbe2724c945ec9b16d22e9f1cd00a83fb3ca5da",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-da8b66aa",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/107",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "passed_per_layer"
+  },
+  {
+    "issue": 55,
+    "pr": 111,
+    "branch": "55-reserve-compute",
+    "oldHead": "fcad2d54cb0f01c047e81d58dd86bb5b946b50d3",
+    "newHead": "ca03a3fc624f82bcf4d8c13811abd6ee1d129da7",
+    "findings": [
+      "PR111-C01"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-early-recovery-check.log"
+    ],
+    "preRestackHead": "2839292979962cbb39fed2eb6e54c5ecf21edc0d",
+    "newBase": "13499c85645c858311b64736a4a4818fe69f22ae",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "ca03a3fc624f82bcf4d8c13811abd6ee1d129da7",
+    "deliveryHead": "08773d024eb443eca8a66d17b87e90456b49ca1b",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-a1381a7a",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/111",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "passed_per_layer"
+  },
+  {
+    "issue": 87,
+    "pr": 115,
+    "branch": "87-retain-research-records",
+    "oldHead": "1509d5dd78b26d6e91046cc32e693f6421caefd6",
+    "newHead": "a8ca2b3453226e2c17324975c75cdd5f6d9baba4",
+    "findings": [
+      "PR115-F01",
+      "PR115-R2-F01",
+      "PR115-R2-F02"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-fix-87-check.log"
+    ],
+    "preRestackHead": "44635d23f4c80dd4dc743aeca5bb87858e251d0c",
+    "newBase": "ca03a3fc624f82bcf4d8c13811abd6ee1d129da7",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "9614e9b9cceef80913d879e34da9d6ef161ac11f",
+    "deliveryHead": "22009373c5faecf496e1332f48ad25c15e7a2ec9",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-beba70f2",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/115",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "passed_per_layer"
+  },
+  {
+    "issue": 23,
+    "pr": 113,
+    "branch": "23-import-local-data",
+    "oldHead": "71a65229a62ab4688a05481535a474ee0db5c14e",
+    "newHead": "b0f47679257d3642b061897100ca9fd30758807a",
+    "findings": [
+      "PR113-F01",
+      "PR113-F02",
+      "PR113-C01",
+      "PR113-R2-F01",
+      "PR113-R2-F02"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-fix-23-check.log",
+      "/tmp/autoresearch-goldfish-fix-23-make.log",
+      "/tmp/autoresearch-goldfish-fix-23-smoke.log"
+    ],
+    "note": "Final screenshot crop-only harness change will recapture in combined acceptance; native assertions already passed.",
+    "preRestackHead": "d99bf2cc52b044160b5f61d40a6c84160221cf02",
+    "newBase": "a8ca2b3453226e2c17324975c75cdd5f6d9baba4",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "e8bc3758163ed457894e661fb113884fa3337d2d",
+    "deliveryHead": "112c60062163caee97c8116685968e0895b5e127",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-70084c17",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/113",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "blocked_by_family_cache_01"
+  },
+  {
+    "issue": 35,
+    "pr": 109,
+    "branch": "35-discover-runpod-pods",
+    "oldHead": "7606e558ac3f8e8f47f4495db569e25db546ba04",
+    "newHead": "7e4256b469a224f9b5ec9458adbdf4f607105582",
+    "findings": [],
+    "preRestackHead": "a63bb1062515336a2464d6bdd01e9f914f8757b4",
+    "newBase": "b0f47679257d3642b061897100ca9fd30758807a",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "a6adfb3c8c58ecb65017a592a7c65c55bcdb8fb0",
+    "deliveryHead": "962c391b3f8f8747a255fc0026e2ba56dcc86b5a",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-f765ebc4",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/109",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "blocked_by_family_cache_01"
+  },
+  {
+    "issue": 40,
+    "pr": 110,
+    "branch": "40-discover-vast-instances",
+    "oldHead": "c53bf7f1badb1bfc9b648bc566a5d5c79c6a233c",
+    "newHead": "d63fac85e25a43dbee710946e78f78c4d6577cd1",
+    "findings": [
+      "PR110-F01"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-fix-40-check.log"
+    ],
+    "preRestackHead": "e9558aab84a20707a8f87f77951207a1c1cb70e6",
+    "newBase": "7e4256b469a224f9b5ec9458adbdf4f607105582",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "cb0831827ce48451b43a6a9133df36b0c9ad69e6",
+    "deliveryHead": "21fe7c100be7380c95130a0d211821011f7eaf3e",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-5316de55",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/110",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "blocked_by_family_cache_01"
+  },
+  {
+    "issue": 45,
+    "pr": 114,
+    "branch": "45-codex-auth-model",
+    "oldHead": "30e3be6d35919c4c9cc4f10f63712469a39a13f6",
+    "newHead": "60321af67c3e14221cee653444475a815fd59d45",
+    "findings": [
+      "PR114-F01",
+      "PR114-R2-F01"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-fix-45-check.log"
+    ],
+    "preRestackHead": "779d44c6e17450e6edea3f23d48466fcf7e37805",
+    "newBase": "d63fac85e25a43dbee710946e78f78c4d6577cd1",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "e0377b667049f97dbb11bbfc8d8fce5bb5eee5cb",
+    "deliveryHead": "c7d36a6621c613dad884e4a573433d2abe95c321",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-9d4ba547",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/114",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "blocked_by_family_cache_01"
+  },
+  {
+    "issue": 50,
+    "pr": 116,
+    "branch": "50-claude-auth-model",
+    "oldHead": "171868f083a7037d0ae1f3d8bd14ede22b02c76b",
+    "newHead": "f1692ccdaf83f5e79f57442213ef81bd4751c143",
+    "findings": [
+      "PR116-F01",
+      "PR116-F02",
+      "PR116-C01",
+      "PR116-C02",
+      "PR116-R2-F01",
+      "PR116-C03",
+      "PR116-C04"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-fix-50-check.log",
+      "/tmp/autoresearch-goldfish-fix-50-make.log",
+      "/tmp/autoresearch-goldfish-fix-50-smoke.log"
+    ],
+    "preRestackHead": "a5ddb56cba174fb93f127a3b86ce6e840ea7c334",
+    "newBase": "60321af67c3e14221cee653444475a815fd59d45",
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "previousPublishedHead": "fbf4f0a9639f7eca897c9ff8400b985b47e746c0",
+    "deliveryHead": "2065a5ac08c9b0850bf2a5fba9413a60d65a5874",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-2efbe98f",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/116",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "blocked_by_family_cache_01_and_persist_01"
+  },
+  {
+    "issue": 60,
+    "pr": 112,
+    "branch": "60-bound-stuck-execution",
+    "oldHead": "c9c305bebbd0b35ea65437ab2c1713cebcf335d5",
+    "newHead": "56cbbf7891a5edb80ca3c0b4c60dfbc3227d9037",
+    "findings": [
+      "PR112-F01",
+      "PR112-F02",
+      "PR112-R2-F01"
+    ],
+    "state": "round3_repairs_pushed_linked_fresh_review_pending",
+    "preRestackHead": "2243c1bae4e943ab19d7b5ca766baeb3e3df2c27",
+    "newBase": "f1692ccdaf83f5e79f57442213ef81bd4751c143",
+    "previousPublishedHead": "af440a51262d9ff9a7ab8c8c27b3c70c51055496",
+    "deliveryHead": "d5400d0ce6c275f4024abb1fce1dc6a7d74f51b7",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-d869e6a7",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/112",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "passed_per_layer"
+  },
+  {
+    "issue": 62,
+    "pr": 108,
+    "branch": "62-select-training-checkpoints",
+    "oldHead": "4a494df86f93b0b1afb8875271a40122b533fee7",
+    "newHead": "c96fcf722e2c863b01570d17a73d7a693fa7b8ee",
+    "findings": [
+      "PR108-F01",
+      "PR108-F02",
+      "PR108-R4-F01"
+    ],
+    "validation": [
+      "/tmp/autoresearch-goldfish-fix-62-check.log",
+      "/tmp/autoresearch-goldfish-fix-62-final-domain.log"
+    ],
+    "preRestackHead": "aaed4ba1f27648d0ed81d67aef7679ffa91527fc",
+    "newBase": "56cbbf7891a5edb80ca3c0b4c60dfbc3227d9037",
+    "state": "round4_repair_pushed_scoped_checks_passed_combined_and_fresh_review_pending",
+    "previousPublishedHead": "f1fa28ef1b470a3c283094a02eb9243eaab05ace",
+    "deliveryHead": "d3b419f8bf859dfbe830c37a80ef19c54dc65662",
+    "originalWorkerWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-45ba5887",
+    "prUrl": "https://github.com/igrgin/autoresearch-lab/pull/108",
+    "coordinatorWorkspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116",
+    "acceptance": "passed_per_layer"
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "consumer": "Vast discovery",
+  "cacheBeforeRefresh": true,
+  "cacheAfterRefresh": true,
+  "expected": false,
+  "qualification": "actual packaged transport/vault/UI; controlled HTTP"
+}

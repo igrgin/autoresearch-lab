@@ -1,0 +1,539 @@
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { mkdtemp, rm, mkdir, writeFile, readFile, realpath, rename, stat } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { _electron as electron } from 'playwright';
+import { setGlobalDefaults, checkDefaultsBeforeRestart, checkDefaultsAfterRestart, checkInheritedAdmission, armDefaultsRecoveryRestart, checkDefaultsRecoveryRestart } from './smoke-defaults.mjs';
+import { checkPackagedReservations } from './reservation-smoke.mjs';
+import { checkRetainedImportProtection } from './smoke-import-protection.mjs';
+import { checkClaudeDefaultReplyRecovery, checkClaudeRunRefreshRecovery, checkClaudeRetainedMetadataProtection } from './smoke-claude-recovery.mjs';
+import { smokeRunpod } from './smoke-runpod-clean.mjs';
+
+const executablePath = path.resolve('out/Autoresearch Lab-darwin-arm64/Autoresearch Lab.app/Contents/MacOS/Autoresearch Lab');
+const userData = await mkdtemp(path.join(os.tmpdir(), 'autoresearch-lab-smoke-'));
+const importSource = await realpath(await mkdtemp(path.join(os.tmpdir(), 'autoresearch-lab-import-smoke-')));
+// Some coding hosts export this for their own Node subprocesses.
+const launchEnv = { ...process.env };
+delete launchEnv.ELECTRON_RUN_AS_NODE;
+let application;
+let child;
+async function checkWindowChrome(page, title) {
+  if (process.platform !== 'darwin') return;
+  const bar = page.locator('.window-titlebar');
+  await bar.waitFor();
+  const bounds = await bar.boundingBox();
+  assert.equal(bounds.y, 0);
+  assert.equal(await bar.locator('.window-drag-area').evaluate(element => getComputedStyle(element).getPropertyValue('-webkit-app-region')), 'drag');
+  assert.ok(await page.locator('button, input, select, a').evaluateAll(elements => elements.every(element => {
+    const rect = element.getBoundingClientRect();
+    return rect.height === 0 || rect.top >= 46;
+  })));
+  const native = await application.evaluate(({ BrowserWindow }, name) => {
+    const window = BrowserWindow.getAllWindows().find(window => window.getTitle() === name);
+    return { buttons: window.getWindowButtonPosition(), movable: window.isMovable(), resizable: window.isResizable(),
+      closable: window.isClosable(), minimizable: window.isMinimizable(), maximizable: window.isMaximizable() };
+  }, title);
+  assert.deepEqual(native.buttons, { x: 16, y: 16 });
+  assert.ok(native.movable && native.resizable && native.closable && native.minimizable && native.maximizable);
+}
+try {
+  application = await electron.launch({ executablePath, args: [`--user-data-dir=${userData}`], env: launchEnv, timeout: 30_000 });
+  child = application.process();
+  const page = await application.firstWindow();
+  page.setDefaultTimeout(15_000);
+  page.setDefaultNavigationTimeout(15_000);
+  const consoleErrors = [];
+  page.on('console', (message) => { if (message.type() === 'error') { consoleErrors.push(message.text()); console.error(message.text()); } });
+  const rendererErrors = [];
+  page.on('pageerror', (error) => { rendererErrors.push(error.message); console.error(error.message); });
+  page.on('requestfailed', (request) => console.error(request.url(), request.failure()));
+
+  await page.getByRole('heading', { name: 'No projects yet', exact: true }).waitFor();
+  for (const [name, heading] of [['Projects', 'No projects yet'], ['Runs', 'No runs yet'], ['Compute', 'No connected instances']]) {
+    await page.getByRole('button', { name, exact: true }).click();
+    await page.getByRole('heading', { name: heading, exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name, exact: true }).getAttribute('aria-current'), 'page');
+  }
+  await page.getByRole('button', { name: 'Projects', exact: true }).click();
+  const status = await page.evaluate(() => window.lab.getStatus());
+  assert.equal(status.coordinator, 'ready');
+  assert.match(status.sqliteVersion, /^\d+\.\d+\.\d+$/);
+  assert.equal(await page.getByText('Workspace ready', { exact: true }).count(), 0);
+  await checkWindowChrome(page, 'Autoresearch Lab');
+  assert.equal(await page.evaluate(() => typeof window.require), 'undefined');
+  assert.equal(await page.evaluate(() => typeof window.process), 'undefined');
+  const preferences = await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences());
+  assert.equal(preferences.sandbox, true);
+  assert.equal(preferences.contextIsolation, true);
+  assert.equal(preferences.nodeIntegration, false);
+  assert.deepEqual(rendererErrors, []);
+  await checkPackagedReservations(application);
+  // Ordinary renderer cannot read or enter credentials through its bridge.
+  assert.equal(await page.evaluate(() => typeof window.credentialEntry), 'undefined');
+  const entryOpening = application.waitForEvent('window');
+  await application.evaluate(({ Menu }) => {
+    const item = Menu.getApplicationMenu().getMenuItemById('credential-settings');
+    item.click();
+  });
+  const entryPage = await entryOpening;
+  await entryPage.getByRole('heading', { name: 'Credential settings', exact: true }).waitFor();
+  await checkWindowChrome(entryPage, 'Credential settings');
+  assert.equal(await entryPage.evaluate(() => typeof window.lab), 'undefined');
+  await application.evaluate(({ shell }) => {
+    globalThis.evidenceDocLinks = [];
+    globalThis.originalOpenExternal = shell.openExternal;
+    shell.openExternal = async url => { globalThis.evidenceDocLinks.push(url); };
+  });
+  await entryPage.getByRole('link', { name: /Manage or revoke at Runpod/ }).click();
+  assert.deepEqual(await application.evaluate(() => globalThis.evidenceDocLinks), ['https://console.runpod.io/user/credentials']);
+  const invalidHelp = await entryPage.evaluate(() => window.credentialEntry.help('https://untrusted.example'));
+  assert.equal(invalidHelp.ok, false);
+  assert.equal((await entryPage.evaluate(() => window.credentialEntry.copyHelp('https://untrusted.example'))).ok, false);
+  await application.evaluate(({ shell }) => { shell.openExternal = globalThis.originalOpenExternal; });
+  const synthetic = 'synthetic-packaged-vault-check-4d7a';
+  await entryPage.getByLabel('Label', { exact: true }).fill('Packaged synthetic check');
+  await entryPage.getByLabel('Credential', { exact: true }).fill(synthetic);
+  await entryPage.getByRole('button', { name: 'Show entered value', exact: true }).click();
+  assert.equal(await entryPage.getByLabel('Credential', { exact: true }).getAttribute('type'), 'text');
+  await entryPage.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await entryPage.waitForFunction(() => document.querySelector('#credential').type === 'password');
+  await entryPage.getByRole('button', { name: 'Save credential', exact: true }).click();
+  await entryPage.getByRole('status').filter({ hasText: 'Credential saved on this Mac.' }).waitFor();
+  await entryPage.getByRole('heading', { name: 'Manage credential', exact: true }).waitFor();
+  assert.equal(await entryPage.getByLabel('New credential value', { exact: true }).inputValue(), '');
+  assert.ok(!(await entryPage.locator('body').innerText()).includes(synthetic));
+  await entryPage.getByRole('button', { name: 'Replace credential', exact: true }).click();
+  await entryPage.getByRole('alert').filter({ hasText: 'Enter a credential value before saving.' }).waitFor();
+  await entryPage.getByRole('button', { name: 'Add credential', exact: true }).click();
+  await entryPage.getByLabel('Integration', { exact: true }).selectOption('anthropic');
+  await entryPage.getByLabel('Label', { exact: true }).fill('Synthetic Claude access');
+  await entryPage.getByLabel('Credential', { exact: true }).fill('synthetic-second-integration-check');
+  await entryPage.getByRole('button', { name: 'Save credential', exact: true }).click();
+  await entryPage.getByRole('heading', { name: 'Manage credential', exact: true }).waitFor();
+  const credentialOrder = await entryPage.locator('.credential-list .row-copy > strong').allTextContents();
+  await entryPage.getByRole('button', { name: /Packaged synthetic check Runpod/ }).click();
+  assert.equal(await entryPage.getByTestId('saved-integration').textContent(), 'Runpod');
+  assert.equal(await entryPage.getByTestId('saved-label').textContent(), 'Packaged synthetic check');
+  await entryPage.getByRole('button', { name: 'Revoke access…', exact: true }).click();
+  assert.equal(await entryPage.getByRole('button', { name: 'Cancel', exact: true }).evaluate(element => element === document.activeElement), true);
+  await entryPage.keyboard.press('Escape');
+  await entryPage.getByRole('dialog').waitFor({ state: 'hidden' });
+  assert.equal(await entryPage.getByRole('button', { name: 'Revoke access…', exact: true }).evaluate(element => element === document.activeElement), true);
+  await entryPage.getByRole('button', { name: 'Revoke access…', exact: true }).click();
+  await entryPage.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await entryPage.getByRole('button', { name: 'Revoke access…', exact: true }).click();
+  await entryPage.getByRole('button', { name: 'Revoke app access', exact: true }).click();
+  await entryPage.getByRole('status').filter({ hasText: 'App access revoked.' }).waitFor();
+  assert.equal(await entryPage.getByRole('button', { name: 'Revoke access…', exact: true }).count(), 0);
+  await entryPage.getByLabel('New credential value', { exact: true }).fill('synthetic-replacement-integration-check');
+  await entryPage.getByRole('button', { name: 'Save and restore app access', exact: true }).click();
+  await entryPage.getByRole('status').filter({ hasText: 'Replacement saved.' }).waitFor();
+  assert.equal(await entryPage.locator('.credential-list > li').count(), 2);
+  assert.deepEqual(await entryPage.locator('.credential-list .row-copy > strong').allTextContents(), credentialOrder);
+  await entryPage.getByRole('button', { name: /^Previous versions/ }).click();
+  await entryPage.getByRole('dialog', { name: 'Previous credential versions' }).waitFor();
+  await application.evaluate(({ shell }) => { shell.openExternal = async url => { globalThis.evidenceDocLinks.push(url); }; });
+  await entryPage.getByRole('link', { name: /Manage Runpod credentials/ }).click();
+  assert.equal((await application.evaluate(() => globalThis.evidenceDocLinks)).at(-1), 'https://console.runpod.io/user/credentials');
+  await application.evaluate(({ shell }) => { shell.openExternal = globalThis.originalOpenExternal; });
+  await application.evaluate(({ shell }) => { shell.openExternal = async () => { throw new Error('Synthetic browser failure'); }; });
+  await entryPage.getByRole('link', { name: /Manage Runpod credentials/ }).click();
+  await entryPage.getByRole('dialog', { name: 'Previous credential versions' }).getByRole('alert').filter({ hasText: 'Could not open the Runpod credential page.' }).waitFor();
+  assert.equal(await entryPage.getByLabel('Credential page address', { exact: true }).inputValue(), 'https://console.runpod.io/user/credentials');
+  await application.evaluate(({ clipboard }) => { globalThis.copiedHelp = []; globalThis.originalWriteText = clipboard.writeText; clipboard.writeText = text => { globalThis.copiedHelp.push(text); }; });
+  const addressWidth = (await entryPage.getByLabel('Credential page address', { exact: true }).boundingBox()).width;
+  await entryPage.getByRole('button', { name: 'Copy address', exact: true }).click();
+  await entryPage.getByRole('status').filter({ hasText: 'Address copied.' }).waitFor();
+  assert.equal((await entryPage.getByLabel('Credential page address', { exact: true }).boundingBox()).width, addressWidth);
+  assert.deepEqual(await application.evaluate(() => globalThis.copiedHelp), ['https://console.runpod.io/user/credentials']);
+  await application.evaluate(({ clipboard }) => { clipboard.writeText = globalThis.originalWriteText; });
+  await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === 'Credential settings').setContentSize(740, 650));
+  const historyClose = await entryPage.getByRole('button', { name: 'Close history', exact: true }).boundingBox();
+  assert.ok(historyClose.y >= 0 && historyClose.y + historyClose.height <= 650);
+  assert.equal(await entryPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(window => window.getTitle() === 'Credential settings').setContentSize(1000, 790));
+  await application.evaluate(({ shell }) => { shell.openExternal = async url => { globalThis.evidenceDocLinks.push(url); }; });
+  await entryPage.getByRole('button', { name: 'Try again', exact: true }).click();
+  await entryPage.getByRole('dialog', { name: 'Previous credential versions' }).getByRole('alert').waitFor({ state: 'hidden' });
+  await application.evaluate(({ shell }) => { shell.openExternal = globalThis.originalOpenExternal; });
+  await entryPage.getByRole('button', { name: 'Close history', exact: true }).click();
+  assert.equal(await entryPage.getByLabel('New credential value', { exact: true }).inputValue(), '');
+  const vaultBytes = await readFile(path.join(userData, 'private-credentials', 'credentials.vault'));
+  assert.ok(!vaultBytes.includes(Buffer.from(synthetic)));
+  const vaultPath = path.join(userData, 'private-credentials', 'credentials.vault');
+  const validVault = await readFile(vaultPath);
+  await writeFile(vaultPath, 'synthetic-storage-fault');
+  await entryPage.getByRole('button', { name: 'Refresh list', exact: true }).click();
+  await entryPage.getByRole('button', { name: 'Retry credential storage', exact: true }).waitFor();
+  assert.equal(await entryPage.getByLabel('New credential value', { exact: true }).isDisabled(), true);
+  await application.evaluate(({ shell }) => { shell.openExternal = async () => { throw new Error('Synthetic browser failure'); }; });
+  await entryPage.getByRole('link', { name: /Manage or revoke at Runpod/ }).click();
+  await entryPage.getByRole('alert').filter({ hasText: 'Could not open the Runpod credential page.' }).waitFor();
+  assert.equal(await entryPage.getByRole('alert').count(), 2);
+  assert.equal(await entryPage.getByRole('button', { name: 'Retry credential storage', exact: true }).isEnabled(), true);
+  await application.evaluate(({ shell }) => { shell.openExternal = async url => { globalThis.evidenceDocLinks.push(url); }; });
+  await entryPage.getByRole('button', { name: 'Try again', exact: true }).click();
+  await entryPage.getByLabel('Credential page address', { exact: true }).waitFor({ state: 'hidden' });
+  assert.equal(await entryPage.getByRole('alert').count(), 1);
+  await application.evaluate(({ shell }) => { shell.openExternal = globalThis.originalOpenExternal; });
+  await writeFile(vaultPath, validVault);
+  await entryPage.getByRole('button', { name: 'Retry credential storage', exact: true }).click();
+  await entryPage.waitForFunction(() => !document.querySelector('#credential').matches(':disabled'));
+  assert.equal(await entryPage.getByRole('alert').count(), 0);
+  // Internal protocol capabilities are outside the credential-entry component's boundary.
+  const controlId = randomUUID();
+  const injectedVault = await application.evaluate(async ({ safeStorage }, input) => {
+    const data = JSON.parse((await safeStorage.decryptStringAsync(Buffer.from(input.ciphertext))).result);
+    data.entries.push(input.entry);
+    return Array.from(await safeStorage.encryptStringAsync(JSON.stringify(data)));
+  }, { ciphertext: Array.from(await readFile(vaultPath)), entry: { id: controlId, accountId: randomUUID(), category: 'control', label: 'Synthetic protocol capability', status: 'active', value: 'synthetic-internal-control-fixture' } });
+  await writeFile(vaultPath, Buffer.from(injectedVault));
+  await entryPage.getByRole('button', { name: 'Refresh list', exact: true }).click();
+  await entryPage.waitForFunction(() => !document.querySelector('#credential').matches(':disabled'));
+  assert.equal(await entryPage.getByText('Synthetic protocol capability', { exact: true }).count(), 0);
+  assert.equal((await entryPage.evaluate(id => window.credentialEntry.replace(id, 'synthetic-denied-replacement'), controlId)).ok, false);
+  assert.equal((await entryPage.evaluate(id => window.credentialEntry.revoke(id), controlId)).ok, false);
+  // A separate renderer with IPC access still cannot impersonate credential-entry.
+  const unauthorized = await application.evaluate(async ({ BrowserWindow }) => {
+    const probe = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true, contextIsolation: false, sandbox: false } });
+    try {
+      await probe.loadURL('data:text/html,<html></html>');
+      return await probe.webContents.executeJavaScript(`Promise.all([require('electron').ipcRenderer.invoke('credentials:register', {category:'openai',label:'probe',value:'synthetic-probe-value'}), require('electron').ipcRenderer.invoke('credentials:copy-help', 'runpod'), require('electron').ipcRenderer.invoke('configuration:request', {kind:'global:get',operationId:'00000000-0000-4000-8000-000000000000'}).then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:list', 'not-a-project').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('imports:select', 'directory').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('projects:list').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:credentials').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:discover', 'synthetic-reference').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('runpod:inspect', 'synthetic-reference', 'pod').then(() => ({ok:true}), () => ({ok:false})), require('electron').ipcRenderer.invoke('claude:settings').then(() => ({ok:true}), () => ({ok:false}))])`);
+    } finally { probe.destroy(); }
+  });
+  assert.equal(unauthorized.every(reply => reply.ok === false), true);
+  await entryPage.close();
+  await setGlobalDefaults(page);
+  await smokeRunpod(application, page);
+  // Exercise project creation through the sandboxed UI, then verify real files.
+  await page.getByLabel('Project name', { exact: true }).fill('First research');
+  await page.getByRole('button', { name: 'Create project', exact: true }).click();
+  const details = page.getByRole('region', { name: 'Open project', exact: true });
+  await details.getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  const firstReply = await page.evaluate(() => window.lab.listProjects());
+  assert.equal(firstReply.ok, true);
+  const first = firstReply.value.projects[0].project;
+  assert.equal((await stat(first.repository)).isDirectory(), true);
+  await writeFile(path.join(first.location, 'research.py'), '# retained source file\n');
+  const savedConfiguration = await checkDefaultsBeforeRestart(page, first);
+  await checkInheritedAdmission(application, page, first);
+  await page.getByRole('button', { name: 'New project', exact: true }).click();
+  await page.getByLabel('Project name', { exact: true }).fill('Second research');
+  await page.getByRole('button', { name: 'Create project', exact: true }).click();
+  await details.getByRole('heading', { name: 'Second research', exact: true }).waitFor();
+  const secondReply = await page.evaluate(() => window.lab.listProjects());
+  assert.equal(secondReply.ok, true);
+  assert.equal(secondReply.value.projects.length, 2);
+  const second = secondReply.value.projects.find((entry) => entry.project.projectId !== first.projectId).project;
+  assert.notEqual(first.repository, second.repository);
+  assert.equal((await stat(second.repository)).isDirectory(), true);
+  // Exercise the actual sandbox/preload/main/coordinator importer. Only the
+  // native picker is stubbed; filesystem, byte verification and SQLite are real.
+  await writeFile(path.join(importSource, 'records.csv'), 'input,target\n1,yes\n2,no\n');
+  await writeFile(path.join(importSource, 'notes.txt'), 'Synthetic dataset document\n');
+  await application.evaluate(({ dialog }, source) => {
+    globalThis.originalImportPicker = dialog.showOpenDialog;
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [source] });
+  }, importSource);
+  const importsPanel = details.getByRole('region', { name: 'Local dataset imports', exact: true });
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  assert.equal(await importsPanel.getByLabel('Import policy', { exact: true }).inputValue(), 'copy');
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('../invalid');
+  assert.equal(await importsPanel.getByLabel('Dataset folder name', { exact: true }).evaluate(element => element.checkValidity()), false);
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('local-data');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText('Byte import complete', { exact: true }).waitFor();
+  assert.equal(await readFile(path.join(second.location, 'dataset/local-data/files/records.csv'), 'utf8'), 'input,target\n1,yes\n2,no\n');
+  assert.equal(await readFile(path.join(importSource, 'notes.txt'), 'utf8'), 'Synthetic dataset document\n');
+  await importsPanel.getByText('Research readiness: task, layout, interpretation and splits still require preparation.', { exact: true }).waitFor();
+  // Explicit move is a staged copy; preparation confirmation is not forgeable by UI.
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('move-data');
+  await importsPanel.getByLabel('Import policy', { exact: true }).selectOption('move');
+  await importsPanel.getByText(/Source files will be removed only after/).waitFor();
+  await importsPanel.getByRole('button', { name: 'Start move import', exact: true }).click();
+  await importsPanel.getByText('Byte import complete · source cleanup pending', { exact: true }).waitFor();
+  assert.equal(await importsPanel.getByRole('button', { name: 'Retry source cleanup', exact: true }).count(), 0);
+  assert.equal(await readFile(path.join(importSource, 'notes.txt'), 'utf8'), 'Synthetic dataset document\n');
+  // Occupied destination is visible and discard removes only private staging.
+  await mkdir(path.join(second.location, 'dataset/occupied'));
+  const importSentinel = path.join(second.location, 'dataset/occupied/existing.txt');
+  await writeFile(importSentinel, 'preserve existing dataset');
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('occupied');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText('Partial import', { exact: true }).waitFor();
+  await importsPanel.getByText(/destination is occupied or its ownership is unproven/).waitFor();
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).click();
+  await importsPanel.getByText('Staging discarded', { exact: true }).waitFor();
+  assert.equal(await readFile(importSentinel, 'utf8'), 'preserve existing dataset');
+  // A source disappearing after native selection produces actionable recovery.
+  const disappearing = path.join(importSource, 'temporary-selection'); await mkdir(disappearing);
+  await writeFile(path.join(disappearing, 'data.txt'), 'temporary');
+  await application.evaluate(({ dialog }, source) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [source] }); }, disappearing);
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await rm(disappearing, { recursive: true });
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('unavailable');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText('Partial import', { exact: true }).waitFor();
+  await importsPanel.getByText(/The source or an import folder is unavailable/).waitFor();
+  await importsPanel.getByRole('button', { name: 'Retry import', exact: true }).click();
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).waitFor();
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).click();
+  // The existing credential matcher also guards retained import filenames.
+  const protectedDir = path.join(importSource, 'credential-name-fixture'); await mkdir(protectedDir);
+  await writeFile(path.join(protectedDir, `${synthetic}.txt`), 'synthetic credential-name fixture');
+  await application.evaluate(({ dialog }, source) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [source] }); }, protectedDir);
+  await importsPanel.getByRole('button', { name: 'Choose dataset directory', exact: true }).click();
+  await importsPanel.getByLabel('Dataset folder name', { exact: true }).fill('protected-name');
+  await importsPanel.getByRole('button', { name: 'Start copy import', exact: true }).click();
+  await importsPanel.getByText(/A source filename was withheld by credential protection/).waitFor();
+  assert.equal((await importsPanel.innerText()).includes(synthetic), false);
+  await importsPanel.getByRole('button', { name: 'Discard staging', exact: true }).click();
+  for (const filename of ['imports.sqlite', 'imports.sqlite-wal']) assert.equal((await readFile(path.join(second.location, '.lab', filename))).includes(Buffer.from(synthetic)), false);
+  await application.evaluate(({ dialog }) => { dialog.showOpenDialog = globalThis.originalImportPicker; });
+  const importReply = await page.evaluate(id => window.lab.listImports(id), second.projectId);
+  assert.equal(importReply.ok, true);
+  assert.equal(importReply.value.filter(record => record.bytesUsable).length, 2);
+  assert.ok(importReply.value.every(record => record.researchReadiness === 'not_prepared'));
+  // Launch the actual packaged worker and SDK with a fixed Models API fixture.
+  // Its native subprocess has external networking denied; no inference is sent.
+  const packagedClaude = await application.evaluate(async ({ app, utilityProcess }) => {
+    const fs = process.getBuiltinModule('node:fs/promises'); const path = process.getBuiltinModule('node:path');
+    const directory = await fs.realpath(await fs.mkdtemp(path.join(app.getPath('temp'), 'lab-packaged-claude-')));
+    const bootstrap = path.join(directory, 'fixture-bootstrap.cjs');
+    const workerPath = path.join(app.getAppPath(), '.webpack/main/claude-worker.cjs');
+    await fs.writeFile(bootstrap, `
+      global.fetch=async()=>new Response(JSON.stringify({data:[{id:'claude-opus-5-5',lifecycle:'active'}],has_more:false,last_id:null}));
+      const cp=require('node:child_process'),original=cp.spawn;
+      cp.spawn=(command,args,options)=>original(command,args.map(arg=>typeof arg==='string'?arg.replace('(allow network-outbound)',''):arg),options);
+      require(process.argv[2]);
+    `);
+    const worker = utilityProcess.fork(bootstrap, [workerPath], { env: { HOME: directory, TMPDIR: directory, PATH: '/usr/bin:/bin', LANG: 'en_US.UTF-8' }, stdio: 'pipe' });
+    worker.stdout?.resume(); worker.stderr?.resume();
+    let result; let nativePid;
+    try {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => { worker.kill(); reject(new Error('Packaged Claude worker fixture timed out.')); }, 50_000);
+        worker.on('message', message => { if (message.childPid) nativePid = message.childPid; if (message.result) result = message.result; });
+        worker.once('exit', () => { clearTimeout(timer); resolve(); });
+        worker.postMessage({ kind: 'discover', directory, executable: path.join(process.resourcesPath, 'claude-agent-sdk-darwin-arm64/claude'),
+          credentialId: '00500000-0000-4000-8000-000000000050', key: 'synthetic-packaged-native-claude-key' });
+      });
+      return result;
+    } finally {
+      if (nativePid) { try { process.kill(-nativePid, 'SIGKILL'); } catch { /* already gone */ } }
+      await fs.rm(directory, { recursive: true, force: true });
+    }
+  });
+  assert.equal(packagedClaude?.catalog?.complete, true);
+  assert.deepEqual(packagedClaude.catalog.models, [{ id: 'claude-opus-5-5', lifecycle: 'active' }]);
+  // Claude UI/IPC/store acceptance uses a controlled worker fixture, not live inference.
+  // Real SDK initialization and sandbox checks run separately with network denied.
+  await application.evaluate(({ utilityProcess }) => {
+    const { EventEmitter } = process.getBuiltinModule('node:events');
+    globalThis.originalUtilityFork = utilityProcess.fork;
+    globalThis.claudeFixtureCalls = [];
+    utilityProcess.fork = (file, args, options) => {
+      if (options?.serviceName !== 'Claude model access') return globalThis.originalUtilityFork(file, args, options);
+      const child = new EventEmitter();
+      child.kill = () => { child.emit('exit', 0); return true; };
+      child.postMessage = input => {
+        // Never record the raw private request carrying the fixture credential.
+        globalThis.claudeFixtureCalls.push(input.kind);
+        const catalog = { credentialId: input.credentialId, observedAt: new Date().toISOString(), complete: true,
+          source: 'anthropic_models+sdk_supportedModels', sdkVersion: '0.3.323', models: globalThis.claudeFixtureUnavailable ? [] : [{ id: 'claude-packaged-fixture-20261101', lifecycle: 'active' }] };
+        setImmediate(() => { child.emit('message', { result: input.kind === 'discover' ? { catalog } : { qualified: true } }); child.emit('exit', 0); });
+      };
+      return child;
+    };
+  });
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('heading', { name: 'Claude authentication and model', exact: true }).waitFor();
+  const initialClaudeSettings = await page.evaluate(() => window.lab.claude.settings());
+  assert.equal(initialClaudeSettings.ok, true, JSON.stringify(initialClaudeSettings));
+  assert.ok(initialClaudeSettings.value.credentials.some(item => item.label === 'Synthetic Claude access'), JSON.stringify(initialClaudeSettings));
+  await page.getByLabel('Anthropic API key reference').selectOption({ label: 'Synthetic Claude access' });
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByLabel('Canonical Claude model').selectOption('claude-packaged-fixture-20261101');
+  await checkClaudeDefaultReplyRecovery(application, page);
+  await application.evaluate(() => { globalThis.claudeFixtureUnavailable = true; });
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'The selected Claude model is unavailable' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Save Claude default', exact: true }).isDisabled(), true);
+  await application.evaluate(() => { globalThis.claudeFixtureUnavailable = false; });
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByRole('button', { name: 'Run bounded API access check', exact: true }).click();
+  await page.getByRole('status').filter({ hasText: 'Access check passed' }).waitFor();
+  const claudeSettings = await page.evaluate(() => window.lab.claude.settings());
+  assert.equal(claudeSettings.ok, true);
+  const claudeChoice = { integration: 'claude', credentialId: claudeSettings.value.selection.credentialId, modelId: claudeSettings.value.selection.modelId };
+  const invalidClaude = await page.evaluate(choice => window.lab.claude.save({ ...choice, modelId: 'sonnet' }, 1, crypto.randomUUID()), claudeChoice);
+  assert.equal(invalidClaude.error.reason, 'invalid_model');
+  const unavailableClaude = await page.evaluate(choice => window.lab.claude.save({ ...choice, modelId: 'claude-missing-1' }, 1, crypto.randomUUID()), claudeChoice);
+  assert.equal(unavailableClaude.error.reason, 'unavailable_model');
+  await page.getByRole('button', { name: 'Runs', exact: true }).click();
+  await page.getByRole('heading', { name: 'Run agent configuration', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Refresh Claude models', exact: true }).click();
+  await page.getByLabel('Project for run configuration').selectOption(first.projectId);
+  await checkClaudeRunRefreshRecovery(application, page, first.projectId);
+  const runAgents = await page.evaluate(id => window.lab.claude.runInputs(id), first.projectId);
+  assert.equal(runAgents.ok, true); assert.equal(runAgents.value.length, 1);
+  assert.equal(runAgents.value[0].modelId, claudeChoice.modelId);
+  assert.ok(!JSON.stringify(runAgents).includes('synthetic-second-integration-check'));
+  await application.evaluate(({ utilityProcess }) => { utilityProcess.fork = globalThis.originalUtilityFork; });
+  await page.getByRole('button', { name: 'Projects', exact: true }).click();
+  await page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Second research', exact: true }) }).getByRole('button', { name: 'Open project', exact: true }).click();
+  // A conflict must preserve the first project's source and expose an error.
+  await page.getByRole('button', { name: 'New project', exact: true }).click();
+  await page.getByLabel('Project name', { exact: true }).fill('Conflicting research');
+  await page.getByRole('button', { name: 'Edit folder name', exact: true }).click();
+  await page.getByLabel('Folder name', { exact: true }).fill('../invalid');
+  assert.equal(await page.getByRole('button', { name: 'Create project', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByRole('button', { name: 'Done', exact: true }).isDisabled(), true);
+  assert.equal(await page.getByLabel('Folder name', { exact: true }).getAttribute('aria-invalid'), 'true');
+  await page.getByLabel('Folder name', { exact: true }).fill('first-research');
+  await page.getByRole('button', { name: 'Create project', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'already exists' }).waitFor();
+  assert.equal(await readFile(path.join(first.location, 'research.py'), 'utf8'), '# retained source file\n');
+  await mkdir('out/smoke', { recursive: true });
+  await page.getByRole('button', { name: 'Create project', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Create project', exact: true }).waitFor();
+  await page.screenshot({ path: 'out/smoke/workspace.png' });
+  // Exercise the native close path, then macOS activation/reopen, then normal quit.
+  const closing = page.waitForEvent('close');
+  await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close());
+  await closing;
+  const remainingWindows = await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().map(window => ({ title: window.getTitle(), id: window.id })));
+  assert.deepEqual(remainingWindows, [], 'Native close should leave no application windows.');
+  const reopening = application.waitForEvent('window');
+  await application.evaluate(({ app }) => app.emit('activate'));
+  const reopened = await reopening;
+  reopened.on('pageerror', (error) => rendererErrors.push(error.message));
+  reopened.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  await reopened.getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  const defaultsRecovery = await armDefaultsRecoveryRestart(application, reopened, first);
+  await application.close();
+  assert.equal(child.exitCode, 0);
+  // A new main and coordinator must read the same registry and project identity.
+  application = await electron.launch({ executablePath, args: [`--user-data-dir=${userData}`], env: launchEnv, timeout: 30_000 });
+  child = application.process();
+  const restarted = await application.firstWindow();
+  restarted.setDefaultTimeout(15_000);
+  restarted.on('pageerror', (error) => rendererErrors.push(error.message));
+  restarted.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  await restarted.getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  // The same restart preserves both independent stores and the entry-only bridge.
+  const credentialReopening = application.waitForEvent('window');
+  await application.evaluate(({ Menu }) => Menu.getApplicationMenu().getMenuItemById('credential-settings').click());
+  const restartedEntry = await credentialReopening;
+  await restartedEntry.getByRole('button', { name: 'Unlock saved credentials', exact: true }).click();
+  await restartedEntry.getByRole('button', { name: /Packaged synthetic check Runpod/ }).click();
+  assert.equal(await restartedEntry.getByTestId('saved-label').textContent(), 'Packaged synthetic check');
+  assert.equal(await restartedEntry.getByLabel('New credential value', { exact: true }).inputValue(), '');
+  assert.equal(await restartedEntry.locator('.credential-list > li').count(), 2);
+  assert.equal(await restartedEntry.evaluate(() => typeof window.lab), 'undefined');
+  await restartedEntry.close();
+  const restoredImports = await restarted.evaluate(id => window.lab.listImports(id), second.projectId);
+  assert.equal(restoredImports.ok, true);
+  assert.deepEqual(restoredImports.value, importReply.value);
+  await smokeRunpod(application, restarted);
+  const firstCard = restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) });
+  await firstCard.getByText(/^Opened/).waitFor();
+  await firstCard.getByRole('button', { name: 'Show folder path for First research', exact: true }).click();
+  await firstCard.getByText(first.location, { exact: true }).waitFor();
+  await firstCard.getByRole('button', { name: 'Open project', exact: true }).click();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  await restarted.getByRole('article').filter({ has: restarted.getByRole('heading', { name: 'First research', exact: true }) }).getByText('Current', { exact: true }).waitFor();
+  await restarted.getByRole('button', { name: 'New project', exact: true }).click();
+  await restarted.getByLabel('Project name', { exact: true }).fill('Cancelled draft');
+  await restarted.getByRole('button', { name: 'Cancel creation', exact: true }).click();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  // UI-only filtering and ordering never change the saved project catalog.
+  await restarted.getByRole('searchbox', { name: 'Search projects', exact: true }).fill('Second');
+  assert.equal(await restarted.getByRole('article').count(), 1);
+  await restarted.getByRole('searchbox', { name: 'Search projects', exact: true }).fill('absent-project');
+  await restarted.getByRole('heading', { name: 'No matching projects', exact: true }).waitFor();
+  await restarted.getByRole('button', { name: 'Clear search', exact: true }).click();
+  assert.equal(await restarted.getByRole('article').count(), 2);
+  await checkDefaultsRecoveryRestart(restarted, first, defaultsRecovery);
+  await checkDefaultsAfterRestart(restarted, savedConfiguration);
+  // Stub only the native Finder dispatch in this test; catalog validation still runs.
+  await application.evaluate(({ app, shell }) => {
+    app.revealedProjectPaths = [];
+    shell.openPath = async (location) => { app.revealedProjectPaths.push(location); return ''; };
+  });
+  await restarted.getByRole('button', { name: 'Open project folder in Finder', exact: true }).click();
+  await restarted.getByText('Project folder opened in Finder.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location]);
+  await restarted.getByText('Git metadata folder & project ID', { exact: true }).click();
+  await restarted.getByRole('button', { name: 'Show Git metadata in Finder', exact: true }).click();
+  await restarted.getByText('Git folder opened in Finder.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location, first.repository]);
+  const invalidGitReveal = await restarted.evaluate(() => window.lab.revealProjectRepository('not-a-project'));
+  assert.equal(invalidGitReveal.ok, false);
+  await application.evaluate(({ app, clipboard }) => {
+    app.copiedWorkspacePaths = [];
+    clipboard.writeText = (location) => { app.copiedWorkspacePaths.push(location); };
+  });
+  await restarted.getByText('Where projects are saved', { exact: true }).click();
+  await restarted.getByRole('button', { name: 'Copy workspace path', exact: true }).click();
+  await restarted.getByText('Workspace location copied.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location)]);
+  await restarted.getByRole('button', { name: 'Copy project path', exact: true }).click();
+  await restarted.getByText('Project path copied.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location]);
+  await restarted.getByRole('button', { name: 'Copy Git path', exact: true }).click();
+  await restarted.getByText('Git path copied.', { exact: true }).waitFor({ state: 'visible' });
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location, first.repository]);
+  const invalidGitCopy = await restarted.evaluate(() => window.lab.copyProjectRepository('not-a-project'));
+  assert.equal(invalidGitCopy.ok, false);
+  const invalidCopy = await restarted.evaluate(() => window.lab.copyProjectLocation('not-a-project'));
+  assert.equal(invalidCopy.ok, false);
+  assert.deepEqual(await application.evaluate(({ app }) => app.copiedWorkspacePaths), [path.dirname(first.location), first.location, first.repository]);
+  const invalidReveal = await restarted.evaluate(() => window.lab.revealProject('not-a-project'));
+  assert.equal(invalidReveal.ok, false);
+  assert.deepEqual(await application.evaluate(({ app }) => app.revealedProjectPaths), [first.location, first.repository]);
+  const openedReply = await restarted.evaluate((id) => window.lab.openProject(id), first.projectId);
+  assert.deepEqual(openedReply, { ok: true, value: first });
+  assert.equal(await readFile(path.join(first.location, 'research.py'), 'utf8'), '# retained source file\n');
+  const restoredClaude = await restarted.evaluate(() => window.lab.claude.settings());
+  assert.equal(restoredClaude.value.selection.modelId, claudeChoice.modelId);
+  const restoredRunAgents = await restarted.evaluate(id => window.lab.claude.runInputs(id), first.projectId);
+  assert.deepEqual(restoredRunAgents.value, runAgents.value);
+  const staleClaude = await restarted.evaluate(choice => window.lab.claude.save(choice, 1, crypto.randomUUID()), claudeChoice);
+  assert.equal(staleClaude.error.reason, 'stale_catalog');
+  // Unavailable folders stay listed; opening must never silently recreate them.
+  await rename(first.location, `${first.location}-temporarily-unavailable`);
+  await restarted.getByRole('button', { name: 'Refresh projects', exact: true }).click();
+  await firstCard.getByText('Project unavailable', { exact: true }).waitFor();
+  await firstCard.getByRole('button', { name: 'Open project', exact: true }).click();
+  await restarted.getByRole('alert').waitFor();
+  await assert.rejects(stat(first.location), { code: 'ENOENT' });
+  await rename(`${first.location}-temporarily-unavailable`, first.location);
+  await firstCard.getByRole('button', { name: 'Open project', exact: true }).click();
+  await restarted.getByRole('region', { name: 'Open project', exact: true }).getByRole('heading', { name: 'First research', exact: true }).waitFor();
+  await checkRetainedImportProtection(application, restarted, importSource);
+  await checkClaudeRetainedMetadataProtection(application, restarted);
+  // A rejected startup bridge remains an accessible, actionable error without a success footer.
+  await application.evaluate(({ ipcMain }) => {
+    ipcMain.removeHandler('shell:get-status');
+    ipcMain.handle('shell:get-status', () => { throw new Error('Simulated unavailable workspace'); });
+  });
+  await restarted.reload();
+  await restarted.getByRole('alert').filter({ hasText: 'Workspace unavailable' }).waitFor();
+  await restarted.getByText('Restart Autoresearch Lab to reconnect to your workspace.', { exact: true }).waitFor();
+  await application.close();
+  assert.equal(child.exitCode, 0);
+  assert.deepEqual(rendererErrors, []);
+  assert.deepEqual(consoleErrors, []);
+  const report = { defaultsPrecedenceAndRestart: 'passed', immutableConfigurationSnapshots: 'passed', configurationAdmission: 'passed', keychainVaultAndEntryIsolation: 'passed', nativeTitlebar: 'passed', startupFailureFeedback: 'passed', persistedRecency: 'passed', projectFilter: 'passed', nativeWorkspaceCopy: 'passed', validatedProjectCopy: 'passed', validatedGitCopy: 'passed', validatedGitFinderDispatch: 'passed', validatedFinderDispatch: 'passed', projectCreation: 'passed', projectConflict: 'passed', projectRestartReopen: 'passed', unavailableFolderRecovery: 'passed', packagedLaunch: 'passed', navigation: 'passed', rendererIsolation: 'passed', nativeCloseReopenQuit: 'passed', computeReservationPortAndRestart: 'passed', localDatasetCopyMoveRecoveryConflict: 'passed', datasetOutcomeRestart: 'passed', importSenderIsolation: 'passed', importMetadataAdmission: 'passed', runpodDiscoveryFixturesAndIpc: 'passed', claudePackagedNativeWorkerOffline: 'passed', claudeSettingsAndRunPersistenceFixture: 'passed', ...status };
+  await writeFile('out/smoke/result.json', `${JSON.stringify(report, null, 2)}\n`);
+  console.log(JSON.stringify(report));
+} finally {
+  if (application && child.exitCode === null) await application.close();
+  if (child) assert.notEqual(child.exitCode, null, 'Synthetic app must exit before profile cleanup.');
+  await rm(userData, { recursive: true, force: true });
+  await rm(importSource, { recursive: true, force: true });
+}

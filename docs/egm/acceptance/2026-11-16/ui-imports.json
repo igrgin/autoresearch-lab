@@ -1,0 +1,7 @@
+{
+  "consumer": "Completed import records",
+  "cacheBeforeRefresh": true,
+  "cacheAfterRefresh": false,
+  "expected": false,
+  "qualification": "actual packaged filesystem/vault/coordinator/UI; controlled source"
+}

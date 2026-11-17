@@ -1,0 +1,9 @@
+FAMILY_PROBE_FINISHED:ui-imports
+file:///private/tmp/autoresearch-family-ui/family-imports.mjs:256
+await writeFile('/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/family-verification/ui-imports.json', JSON.stringify({consumer:'Completed import records',cacheBeforeRefresh,cacheAfterRefresh,expected:false,qualification:'actual packaged filesystem/vault/coordinator/UI; controlled source'},null,2)); console.log('FAMILY_PROBE_FINISHED:ui-imports'); throw new Error('FAMILY_PROBE_FINISHED');
+                                                                                                                                                                                                                                                                                                                                                                                                                                                ^
+
+Error: FAMILY_PROBE_FINISHED
+    at file:///private/tmp/autoresearch-family-ui/family-imports.mjs:256:433
+
+Node.js v24.22.3

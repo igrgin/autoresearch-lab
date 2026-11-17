@@ -1,0 +1,22 @@
+{"consumer":"direct","head":"d3b419f8bf859dfbe830c37a80ef19c54dc65662","recognizedBeforeWrite":true,"rawSyntheticValuePersisted":true,"beforeReadTimeQuarantine":true,"expected":"registered matching material must not be newly persisted after admission becomes stale","qualification":"real shared credential service, AES-encrypted synthetic vault and actual PrivateFiles write; no live services"}
+{"consumer":"stream","head":"d3b419f8bf859dfbe830c37a80ef19c54dc65662","recognizedBeforeWrite":true,"rawSyntheticValuePersisted":true,"beforeReadTimeQuarantine":true,"expected":"registered matching material must not be newly persisted after admission becomes stale","qualification":"real shared credential service, AES-encrypted synthetic vault and actual PrivateFiles write; no live services"}
+{"consumer":"recorded_operation","head":"d3b419f8bf859dfbe830c37a80ef19c54dc65662","recognizedBeforeWrite":true,"rawSyntheticValuePersisted":true,"beforeReadTimeQuarantine":true,"expected":"registered matching material must not be newly persisted after admission becomes stale","qualification":"real shared credential service, AES-encrypted synthetic vault and actual PrivateFiles write; no live services"}
+{"consumer":"claude_catalog","head":"d3b419f8bf859dfbe830c37a80ef19c54dc65662","recognizedBeforeWrite":true,"rawSyntheticValuePersisted":true,"beforeReadTimeQuarantine":true,"expected":"registered matching material must not be newly persisted after admission becomes stale","qualification":"real shared credential service, AES-encrypted synthetic vault and actual PrivateFiles write; no live services"}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: direct capture consumers persisted newly recognized values
+
+true !== false
+
+    at file:///private/tmp/autoresearch-family-capture-consumers.mjs:50:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.22.3

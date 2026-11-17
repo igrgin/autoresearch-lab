@@ -1,0 +1,9 @@
+{
+  "consumer": "SafeRecording.capture",
+  "head": "e27fba6aa93bf63852e0f3350db52b2231511761",
+  "recognizedBeforeWrite": true,
+  "rawSyntheticValuePersisted": true,
+  "beforeReadTimeQuarantine": true,
+  "expected": "registered matching material must not be newly persisted after admission becomes stale",
+  "qualification": "real shared credential service, AES-encrypted synthetic vault and actual PrivateFiles write; no live services"
+}

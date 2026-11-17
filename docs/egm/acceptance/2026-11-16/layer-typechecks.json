@@ -1,0 +1,62 @@
+[
+  {
+    "issue": 20,
+    "head": "9cbe2724c945ec9b16d22e9f1cd00a83fb3ca5da",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 55,
+    "head": "08773d024eb443eca8a66d17b87e90456b49ca1b",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 87,
+    "head": "22009373c5faecf496e1332f48ad25c15e7a2ec9",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 23,
+    "head": "112c60062163caee97c8116685968e0895b5e127",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 35,
+    "head": "962c391b3f8f8747a255fc0026e2ba56dcc86b5a",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 40,
+    "head": "21fe7c100be7380c95130a0d211821011f7eaf3e",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 45,
+    "head": "c7d36a6621c613dad884e4a573433d2abe95c321",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 50,
+    "head": "2065a5ac08c9b0850bf2a5fba9413a60d65a5874",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 60,
+    "head": "d5400d0ce6c275f4024abb1fce1dc6a7d74f51b7",
+    "typecheckExit": 0,
+    "output": ""
+  },
+  {
+    "issue": 62,
+    "head": "d3b419f8bf859dfbe830c37a80ef19c54dc65662",
+    "typecheckExit": 0,
+    "output": ""
+  }
+]

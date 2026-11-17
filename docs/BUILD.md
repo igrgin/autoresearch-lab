@@ -509,3 +509,23 @@ against a controlled Models API fixture with networking denied, then exercises
 settings, run-agent saving, rejected choices and restart through the actual UI,
 IPC, Keychain vault and coordinator. These tests do not prove live Anthropic
 authentication, account entitlement, inference success or signed distribution.
+
+
+## Metadata publication stabilization
+
+`npm run check` includes permanent matching-policy regressions: actual durable
+capture through direct, stream, recorded-operation and Claude catalog paths;
+production renderer/preload cache invalidation for both Codex views, both Claude
+views, Runpod, Vast and completed imports; and delayed responses with notifications
+both delivered and withheld. Native renderer tests use controlled domain
+projections and a real synthetic encrypted credential service. They make no live
+provider/inference calls. Existing packaged smoke continues to test real stores
+and host routing.
+
+Capture owns matching authority through durable file publication. Main stamps
+metadata replies with their admission generation; preload's fixed-field FIFO
+barrier rejects changed/stale responses without resending writes. Generation-bound
+renderer state clears bodies and ignores older async setters while retaining
+uncertain operation identities. Metadata barriers do not await the credential
+queue, so waiting matching changes cannot block writer reconciliation. Main,
+preload and renderer must ship together; no SQL or dependency migration is added.

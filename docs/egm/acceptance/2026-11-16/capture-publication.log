@@ -1,0 +1,19 @@
+{"consumer":"SafeRecording.capture","head":"e27fba6aa93bf63852e0f3350db52b2231511761","recognizedBeforeWrite":true,"rawSyntheticValuePersisted":true,"beforeReadTimeQuarantine":true,"expected":"registered matching material must not be newly persisted after admission becomes stale","qualification":"real shared credential service, AES-encrypted synthetic vault and actual PrivateFiles write; no live services"}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: shared capture persisted a value recognized before its write
+
+true !== false
+
+    at file:///private/tmp/autoresearch-family-capture.mjs:34:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: true,
+  expected: false,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.22.3
