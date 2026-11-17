@@ -222,17 +222,17 @@ test('newer registry/history schema is rejected without resetting data', () => {
   const f = fixture();
   const p = value(create(f.catalog));
   const history = new Database(path.join(p.location, '.lab', 'history.sqlite'));
-  history.prepare('INSERT INTO schema_migrations VALUES (2, ?)').run('future');
+  history.prepare('INSERT INTO schema_migrations VALUES (3, ?)').run('future');
   history.close();
   error(open(f.catalog, p.projectId), 'incompatible_version');
   f.catalog.close();
   const db = new Database(path.join(f.root, 'registry.sqlite'));
-  db.prepare('INSERT INTO schema_migrations VALUES (2, ?)').run('future'); db.close();
+  db.prepare('INSERT INTO schema_migrations VALUES (3, ?)').run('future'); db.close();
   try {
     assert.throws(() => new ProjectCatalog(f.root), /Unsupported database schema/);
     const preserved = new Database(path.join(f.root, 'registry.sqlite'), { readonly: true });
     assert.equal((preserved.prepare('SELECT COUNT(*) AS n FROM projects').get() as { n: number }).n, 1);
-    assert.equal((preserved.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get() as { n: number }).n, 2);
+    assert.equal((preserved.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get() as { n: number }).n, 3);
     preserved.close();
   } finally { rmSync(f.root, { recursive: true, force: true }); }
 });

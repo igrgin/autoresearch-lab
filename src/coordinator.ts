@@ -3,6 +3,7 @@ import type { ProjectRequest } from './projects';
 import { ConfigurationStore } from './configuration/store';
 import type { ConfigurationRequest } from './configuration';
 import { randomUUID } from 'node:crypto';
+import type { ReservationRequest } from './compute/contracts';
 
 // Main provides the OS application-data location; the utility coordinator is
 // the sole writer for registry/history, project files and Git operations.
@@ -33,10 +34,16 @@ try {
 }
 if (catalog) {
   const activeCatalog = catalog;
-  process.parentPort.on('message', async ({ data }: { data: { id: string; request: ProjectRequest; configuration?: ConfigurationRequest; configurationAdmissionId?: string; allowed?: boolean } }) => {
+  process.parentPort.on('message', async ({ data }: { data: { id: string; request: ProjectRequest | ReservationRequest; configuration?: ConfigurationRequest; configurationAdmissionId?: string; allowed?: boolean } }) => {
     if (data.configurationAdmissionId) { configurationAdmissions.get(data.configurationAdmissionId)?.(data.allowed === true); return; }
-    if (data.configuration) process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, value => admitConfiguration(data.id, value)) });
-    else process.parentPort.postMessage({ id: data.id, reply: activeCatalog.handle(data.request) });
+    if (data.configuration) {
+      process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, value => admitConfiguration(data.id, value)) });
+      return;
+    }
+    // Internal host port only. Main/preload exposes no compute mutation IPC.
+    const reply = data.request?.kind?.startsWith('compute.')
+      ? activeCatalog.reservations.handle(data.request as ReservationRequest) : activeCatalog.handle(data.request as ProjectRequest);
+    process.parentPort.postMessage({ id: data.id, reply });
   });
   process.parentPort.postMessage({ coordinator: 'ready', sqliteVersion: activeCatalog.sqliteVersion });
   process.on('exit', () => { configurations.close(); activeCatalog.close(); });

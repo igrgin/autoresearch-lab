@@ -8,6 +8,7 @@ import path from 'node:path';
 import type { CreateProject, ProjectEntry, ProjectError, ProjectRecord, ProjectReply, ProjectRequest, WorkspaceProjects } from '../projects';
 import { findGit, git } from './git';
 import { openStore } from './storage';
+import { ComputeReservations, reservationHistorySql, reservationRegistrySql, type ReservationOptions } from '../compute/reservations';
 
 const registrySql = `CREATE TABLE projects (
   project_id TEXT PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
@@ -57,7 +58,8 @@ export class ProjectCatalog {
   private readonly db: Database.Database;
   private readonly root: string;
   readonly projectsFolder: string;
-  constructor(applicationData: string, private readonly checkpoint: (stage: CreationCheckpoint) => void = () => {}) {
+  readonly reservations: ComputeReservations;
+  constructor(applicationData: string, private readonly checkpoint: (stage: CreationCheckpoint) => void = () => {}, reservationOptions: ReservationOptions = {}) {
     mkdirSync(applicationData, { recursive: true });
     this.root = realpathSync(applicationData);
     for (const folder of [path.join(this.root, 'workspace'), path.join(this.root, 'workspace', 'projects')]) {
@@ -67,7 +69,14 @@ export class ProjectCatalog {
     this.projectsFolder = path.join(this.root, 'workspace', 'projects');
     const registry = path.join(this.root, 'registry.sqlite');
     if (present(registry)) plainFile(registry);
-    this.db = openStore(registry, registrySql);
+    this.db = openStore(registry, registrySql, [reservationRegistrySql]);
+    this.reservations = new ComputeReservations(this.db, (projectId, operation) => {
+      const row = this.db.prepare("SELECT * FROM projects WHERE project_id = ? AND state = 'ready'").get(projectId) as Row | undefined;
+      if (!row) throw new Error('Project is unavailable.');
+      this.validateProject(row);
+      const history = openStore(path.join(this.project(row).location, '.lab', 'history.sqlite'), historySql, [reservationHistorySql]);
+      try { return operation(history); } finally { history.close(); }
+    }, reservationOptions);
     syncDirectory(this.root);
   }
 
@@ -191,7 +200,7 @@ export class ProjectCatalog {
     this.checkpoint('identity');
     const historyPath = path.join(project.location, '.lab', 'history.sqlite');
     if (present(historyPath)) plainFile(historyPath);
-    const history = openStore(historyPath, historySql);
+    const history = openStore(historyPath, historySql, [reservationHistorySql]);
     try {
       const identities = history.prepare('SELECT * FROM project_identity').all() as { project_id: string; created_at: string }[];
       if (!identities.length) history.prepare("INSERT INTO project_identity VALUES (?, 'project', 1, 'project_catalog', 1, ?)").run(row.project_id, row.created_at);
@@ -250,8 +259,9 @@ export class ProjectCatalog {
         fail('conflict', 'The saved project and history identities do not match. Restore the original history database.');
       }
       // Reject unsupported future schemas on reopening as well as creation.
-      const migrations = history.prepare('SELECT version, checksum FROM schema_migrations').all() as { version: number; checksum: string }[];
-      if (migrations.length !== 1 || migrations[0].version !== 1 || migrations[0].checksum !== createHash('sha256').update(historySql).digest('hex')) {
+      const migrations = history.prepare('SELECT version, checksum FROM schema_migrations ORDER BY version').all() as { version: number; checksum: string }[];
+      const scripts = [historySql, reservationHistorySql];
+      if (!migrations.length || migrations.length > scripts.length || migrations.some((m, i) => m.version !== i + 1 || m.checksum !== createHash('sha256').update(scripts[i]).digest('hex'))) {
         fail('incompatible_version', 'This project history requires a compatible application version. Its files were left intact.');
       }
     } finally { history.close(); }
