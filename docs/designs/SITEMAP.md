@@ -5,7 +5,7 @@
 | [Concepts brief](./concepts_brief.md) | Approved on 2026-11-13 | Product scope, agreed behavior, alternatives, success criteria, and questions for formal design. |
 | [Initial design draft](../egm/design_draft.md) | Overview & Goals approved on 2026-11-13 | Approved framing and scope, remaining technical questions, and the published issue plan. Detailed architecture remains open. |
 
-The author approved the Overview & Goals and the issue plan. The plan is published as 14 epics and 82 linked issues, with 82 parent links and 139 blocker relationships. The first route uses Runpod, Codex, and an external pretrained model. Application implementation has not started.
+The author approved the Overview & Goals and the issue plan. The plan was published as 14 epics and 82 linked issues, with 82 parent links and 139 blocker relationships. The first route uses Runpod, Codex, and an external pretrained model. Application implementation is underway. Read live issues and all decision amendments for current delivery state; publication records and archived reviews are historical inputs, not a current completion inventory.
 
 Supporting records:
 
