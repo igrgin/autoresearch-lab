@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld('credentialEntry', {
   copyHelp: (category: string) => ipcRenderer.invoke('credentials:copy-help', category),
   replace: (id: string, value: string) => ipcRenderer.invoke('credentials:replace', { id, value }),
   revoke: (id: string) => ipcRenderer.invoke('credentials:revoke', id),
+  vastSession: (id: string, value: string) => ipcRenderer.invoke('credentials:vast-session', { id, value }),
 });

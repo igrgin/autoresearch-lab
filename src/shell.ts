@@ -2,6 +2,7 @@ import type { ConfigurationBridge } from './configuration-bridge';
 import type { ImportAction, ImportRecord, ImportSelection, StartImport } from './imports';
 import type { CreateProject, ProjectRecord, ProjectReply, WorkspaceProjects } from './projects';
 import type { Discovery, Inspection, RunpodCredentials } from './providers/contract';
+import type { VastCredentialChoice, VastDiscovery, VastReply } from './providers/vast-contract';
 
 export interface ShellStatus {
   coordinator: 'ready';
@@ -21,6 +22,9 @@ export interface ShellBridge extends ConfigurationBridge {
   discoverRunpod(credentialId: string): Promise<Discovery>;
   inspectRunpod(credentialId: string, resourceId: string): Promise<Inspection>;
   openCredentialSettings(): Promise<void>;
+  listVastCredentials(): Promise<VastReply<VastCredentialChoice[]>>;
+  discoverVast(credentialId: string): Promise<VastReply<VastDiscovery>>;
+  openVastSettings(): Promise<void>;
   getStatus(): Promise<ShellStatus>;
   listProjects(): Promise<ProjectReply<WorkspaceProjects>>;
   createProject(input: CreateProject): Promise<ProjectReply<ProjectRecord>>;
