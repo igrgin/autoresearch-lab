@@ -1,0 +1,87 @@
+{
+  "pr": "https://github.com/igrgin/autoresearch-lab/pull/107",
+  "sourceHead": "42dbcb82ca5b7a0890cd0ce66aaab98a73c7fe11",
+  "sourceTree": "fbf9465543ec680055d4e03edcafc6afbee52e0c",
+  "buildCommand": "npm run package",
+  "buildPlatform": "darwin/arm64",
+  "appAsarSha256": "da9048a062b6ce8b6325c3b0f9fca3ba3162e7de8f39cd1b9554f3fee3f64961",
+  "sourceIdentity": {
+    "checkedGitBlobs": 269,
+    "changedTrackedFiles": []
+  },
+  "screenshots": [
+    {
+      "pr": 107,
+      "sourceHead": "42dbcb82ca5b7a0890cd0ce66aaab98a73c7fe11",
+      "sourceTree": "fbf9465543ec680055d4e03edcafc6afbee52e0c",
+      "name": "after",
+      "description": "Global agent/model, duration and objective defaults saved.",
+      "region": "Global defaults",
+      "zoom": 1,
+      "sha256": "bd7fa91302f9730caeb4df898cf9faf61f7d548e565ec95c764950942657b811",
+      "dimensions": {
+        "width": 1280,
+        "height": 1236
+      },
+      "capturedAt": "2026-11-17T00:01:33.795Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "da9048a062b6ce8b6325c3b0f9fca3ba3162e7de8f39cd1b9554f3fee3f64961",
+      "file": "after.png"
+    },
+    {
+      "pr": 107,
+      "sourceHead": "42dbcb82ca5b7a0890cd0ce66aaab98a73c7fe11",
+      "sourceTree": "fbf9465543ec680055d4e03edcafc6afbee52e0c",
+      "name": "after-project",
+      "description": "Project defaults inherit agent and objective with an explicit 45-second duration.",
+      "region": "Project defaults",
+      "zoom": 1,
+      "sha256": "2c03e185356ad33cf948b3c2644a7eca59c60821dbd98f4c2602d6ac63c7535b",
+      "dimensions": {
+        "width": 548,
+        "height": 1658
+      },
+      "capturedAt": "2026-11-17T00:01:34.503Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "da9048a062b6ce8b6325c3b0f9fca3ba3162e7de8f39cd1b9554f3fee3f64961",
+      "file": "after-project.png"
+    },
+    {
+      "pr": 107,
+      "sourceHead": "42dbcb82ca5b7a0890cd0ce66aaab98a73c7fe11",
+      "sourceTree": "fbf9465543ec680055d4e03edcafc6afbee52e0c",
+      "name": "defaults-recovery-after",
+      "description": "After restart, an explicit clean replacement is saved through the actual defaults form.",
+      "region": "Global defaults",
+      "zoom": 1,
+      "sha256": "bd7fa91302f9730caeb4df898cf9faf61f7d548e565ec95c764950942657b811",
+      "dimensions": {
+        "width": 1280,
+        "height": 1236
+      },
+      "capturedAt": "2026-11-17T00:01:36.036Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "da9048a062b6ce8b6325c3b0f9fca3ba3162e7de8f39cd1b9554f3fee3f64961",
+      "file": "defaults-recovery-after.png"
+    },
+    {
+      "pr": 107,
+      "name": "cache-after",
+      "sourceHead": "42dbcb82ca5b7a0890cd0ce66aaab98a73c7fe11",
+      "sourceTree": "fbf9465543ec680055d4e03edcafc6afbee52e0c",
+      "description": "Saved configuration metadata withheld after matching changes, through actual native routing.",
+      "zoom": 1,
+      "dimensions": {
+        "width": 548,
+        "height": 828
+      },
+      "sha256": "a25b0af503d572da1a526a30607a273cfe9d516bcf8c6dd0328215fe827f43c1",
+      "capturedAt": "2026-11-17T00:05:31.953288+00:00",
+      "scenario": "Packaged committed recovery fixture; actual main/preload/renderer/coordinator; synthetic inputs and controlled external transport.",
+      "appAsarSha256": "da9048a062b6ce8b6325c3b0f9fca3ba3162e7de8f39cd1b9554f3fee3f64961",
+      "file": "cache-after.png"
+    }
+  ],
+  "conditions": "Fresh macOS arm64 package built from an exact frozen Git export of this PR head. Isolated synthetic profiles. Provider HTTP and agent processes controlled; actual application UI and host/coordinator routes. No live authentication, inference or training is implied. Captures have not been image-edited. Zoom and image hashes are recorded per file.",
+  "publication": "Stored on the existing evidence branch so the implementation head remains exactly the captured commit. Original capture artifacts and before images remain unchanged."
+}
