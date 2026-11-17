@@ -261,11 +261,13 @@ test('cancellation expiry/ack/parent exit/unobservable exit never manufacture pa
   const unsealed = fixture(); unsealed.setSeal(false); unsealed.setEmpty(true); unsealed.guardian.stop('cancelled'); unsealed.time(20);
   assert.equal(unsealed.guardian.record().state, 'unknown'); assert.equal(unsealed.guardian.record().reservation, 'retain');
 });
-test('failed evidence persistence kills the owned scope without raw error or fabricated outcome/counter changes', () => {
-  const f = fixture(); const counters = { startedCandidates: 4, failures: 1, stagnation: 3 }; const before = structuredClone(counters);
+test('failed evidence persistence kills the owned scope without raw error or fabricated outcome fields', () => {
+  const f = fixture();
   f.failSave(); assert.throws(() => f.guardian.phase('agent'));
-  assert.ok(f.calls.includes('kill')); assert.deepEqual(counters, before);
+  assert.ok(f.calls.includes('kill'));
   const record = f.guardian.record();
+  // This primitive emits no counter/outcome decision. Authoritative counter
+  // transitions must be qualified by the dispatcher/stopping integration.
   for (const absent of ['acceptance', 'executionOutcome', 'stagnation', 'providerStop']) assert.equal(record[absent], undefined);
   assert.ok(!JSON.stringify(record).includes('synthetic-private-platform-detail'));
 });
