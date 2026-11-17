@@ -1,0 +1,8 @@
+{
+  "conditions": "packaged native UI; synthetic credential/catalog; controlled post-commit reply loss",
+  "files": {
+    "before.png": "1ea0d40ca43c0852fdbb960b391569a5a8cd4844df1f64e36afb7b7c5c83521f",
+    "after.png": "2e29aa54a4aeae6be61b6927e3b5a3ae62942ae899477fc163c2288ea88cdedd",
+    "pending.png": "9fc740b12fd50d3f9b677b7d05de158cad55d308e3d429b29cea116ce0f40f9a"
+  }
+}

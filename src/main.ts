@@ -1,5 +1,10 @@
 import { metadataReply } from './security/metadata-policy';
 import { ResearchSecurityHost } from './research/security-port';
+import { CodexHost } from './codex/host';
+import { StdioAuthRpc, stopCodexAuthentication } from './codex/stdio';
+import { CodexStoreClient } from './codex/store-client';
+import { admitCodexValue } from './codex/admission';
+import type { CodexReply, CodexStoreCommand, CodexStoreValue, ChooseAgent } from './codex/contract';
 import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -29,6 +34,12 @@ let vast: VastConnection;
 let window: BrowserWindow | null = null;
 let coordinator: ReturnType<typeof utilityProcess.fork> | null = null;
 let quitting = false;
+const codexClient = new CodexStoreClient({ available: () => coordinator !== null,
+  post: message => { if (!coordinator) throw new Error(); coordinator.postMessage(message); } }, command => {
+  const release = security.matcher.holdMatchingPolicy();
+  try { admitCodexValue(security.matcher, command); return release; } catch (error) { release(); throw error; }
+});
+const requestCodexStore = (command: CodexStoreCommand): Promise<CodexStoreValue> => codexClient.request(command);
 let startupFailure = 'Workspace startup failed. Restart the application.';
 type HostValue = ProjectRecord | WorkspaceProjects | ImportRecord[];
 const selections = new Map<string, { paths: string[]; directory: boolean }>();
@@ -149,9 +160,14 @@ function startCoordinator(): Promise<ShellStatus> {
         child.postMessage({ channel: 'import_metadata_revision', id, ok: true, revision });
       }).catch(() => child.postMessage({ channel: 'import_metadata_revision', id, ok: false }));
     });
+    child.on('message', (message: { id?: string; codexReply?: CodexReply<CodexStoreValue> }) => {
+      if (!message?.id || !message.codexReply) return;
+      codexClient.receive(message.id, message.codexReply);
+    });
     child.once('exit', () => {
       researchSecurity.unavailable();
       importPolicy.close();
+      codexClient.unavailable(); coordinator = null;
       clearTimeout(timer);
       for (const waiting of pending.values()) clearTimeout(waiting.timer);
       pending.clear();
@@ -325,6 +341,22 @@ if (!app.requestSingleInstanceLock()) {
       catch { return vastFailure('authentication_required', newId()); }
     });
     ipcMain.handle('vast:settings', async event => { admit(event); await openCredentialSettings(); });
+    const codexExecutable = app.isPackaged ? path.join(process.resourcesPath, 'codex') :
+      path.join(app.getAppPath(), 'node_modules/@openai/codex-runtime/vendor/aarch64-apple-darwin/bin/codex');
+    const codex = new CodexHost(security, requestCodexStore, signal => StdioAuthRpc.start(codexExecutable, path.join(app.getPath('userData'), 'private-codex'), signal));
+    metadataHandle('codex:reconcile-save', (event, requestId: string) => { admit(event); return codex.execute(() => codex.reconcileSave(requestId)); });
+    metadataHandle('codex:settings', event => { admit(event); return codex.execute(() => codex.settings()); });
+    metadataHandle('codex:recovery', (event, projectId?: string) => { admit(event); return codex.execute(() => codex.recovery(projectId)); });
+    ipcMain.handle('codex:credentials', event => { admit(event); return openCredentialSettings(); });
+    metadataHandle('codex:authenticate', (event, credentialRef: string) => {
+      admit(event); return codex.execute(async () => { assertId(credentialRef); return codex.catalog(credentialRef); });
+    });
+    metadataHandle('codex:models', event => { admit(event); return codex.execute(() => codex.catalog()); });
+    metadataHandle('codex:default', (event, choice: ChooseAgent, requestId: string) => { admit(event); return codex.execute(() => { assertId(requestId); return codex.saveDefault(choice, requestId); }); });
+    metadataHandle('codex:run-get', (event, projectId: string) => { admit(event); return codex.execute(() => codex.runSelection(projectId)); });
+    metadataHandle('codex:run-save', (event, projectId: string, expectedRevision: number, choice: ChooseAgent, requestId: string) => {
+      admit(event); return codex.execute(() => { assertId(requestId); return codex.saveRunSelection(projectId, expectedRevision, choice, requestId); });
+    });
     ipcMain.handle('shell:get-status', (event) => {
       admit(event);
       return status;
@@ -436,6 +468,6 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 // This shell cannot start runs. Active-run close/quit coordination is owned by #73.
-app.on('before-quit', () => { quitting = true; });
+app.on('before-quit', () => { quitting = true; stopCodexAuthentication(); });
 app.on('will-quit', () => { coordinator?.kill(); });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

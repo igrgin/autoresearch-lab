@@ -1,5 +1,6 @@
 import type { ConfigurationBridge } from './configuration-bridge';
 import type { ImportAction, ImportRecord, ImportSelection, StartImport } from './imports';
+import type { CodexBridge } from './codex/contract';
 import type { CreateProject, ProjectRecord, ProjectReply, WorkspaceProjects } from './projects';
 import type { Discovery, Inspection, RunpodCredentials } from './providers/contract';
 import type { VastCredentialChoice, VastDiscovery, VastReply } from './providers/vast-contract';
@@ -25,6 +26,7 @@ export interface ShellBridge extends ConfigurationBridge {
   listVastCredentials(): Promise<VastReply<VastCredentialChoice[]>>;
   discoverVast(credentialId: string): Promise<VastReply<VastDiscovery>>;
   openVastSettings(): Promise<void>;
+  codex: CodexBridge;
   getStatus(): Promise<ShellStatus>;
   listProjects(): Promise<ProjectReply<WorkspaceProjects>>;
   createProject(input: CreateProject): Promise<ProjectReply<ProjectRecord>>;
