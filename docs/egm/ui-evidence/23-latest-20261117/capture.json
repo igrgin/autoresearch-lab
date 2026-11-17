@@ -1,0 +1,51 @@
+{
+  "pr": "https://github.com/igrgin/autoresearch-lab/pull/113",
+  "sourceHead": "cba454fc9b83994402dddd9c94842baf636b0b25",
+  "sourceTree": "27e094ca3ed64d1318393ce52605a472e60cc265",
+  "buildCommand": "npm run package",
+  "buildPlatform": "darwin/arm64",
+  "appAsarSha256": "cc1b600b572384021f6e3cca26d4d28649fe5d00aff6a1b34f5de31f117928a2",
+  "sourceIdentity": {
+    "checkedGitBlobs": 375,
+    "changedTrackedFiles": []
+  },
+  "screenshots": [
+    {
+      "pr": 113,
+      "sourceHead": "cba454fc9b83994402dddd9c94842baf636b0b25",
+      "sourceTree": "27e094ca3ed64d1318393ce52605a472e60cc265",
+      "name": "after",
+      "description": "Two synthetic local files copied and verified; research preparation still required.",
+      "region": "Local dataset imports",
+      "zoom": 1,
+      "sha256": "3853ab3b70e7948d2fee7bf7b0a525aa6f5c72c07d14b3abd37e18f3a6465358",
+      "dimensions": {
+        "width": 548,
+        "height": 1012
+      },
+      "capturedAt": "2026-11-17T00:01:40.443Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "cc1b600b572384021f6e3cca26d4d28649fe5d00aff6a1b34f5de31f117928a2",
+      "file": "after.png"
+    },
+    {
+      "pr": 113,
+      "sourceHead": "cba454fc9b83994402dddd9c94842baf636b0b25",
+      "sourceTree": "27e094ca3ed64d1318393ce52605a472e60cc265",
+      "name": "import-protection-after",
+      "description": "Retained import metadata withheld and cached bodies cleared after recognition.",
+      "sha256": "fa7cc9fe2b72f5af3a76f1200499f977761df11f55ae041041be0abc086454c0",
+      "zoom": 1,
+      "capturedAt": "2026-11-17T00:01:46.315Z",
+      "scenario": "Committed packaged protection helper, real native routing and matching service; synthetic data.",
+      "dimensions": {
+        "width": 548,
+        "height": 664
+      },
+      "appAsarSha256": "cc1b600b572384021f6e3cca26d4d28649fe5d00aff6a1b34f5de31f117928a2",
+      "file": "import-protection-after.png"
+    }
+  ],
+  "conditions": "Fresh macOS arm64 package built from an exact frozen Git export of this PR head. Isolated synthetic profiles. Provider HTTP and agent processes controlled; actual application UI and host/coordinator routes. No live authentication, inference or training is implied. Captures have not been image-edited. Zoom and image hashes are recorded per file.",
+  "publication": "Stored on the existing evidence branch so the implementation head remains exactly the captured commit. Original capture artifacts and before images remain unchanged."
+}
