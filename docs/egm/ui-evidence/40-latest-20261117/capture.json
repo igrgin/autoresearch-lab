@@ -1,0 +1,52 @@
+{
+  "pr": "https://github.com/igrgin/autoresearch-lab/pull/110",
+  "sourceHead": "99eade48cd3f0ca520199d201487c03b4a4bcb13",
+  "sourceTree": "81e5df9adc3419b8279e55e0b919931675f4e588",
+  "buildCommand": "npm run package",
+  "buildPlatform": "darwin/arm64",
+  "appAsarSha256": "34bbd433496f72a9ce9b299b2ef5b39bb8e2ba7b59a9795e46aeedbf2bb057bc",
+  "sourceIdentity": {
+    "checkedGitBlobs": 391,
+    "changedTrackedFiles": []
+  },
+  "screenshots": [
+    {
+      "pr": 110,
+      "sourceHead": "99eade48cd3f0ca520199d201487c03b4a4bcb13",
+      "sourceTree": "81e5df9adc3419b8279e55e0b919931675f4e588",
+      "name": "after",
+      "description": "Vast discovery shows canonical identity and distinct actual, intended and contract states.",
+      "region": "application window",
+      "zoom": 0.8,
+      "sha256": "a7ac189ed77a9f6556a6bcc32574067f6983cce91f922fb4df5a1130966d5e59",
+      "dimensions": {
+        "width": 2560,
+        "height": 1740
+      },
+      "capturedAt": "2026-11-17T00:07:35.854Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "34bbd433496f72a9ce9b299b2ef5b39bb8e2ba7b59a9795e46aeedbf2bb057bc",
+      "file": "after.png"
+    },
+    {
+      "pr": 110,
+      "sourceHead": "99eade48cd3f0ca520199d201487c03b4a4bcb13",
+      "sourceTree": "81e5df9adc3419b8279e55e0b919931675f4e588",
+      "name": "session-recovery-after",
+      "description": "Successful discovery after entering a provider-issued two-factor session through the trusted entry window.",
+      "region": "application window",
+      "zoom": 0.8,
+      "sha256": "caf0d34c4d9023c86ceb4774524851ecf2d188ebb061ce1aaa18c91778926f81",
+      "dimensions": {
+        "width": 2560,
+        "height": 1740
+      },
+      "capturedAt": "2026-11-17T00:07:36.117Z",
+      "transport": "Actual packaged renderer/preload/main/coordinator; isolated profile; only provider HTTP/agent subprocesses controlled",
+      "appAsarSha256": "34bbd433496f72a9ce9b299b2ef5b39bb8e2ba7b59a9795e46aeedbf2bb057bc",
+      "file": "session-recovery-after.png"
+    }
+  ],
+  "conditions": "Fresh macOS arm64 package built from an exact frozen Git export of this PR head. Isolated synthetic profiles. Provider HTTP and agent processes controlled; actual application UI and host/coordinator routes. No live authentication, inference or training is implied. Captures have not been image-edited. Zoom and image hashes are recorded per file.",
+  "publication": "Stored on the existing evidence branch so the implementation head remains exactly the captured commit. Original capture artifacts and before images remain unchanged."
+}
