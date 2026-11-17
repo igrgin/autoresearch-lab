@@ -42,9 +42,26 @@ async function absent(page) {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   return page.evaluate(value => !document.body.innerText.includes(value) && !Array.from(document.querySelectorAll('input,textarea,select')).some(element => element.value.includes(value)), token);
 }
+async function waitForAdmission(scenario, timeoutMs = 6000) {
+  await application.evaluate(async (_electron, { scenario, timeoutMs }) => {
+    const deadline = Date.now() + timeoutMs;
+    while (!globalThis.metadataFixture.admitted()) {
+      if (Date.now() >= deadline) throw new Error(`${scenario}: metadata admission was not reached within ${timeoutMs}ms`);
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+  }, { scenario, timeoutMs });
+}
 try {
   application = await electron.launch({ args: [path.resolve('.webpack/metadata-tests/main.cjs'), `--user-data-dir=${directory}`], env: environment });
   await application.firstWindow();
+  // A missing dispatch must fail this scenario, release its fixture and leave
+  // the runner able to execute the remaining consumers instead of hanging.
+  try {
+    const page = await open('runpod'); await setup(page, 'runpod');
+    await application.evaluate(() => globalThis.metadataFixture.hold('never-dispatched'));
+    await assert.rejects(waitForAdmission('missing-request probe', 50), /missing-request probe: metadata admission was not reached/);
+    results.push('missing request produces a bounded named failure');
+  } finally { await application.evaluate(() => globalThis.metadataFixture.release()); }
   for (const mode of modes) {
     try {
       const page = await open(mode); await setup(page, mode);
@@ -64,7 +81,7 @@ try {
         const page = await open(mode); await setup(page, mode);
         await application.evaluate((_electron, input) => globalThis.metadataFixture.hold(input.channel, input.drop), { channel: channels[mode], drop });
         const action = act(page, mode); await action;
-        await application.evaluate(async () => { while (!globalThis.metadataFixture.admitted()) await new Promise(resolve => setTimeout(resolve, 5)); });
+        await waitForAdmission(`${mode} pending reply, drop=${drop}`);
         await application.evaluate(async () => globalThis.metadataFixture.recognize());
         await application.evaluate(() => globalThis.metadataFixture.release());
         await page.waitForFunction(() => !document.querySelector('button:disabled')?.textContent?.includes('Working'));
@@ -75,6 +92,7 @@ try {
         assert.equal(await absent(page), true, `${mode}: late reply cannot republish (notification dropped=${drop})`);
         results.push(`${mode} pending reply, drop=${drop}`);
       } catch (error) { failures.push(error.message); }
+      finally { await application.evaluate(() => globalThis.metadataFixture.release()); }
     }
   }
 
@@ -86,7 +104,7 @@ try {
       await application.evaluate((_electron, channel) => globalThis.metadataFixture.hold(channel), channel);
       const save = { codex: 'Save default model', 'codex-run': 'Save run agent selection', claude: 'Save Claude default', 'claude-run': 'Save run agent configuration' }[mode];
       await page.getByRole('button', { name: save, exact: true }).click();
-      await application.evaluate(async () => { while (!globalThis.metadataFixture.admitted()) await new Promise(resolve => setTimeout(resolve, 5)); });
+      await waitForAdmission(`${mode} pending save`);
       const before = await application.evaluate(() => globalThis.metadataFixture.mutations());
       await application.evaluate(async () => globalThis.metadataFixture.recognize());
       await application.evaluate(() => globalThis.metadataFixture.release());
@@ -102,6 +120,7 @@ try {
       assert.deepEqual(await application.evaluate(() => globalThis.metadataFixture.mutations()), before, `${mode}: no implicit duplicate write`);
       results.push(`${mode} pending save, identity retained/no duplicate`);
     } catch (error) { failures.push(error.message); }
+    finally { await application.evaluate(() => globalThis.metadataFixture.release()); }
   }
   console.log(JSON.stringify({ metadataUI: results, failures, qualification: 'Production renderer/preload; real synthetic encrypted credential service; controlled domain projections; no live service' }, null, 2));
   assert.deepEqual(failures, []);
