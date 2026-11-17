@@ -1,8 +1,11 @@
 # Build and run on macOS
 
 The first supported build target is **Apple Silicon (arm64), macOS 15 or later**.
-Intel, Windows and Linux builds are not qualified. The workspace supports project creation, persisted listing, reopening, global/project defaults, saved run configurations and recoverable local dataset imports. Compute discovers existing Runpod GPU Pods and Vast.ai instances. Credential settings use a separate trusted window; Codex authentication/model settings are available; research execution and training
-remain separate implementation tasks.
+Intel, Windows and Linux builds are not qualified. The workspace supports project
+creation/reopening, defaults and saved configuration inputs, dataset import,
+provider discovery, and agent authentication/model choices. Credential settings
+use a separate trusted window. Full run preparation, dispatch and training remain
+separate implementation tasks; discovery and saved inputs do not establish them.
 
 ## Prerequisites
 
@@ -74,17 +77,18 @@ utility fixture: whole-instance conflict, unknown stop, no-proof release rejecti
 and restart retention. It does not prove active-run Pause or live remote recovery,
 which the shell cannot yet exercise.
 
-[macOS CI](../.github/workflows/macos-build.yml) runs on every pull request and
-push to `main`. It checks the arm64 runner, installs from the lockfile, runs the
+[macOS CI](../.github/workflows/macos-build.yml) runs on pushes to `main`.
+Hosted PR checks are intentionally absent. It checks the arm64 runner,
+installs from the lockfile, runs the
 same build and smoke commands, and uploads the ZIP plus smoke evidence as
 `autoresearch-lab-macos-arm64`. Upload runs only after every preceding step
 succeeds, with missing output treated as an error. A failed check/build/launch
 fails the job and publishes no build artifact.
 
-To verify the negative path on a review branch, temporarily introduce a TypeScript
-error under `src/`, push it to the PR, and confirm the build job fails at checking
-and skips upload (the run's artifact list must be empty). Revert the error and
-verify a new successful run with the ZIP. Do not merge the deliberate failure.
+Run the required local checks on the final review candidate and retain its source
+identity with the results. A historical pass for a different source does not
+establish current readiness. The absence of a PR job under this policy is not a
+check failure or a reason to request repeated reruns.
 
 The packaged configuration-protection smoke additionally delays a real
 main/coordinator admission and checks credential entry ordering through commit,
@@ -93,6 +97,37 @@ snapshot, draft and defaults views after credential changes, including delayed
 previously admitted replies. Evidence is written to
 `out/smoke/configuration-protection/`. These are synthetic local fixtures, with
 no live credentials, provider traffic or inference.
+
+## Shared ownership and test map
+
+Use this map before changing a shared contract or assigning parallel consumers.
+Assign task-specific owners for affected interfaces and integration files;
+these modules describe code responsibility, not permanent human ownership.
+Read current decision amendments linked from the [design sitemap](designs/SITEMAP.md).
+
+| Contract | Implementation owner | Existing regression entry points |
+| --- | --- | --- |
+| Credential matching and recording publication | [sanitizer](../src/security/sanitizer.ts), [recording](../src/security/recording.ts), [private files](../src/security/private-files.ts) | [security checks](../scripts/test-security.mjs), [policy/capture cases](../tests/metadata-policy.mjs) |
+| Native metadata settlement and renderer cache lifetime | [main](../src/main.ts), [preload](../src/preload.ts), [metadata policy](../src/security/metadata-policy.ts), [metadata state](../src/renderer/metadata-state.ts) | [renderer scenarios](../scripts/test-metadata-ui.mjs), [actual native routes](../scripts/test-stabilization-native.mjs) |
+| Configuration admission, immutable choices, and uncertain writes | [configuration store](../src/configuration/store.ts), [configuration client](../src/configuration/client.ts), [coordinator](../src/coordinator.ts) | [configuration tests](../tests/configuration.test.ts), [packaged protection](../scripts/smoke-configuration-protection.mjs) |
+| Research event/detail publication and replay | [research store](../src/research/store.ts), [security port](../src/research/security-port.ts) | [research tests](../tests/research.test.ts), [native transport](../scripts/test-research-transport.mjs) |
+| Imported source identity, publication, and cleanup | [importer](../src/importer/importer.ts), [coordinator](../src/coordinator.ts) | [import tests](../tests/imports.test.ts), [native policy](../scripts/test-import-policy.mjs) |
+| Agent choices and pending-save reconciliation | [Codex client](../src/codex/store-client.ts), [Codex views](../src/renderer/codex-settings.tsx), [Claude client](../src/claude/selection-client.ts) | [Codex transport](../scripts/test-codex-transport.mjs), [Claude publication](../scripts/test-claude-publication.mjs), [native routes](../scripts/test-stabilization-native.mjs) |
+| Execution deadlines and recovery | [guardian](../src/execution/guardian.ts), [guardian host](../src/execution/guardian-host.ts) | [execution checks](../scripts/test-execution.mjs) |
+| Checkpoint evidence, replay, and selected-artifact integrity | [checkpoint selection](../src/evaluation/checkpoints.ts) | [checkpoint tests](../tests/checkpoints.test.ts) |
+
+The actual commands live in [package.json](../package.json). `npm run check`
+includes the metadata and actual-native regressions. `npm run smoke` runs the
+application, Vast, Codex, and configuration-protection packaged suites. Preserve
+this wiring when combining branches. Use relevant focused checks while editing
+and required combined checks on final inputs.
+
+For lifetime changes, exercise relevant success, rejection, timeout, delayed
+completion, restart, and unmount cases through the affected production route.
+Keep the original counterexample; an unrelated refresh must not clear a cache
+before its absence assertion. See [reviewer standards](../CODING_STANDARDS.md)
+and the shared workflow for recurring failed repairs. A changed harness must
+still assert the required behavior and finish all required scenarios.
 
 ## Project storage and recovery
 

@@ -4,9 +4,17 @@ Before starting work, read
 `~/Documents/home-repo/docs/agent-workflow.md`
 for shared skills, GitHub conventions, and delegated project work.
 
+For project-specific research and PR deliverables, read the
+[project delivery workflow](docs/agent-workflow.md).
+
 Before planning, reviewing, or changing product behavior, read the [concepts brief](./docs/designs/concepts_brief.md). It is the approved source for scope, decisions, success criteria, and design follow-ups. Use the [design sitemap](./docs/designs/SITEMAP.md) to locate approved specifications.
 
-Use the [design sitemap](./docs/designs/SITEMAP.md) to locate specifications and supporting project records. The setup notes and earlier reviews contain superseded proposals; the concepts brief takes precedence where they differ.
+The setup notes and earlier reviews contain superseded proposals; the concepts brief takes precedence where they differ.
+
+Before changing shared persistence, IPC, security, caching, or recovery,
+read the [ownership and test map](docs/BUILD.md#shared-ownership-and-test-map).
+
+For code review, read [CODING_STANDARDS.md](CODING_STANDARDS.md).
 
 Preserve archived review inputs, raw reviewer responses, and captured source files. Record corrections separately and put new reviews in new artifacts.
 
@@ -14,6 +22,10 @@ Historical absolute paths can be translated with [relocation_map.json](./relocat
 
 EGM artifact directory: docs/egm
 
-Keep working notes and review evidence in that artifact directory. Keep approved specifications and their index in `docs/designs/`.
+Keep retained project review records in that artifact directory. Keep temporary
+diagnostics and fix-helper snapshots/receipts in persistent host scratch outside
+the repository, following the shared workflow and helper procedure. Link required
+external evidence from the delivery record. Preserve existing archives in place.
+Keep approved specifications and their index in `docs/designs/`.
 
 Formal design drafting and implementation require the user's instruction for that phase. Repository setup alone does not authorize either phase.
