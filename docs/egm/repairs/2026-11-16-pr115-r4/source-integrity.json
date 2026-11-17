@@ -1,0 +1,11 @@
+{
+  "v1SqlUnchanged": true,
+  "v1SqlSha256": "59539c518e45c0d3a239ff5f7f135044ffb3dcca66f4c885a1ef833eb5aa266a",
+  "unchanged": [
+    "package-lock.json",
+    ".github/workflows/macos-build.yml",
+    "src/security/sanitizer.ts",
+    "src/security/credentials.ts"
+  ],
+  "reviewStatus": "Parent pending; no new reviewer spawned."
+}

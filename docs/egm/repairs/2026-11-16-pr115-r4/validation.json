@@ -1,0 +1,54 @@
+{
+  "status": "checks_passed_review_pending",
+  "baselineHead": "c96fcf722e2c863b01570d17a73d7a693fa7b8ee",
+  "workspace": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-7678f169",
+  "branch": "t3/7678f169",
+  "origin": "https://github.com/igrgin/autoresearch-lab.git",
+  "reviewerSha256": "793146046cb5d212e0e1e4ff1d0fb2751bdec52f350f04e7b5e881dc931dbb26",
+  "findingsSha256": "da1c97cd7fd68509d224c5ab10abf512f18993783a894b3f436588286989a0ea",
+  "nodeVersion": "v24.22.3",
+  "validation": {
+    "check": {
+      "passed": true,
+      "exitCode": 0,
+      "preSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "postSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "seconds": 534.525
+    },
+    "regression": {
+      "passed": true,
+      "exitCode": 0,
+      "preSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "postSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "seconds": 4.32
+    },
+    "make": {
+      "passed": true,
+      "exitCode": 0,
+      "preSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "postSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "seconds": 50.189
+    },
+    "smoke": {
+      "passed": true,
+      "exitCode": 0,
+      "preSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "postSubject": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+      "seconds": 72.567
+    }
+  },
+  "reportedNodeTests": 374,
+  "focusedTests": 10,
+  "researchNativeScenarios": [
+    "late_commit_after_caller_timeout",
+    "late_admission_reply_after_timeout_no_write",
+    "confirmed_utility_exit"
+  ],
+  "zip": {
+    "path": "out/make/zip/darwin/arm64/Autoresearch Lab-darwin-arm64-0.1.0.zip",
+    "bytes": 387849630,
+    "sha256": "a1428a2e3ac4a49570aebef17ee94d9df0b11643ac356b17d52871c6dfae1197"
+  },
+  "independentReview": "Parent owns new fresh-context review; no convergence claim.",
+  "qualification": "Controlled local fixtures; no live credentials, inference, training or provider resources."
+}

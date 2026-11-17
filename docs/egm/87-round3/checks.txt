@@ -1,0 +1,12 @@
+Command: PATH=/Users/igrgin/.nvm/versions/node/v24.22.3/bin:$PATH npm run check
+Exit: 0
+Typecheck: pass
+Lint: pass
+Tests: 336 passed, 0 failed (216 application/contract, 58 security, 2 Claude runtime, 60 execution)
+
+Research schema initial SQL unchanged from starting commit.
+SHA256: 59539c518e45c0d3a239ff5f7f135044ffb3dcca66f4c885a1ef833eb5aa266a
+
+Git diff --check: pass
+Packaging/make/ZIP/native smoke: parent-owned, pending
+Fresh isolated Goldfish review: parent-owned, pending

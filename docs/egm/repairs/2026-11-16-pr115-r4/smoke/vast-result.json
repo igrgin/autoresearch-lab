@@ -1,0 +1,12 @@
+{
+  "vastPackagedDiscovery": "passed",
+  "completePagination": "passed",
+  "stateSeparation": "passed",
+  "emptyAndStale": "passed",
+  "credentialFailureFeedback": "passed",
+  "memoryOnlySession": "passed",
+  "providerSecretExclusion": "passed",
+  "credentialRestart": "passed",
+  "ipcAuthorization": "passed",
+  "qualification": "Synthetic HTTP fixtures through the packaged application; no live Vast.ai account or rental accessed."
+}

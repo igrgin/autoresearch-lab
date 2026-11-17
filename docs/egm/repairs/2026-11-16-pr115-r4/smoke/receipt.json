@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr115-repair-evidence/patched/snapshot.json",
+  "name": "smoke",
+  "role": "final",
+  "command": [
+    "npm",
+    "run",
+    "smoke"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-7678f169",
+  "environment": "Node24.22.3-macOS-arm64-Electron45.3.2-SQLite-native",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794859766.653446,
+  "ended": 1794859839.220042,
+  "pre_subject_id": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+  "post_subject_id": "c37e7971cbe0d84a58a8ad52a8858677a68f5753bcd98808b47492de6e554da0",
+  "expected_exit": 0,
+  "exit_code": 0,
+  "observation": "Sequential packaged native smoke after arm64 make/ZIP: isolated synthetic profiles, no live services.",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "71dc7a819eadda879f55c496599e8db63996b89a82dd9753aeacc2a2d52db132",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

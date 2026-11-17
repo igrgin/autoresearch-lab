@@ -1,9 +1,17 @@
-import { ProjectCatalog } from './catalog/catalog';
-import type { ProjectRequest } from './projects';
 import { ConfigurationStore } from './configuration/store';
 import type { ConfigurationRequest } from './configuration';
 import { randomUUID } from 'node:crypto';
 import type { ReservationRequest } from './compute/contracts';
+import { ProjectCatalog } from './catalog/catalog';
+import type { ProjectRequest } from './projects';
+import { handleResearch, type ResearchRequest } from './research/host';
+import { ResearchSecurityClient } from './research/security-port';
+import type { Envelope, SafeRecord } from './security/recording';
+import { SecurityError } from './security/common';
+
+// Matching material stays in main's credential service. The database writer
+// requests memory-only admission/rechecks on this private utility-process port.
+const admission = new ResearchSecurityClient(message => process.parentPort.postMessage(message));
 
 // Main provides the OS application-data location; the utility coordinator is
 // the sole writer for registry/history, project files and Git operations.
@@ -34,15 +42,19 @@ try {
 }
 if (catalog) {
   const activeCatalog = catalog;
-  process.parentPort.on('message', async ({ data }: { data: { id: string; request: ProjectRequest | ReservationRequest; configuration?: ConfigurationRequest; configurationAdmissionId?: string; allowed?: boolean } }) => {
+  process.parentPort.on('message', async ({ data }: { data: { channel?: string; id: string; request: ProjectRequest | ResearchRequest | ReservationRequest; configuration?: ConfigurationRequest; configurationAdmissionId?: string; allowed?: boolean; record?: SafeRecord; ok?: boolean } }) => {
     if (data.configurationAdmissionId) { configurationAdmissions.get(data.configurationAdmissionId)?.(data.allowed === true); return; }
-    if (data.configuration) {
-      process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, value => admitConfiguration(data.id, value)) });
+    if (data.configuration) { process.parentPort.postMessage({ id: data.id, configurationReply: await configurations.handleAdmitted(data.configuration, value => admitConfiguration(data.id, value)) }); return; }
+    if (data.channel === 'research_security') {
+      admission.receive({channel:'research_security',id:data.id,ok:data.ok===true,record:data.record});
       return;
     }
-    // Internal host port only. Main/preload exposes no compute mutation IPC.
-    const reply = data.request?.kind?.startsWith('compute.')
-      ? activeCatalog.reservations.handle(data.request as ReservationRequest) : activeCatalog.handle(data.request as ProjectRequest);
+    if (data.channel === 'research') {
+      void handleResearch(activeCatalog, admission, data.request as ResearchRequest).then(reply =>
+        process.parentPort.postMessage({ channel: 'research', id: data.id, reply }));
+      return;
+    }
+    const reply = data.request?.kind?.startsWith('compute.') ? activeCatalog.reservations.handle(data.request as ReservationRequest) : activeCatalog.handle(data.request as ProjectRequest);
     process.parentPort.postMessage({ id: data.id, reply });
   });
   process.parentPort.postMessage({ coordinator: 'ready', sqliteVersion: activeCatalog.sqliteVersion });
