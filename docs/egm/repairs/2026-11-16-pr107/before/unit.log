@@ -1,0 +1,29 @@
+✖ credential recognition between approval and writer continuation cannot publish a new snapshot copy (1374.0145ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1491.032208
+
+✖ failing tests:
+
+test at .webpack/tests/configuration.cjs:4200:22
+✖ credential recognition between approval and writer continuation cannot publish a new snapshot copy (1374.0145ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at error (/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/.webpack/tests/configuration.cjs:3963:48)
+      at TestContext.<anonymous> (/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/.webpack/tests/configuration.cjs:4213:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

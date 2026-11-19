@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { test, after } from 'node:test';
+import { metadataPolicyTests } from '../tests/metadata-policy.mjs';
 
 const build = await mkdtemp(path.join(os.tmpdir(), 'lab-security-build-'));
 execFileSync('node_modules/.bin/tsc', ['--noEmit', 'false', '--rootDir', '.', '--outDir', build], { stdio: 'pipe' });
@@ -43,6 +44,7 @@ async function fixture() {
   const recording = new SafeRecording(recordFiles, sanitizer, id => credentials.revoke(id)); await recording.initialize();
   return { directory, sanitizer, credentials, entry, recording, recordFiles, vaultFiles, crypto };
 }
+metadataPolicyTests({ require, build, fixture, newId });
 async function assertAbsent(f, ids) {
   const variants = [secret, JSON.stringify(secret).slice(1, -1), encodeURIComponent(secret)];
   const authorizedScope = ids.length ? (await f.recording.read(ids[0])).envelope : scope();

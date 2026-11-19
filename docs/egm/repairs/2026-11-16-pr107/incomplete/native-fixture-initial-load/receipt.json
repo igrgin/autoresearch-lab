@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr107-repair/final-inputs/snapshot.json",
+  "name": "smoke",
+  "role": "final",
+  "command": [
+    "env",
+    "PR107_OUTPUT=/tmp/pr107-repair/after-ui-final",
+    "node",
+    "scripts/smoke-configuration-protection.mjs"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a",
+  "environment": "macOS arm64; Node24.22.3; Electron45.3.2",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794859855.4007812,
+  "ended": 1794859886.432791,
+  "pre_subject_id": "285f0ebea190d051c0960fd29796ed1fb5fddb2a04e7c4bfaca5fa1ca8305c97",
+  "post_subject_id": "285f0ebea190d051c0960fd29796ed1fb5fddb2a04e7c4bfaca5fa1ca8305c97",
+  "expected_exit": 0,
+  "exit_code": 1,
+  "observation": "",
+  "error": null,
+  "passed": false,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "10793531332d42b5f81bd52783884ea8506f256cba2c363b140c2430c340a9cb"
+}

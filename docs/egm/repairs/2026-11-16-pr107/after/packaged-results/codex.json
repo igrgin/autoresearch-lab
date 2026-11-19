@@ -1,0 +1,11 @@
+{
+  "packagedUI": "passed",
+  "pendingSaveIdentityAfterRestart": "passed; default and project; no catalog dispatch or second revision",
+  "persistenceAfterRestart": "passed",
+  "rejectedModel": "passed",
+  "unauthorizedAccess": "passed",
+  "quarantineUIReplacementAfterRestart": "passed",
+  "credentialFreeDiagnostics": "passed",
+  "transport": "controlled stdio fixture; not live service proof",
+  "liveInference": "not run"
+}

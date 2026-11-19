@@ -1,0 +1,24 @@
+{
+  "observations": [
+    {
+      "name": "snapshot: immediate policy invalidation",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "name": "snapshot: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "snapshot: rejected revalidation clears all bodies",
+      "actual": false,
+      "expected": true
+    }
+  ],
+  "failures": [
+    "snapshot: immediate policy invalidation\n\nfalse !== true\n",
+    "snapshot: rejected revalidation clears all bodies\n\nfalse !== true\n"
+  ],
+  "qualification": "Controlled synthetic credentials, actual packaged main/coordinator/entry UI. No provider/inference qualification."
+}

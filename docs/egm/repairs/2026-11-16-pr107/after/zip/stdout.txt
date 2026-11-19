@@ -1,0 +1,1 @@
+No errors detected in compressed data of out/make/zip/darwin/arm64/Autoresearch Lab-darwin-arm64-0.1.0.zip.

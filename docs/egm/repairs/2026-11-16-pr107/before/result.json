@@ -1,0 +1,100 @@
+{
+  "observations": [
+    {
+      "name": "snapshot: immediate policy invalidation",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "name": "snapshot: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "snapshot: rejected revalidation clears all bodies",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "name": "draft: immediate policy invalidation",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "name": "draft: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "draft: rejected revalidation clears all bodies",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "name": "defaults: immediate policy invalidation",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "name": "defaults: current-policy read denied",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "defaults: rejected revalidation clears all bodies",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "credential registration waits for admitted writer",
+      "actual": true,
+      "expected": false
+    },
+    {
+      "name": "registration completes after writer quiescence",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "safe admitted write completes before recognition",
+      "actual": false,
+      "expected": true
+    },
+    {
+      "name": "recognized committed choices withheld on reuse",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "no invalidated-admission snapshot copy",
+      "actual": true,
+      "expected": false
+    },
+    {
+      "name": "registration-first write rejected",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "registration-first no project snapshot bytes",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "restart retains matching and withholds old snapshot",
+      "actual": false,
+      "expected": false
+    }
+  ],
+  "failures": [
+    "snapshot: immediate policy invalidation\n\nfalse !== true\n",
+    "snapshot: rejected revalidation clears all bodies\n\nfalse !== true\n",
+    "draft: immediate policy invalidation\n\nfalse !== true\n",
+    "draft: rejected revalidation clears all bodies\n\nfalse !== true\n",
+    "defaults: immediate policy invalidation\n\nfalse !== true\n",
+    "credential registration waits for admitted writer\n\ntrue !== false\n",
+    "safe admitted write completes before recognition\n\nfalse !== true\n",
+    "no invalidated-admission snapshot copy\n\ntrue !== false\n"
+  ],
+  "qualification": "Controlled synthetic credentials, actual packaged main/coordinator/entry UI. No provider/inference qualification."
+}

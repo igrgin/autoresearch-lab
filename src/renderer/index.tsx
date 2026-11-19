@@ -4,6 +4,7 @@ import type { ShellBridge } from '../shell';
 import type { ProjectRecord, ProjectReply, WorkspaceProjects } from '../projects';
 import './style.css';
 import { WindowTitlebar } from './window-titlebar';
+import { DefaultsSettings, ProjectConfigurations } from './configuration';
 
 declare global { interface Window { lab: ShellBridge } }
 
@@ -182,6 +183,7 @@ function Projects() {
           catch { setError('The Git folder could not open. Restore the original folder and retry.'); }
           finally { setBusy(false); }
         }} /><dl><dt>Project identity</dt><dd>{opened.projectId}</dd></dl></details>
+        <ProjectConfigurations key={opened.projectId} projectId={opened.projectId} />
       </section> : <section className="create-panel" aria-label="Create project">
         <h2>Create a project</h2><p className="panel-description">Start with a name. We’ll create a separate folder and Git repository.</p>
         <form onSubmit={(event) => { event.preventDefault(); if (canCreate) void act(() => window.lab.createProject({ requestId, name, folderName }), 'Project created and opened.'); }}>
@@ -204,6 +206,7 @@ function Projects() {
 }
 
 const pages = {
+  Settings: { title: 'Application settings', description: '', empty: '', hint: '' },
   Projects: { title: 'Your research projects', description: '', empty: '', hint: '' },
   Runs: { title: 'Research runs', description: 'Follow experiments, results, and agent activity across your projects.', empty: 'No runs yet', hint: 'Runs will appear here after you create a project and start research.' },
   Compute: { title: 'Your compute', description: 'Connect existing cloud GPU instances for your research.', empty: 'No connected instances', hint: 'Provider connections will be available in a future update.' },
@@ -221,12 +224,13 @@ function App() {
     <div className="workspace">
     <aside className="workspace-sidebar">
       <div className="brand"><span className="brand-mark">A</span><div>Autoresearch Lab<small>Personal research workspace</small></div></div>
-      <p className="nav-label">WORKSPACE</p><nav aria-label="Workspace"><button aria-current={page === 'Projects' ? 'page' : undefined} onClick={() => setPage('Projects')}><Icon name="folder" size={19} />Projects</button></nav>
+      <p className="nav-label">WORKSPACE</p><nav aria-label="Workspace"><button aria-current={page === 'Projects' ? 'page' : undefined} onClick={() => setPage('Projects')}><Icon name="folder" size={19} />Projects</button><button aria-current={page === 'Settings' ? 'page' : undefined} onClick={() => setPage('Settings')}>Settings</button></nav>
       <div className="future-navigation"><p className="nav-label">COMING LATER</p>{(['Runs', 'Compute'] as const).map((name) => <button key={name} aria-current={page === name ? 'page' : undefined} onClick={() => setPage(name)}><Icon name={name === 'Runs' ? 'runs' : 'compute'} size={19} />{name}<span className="soon-label" aria-hidden="true">Soon</span></button>)}</div>
     </aside>
-    <main>{startupError && <div className="error startup-error" role="alert"><strong>Workspace unavailable</strong><p>{startupError}</p></div>}{page === 'Projects' ? <Projects /> : <><header className="page-header"><div><p className="eyebrow">Workspace / {page}</p><h1>{content.title}</h1><p>{content.description}</p></div></header><section className="empty-state" aria-label={page}><span className="empty-icon"><Icon name={page === 'Runs' ? 'runs' : 'compute'} size={28} /></span><h2>{content.empty}</h2><p>{content.hint}</p></section></>}</main>
+    <main>{startupError && <div className="error startup-error" role="alert"><strong>Workspace unavailable</strong><p>{startupError}</p></div>}{page === 'Projects' ? <Projects /> : page === 'Settings' ? <><header className="page-header"><h1>Application settings</h1></header><DefaultsSettings /></> : <><header className="page-header"><div><p className="eyebrow">Workspace / {page}</p><h1>{content.title}</h1><p>{content.description}</p></div></header><section className="empty-state" aria-label={page}><span className="empty-icon"><Icon name={page === 'Runs' ? 'runs' : 'compute'} size={28} /></span><h2>{content.empty}</h2><p>{content.hint}</p></section></>}</main>
     </div>
   </div>;
 }
 
-createRoot(document.getElementById('root')!).render(<App />);
+// Load current matching authority before mounting metadata consumers.
+void window.lab.metadataReady().finally(() => createRoot(document.getElementById('root')!).render(<App />));

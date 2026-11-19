@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "receipt",
+  "snapshot": "/private/tmp/pr107-repair/final-inputs-2/snapshot.json",
+  "name": "make",
+  "role": "final",
+  "command": [
+    "unzip",
+    "-tq",
+    "out/make/zip/darwin/arm64/Autoresearch Lab-darwin-arm64-0.1.0.zip"
+  ],
+  "cwd": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a",
+  "environment": "macOS arm64; Node24.22.3; Electron45.3.2",
+  "toolchain": {
+    "python": "3.10.11",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "started": 1794860617.9963782,
+  "ended": 1794860624.149225,
+  "pre_subject_id": "7cd413c7ddf0e679d216f6eb4fac8771d4b0a426cc3723d8c082fe1642ce7259",
+  "post_subject_id": "7cd413c7ddf0e679d216f6eb4fac8771d4b0a426cc3723d8c082fe1642ce7259",
+  "expected_exit": 0,
+  "exit_code": 0,
+  "observation": "",
+  "error": null,
+  "passed": true,
+  "stdout_sha256": "371f88205e499b776a2033c5578a88a76535957efa708d8d7c88a4fe6d523332",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,7 +1,30 @@
+import { MetadataPolicy } from './security/metadata-policy';
 import { contextBridge, ipcRenderer } from 'electron';
 import type { ShellBridge } from './shell';
+import type { ConfigurationReply, ConfigurationRequest } from './configuration';
+const policy = new MetadataPolicy();
+const revision = (): Promise<number> => ipcRenderer.invoke('metadata:revision');
+ipcRenderer.on('configuration:invalidate', (_event, generation: number) => policy.observe(generation));
+const metadata = <T>(channel: string, ...args: unknown[]): Promise<T> => policy.receive(() => ipcRenderer.invoke(channel, ...args), revision);
+const configuration = <T>(request: ConfigurationRequest): Promise<ConfigurationReply<T>> => metadata('configuration:request', request);
+const operationId = () => crypto.randomUUID();
 
 const bridge: ShellBridge = {
+  metadataReady: () => policy.refresh(() => ipcRenderer.invoke('metadata:ready')),
+  metadataGeneration: policy.current,
+  metadataRevision: policy.revision,
+  onMetadataInvalidated: policy.subscribe,
+  onConfigurationInvalidated: policy.subscribe,
+  getGlobalDefaults: () => configuration({ kind: 'global:get', operationId: operationId() }),
+  recoverGlobalDefaults: () => configuration({ kind: 'global:recover', operationId: operationId() }),
+  updateGlobalDefaults: input => configuration({ kind: 'global:update', operationId: input.requestId, input }),
+  getProjectDefaults: projectId => configuration({ kind: 'project:get', operationId: operationId(), projectId }),
+  recoverProjectDefaults: projectId => configuration({ kind: 'project:recover', operationId: operationId(), projectId }),
+  updateProjectDefaults: (projectId, input) => configuration({ kind: 'project:update', operationId: input.requestId, projectId, input }),
+  prepareConfiguration: projectId => configuration({ kind: 'prepare', operationId: operationId(), projectId }),
+  saveConfiguration: input => configuration({ kind: 'save', operationId: input.requestId, input }),
+  listConfigurations: projectId => configuration({ kind: 'snapshots', operationId: operationId(), projectId }),
+  getConfiguration: (projectId, snapshotId) => configuration({ kind: 'snapshot', operationId: operationId(), projectId, snapshotId }),
   getStatus: () => ipcRenderer.invoke('shell:get-status'),
   listProjects: () => ipcRenderer.invoke('projects:list'),
   createProject: (input) => ipcRenderer.invoke('projects:create', input),

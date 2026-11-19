@@ -54,7 +54,7 @@ export class CredentialService {
             assertId(entry.supersededById);
             if (entry.status !== 'revoked' || !entry.replacedAt || !/^\d{4}-\d{2}-\d{2}T[0-9:.]+Z$/.test(entry.replacedAt)) throw new Error();
           }
-          ids.add(entry.id); this.matcher.register(entry.id, entry.value);
+          ids.add(entry.id); await this.matcher.registerWhenMutable(entry.id, entry.value);
           if (entry.status === 'revoked') this.#revoked.add(entry.id);
         }
         this.#vault = vault; this.#ready = true;
@@ -76,7 +76,7 @@ export class CredentialService {
       if (!Object.values(access).some(a => a.category === category) || typeof label !== 'string' || label.length > 120 || typeof value !== 'string') throw new SecurityError('invalid_input');
       const id = newId();
       try {
-        this.matcher.register(id, value); // generated/entered values are registered before any use
+        await this.matcher.registerWhenMutable(id, value); // generated/entered values are registered before any use
         if (this.matcher.text(label).changed) throw new Error();
       } catch { throw new SecurityError('invalid_input'); }
       const entry: Entry = { id, category, accountId, label, status: 'active', value };
@@ -102,7 +102,7 @@ export class CredentialService {
       const previous = this.#vault.entries.find(entry => entry.id === id);
       if (!previous) throw new SecurityError('permission_denied');
       const replacement: Entry = { id: newId(), category: previous.category, accountId: previous.accountId, label: previous.label, value, status: 'active' };
-      try { this.matcher.register(replacement.id, value); } catch { throw new SecurityError('invalid_input'); }
+      try { await this.matcher.registerWhenMutable(replacement.id, value); } catch { throw new SecurityError('invalid_input'); }
       await this.save({ version: 1, entries: [...this.#vault.entries.map(entry => entry.id === id ? { ...entry, status: 'revoked' as const, supersededById: replacement.id, replacedAt: new Date().toISOString() } : entry), replacement] });
       return this.metadata(replacement);
     });
@@ -131,7 +131,7 @@ export class CredentialService {
       if (!this.#revoked.has(id)) throw new SecurityError('permission_denied');
       if (this.#sessions.has(id)) this.#sessions.delete(id);
       else await this.save({ version: 1, entries: this.#vault.entries.filter(e => e.id !== id) });
-      this.matcher.forget(id);
+      await this.matcher.forgetWhenMutable(id);
     });
   }
   bindAdapter<T>(binding: AdapterBinding, handler: (value: string, signal: AbortSignal) => Promise<T>): { execute(scope: Scope): Promise<T> } {

@@ -1,0 +1,18 @@
+{
+  "before": {
+    "sourceTree": "d9c02b759315c9a6aa90deaf46b450d638e8c2b3",
+    "sourceConfigurationMatches": "c96fcf722e2c863b01570d17a73d7a693fa7b8ee",
+    "fixtureResult": "two cache assertions fail before repair",
+    "images": {
+      "before-native/snapshot-after.png": "371dc60d98b7ae00653cc909236c905c222302e89a6133130b5df84212c4f3b4",
+      "before-native/snapshot-before.png": "5685326a2ab26a0e044ca82bc7c87eef28e8acd6bacfb575927375a05fd8c543"
+    }
+  },
+  "after": {
+    "sourceHead": "e27fba6aa93bf63852e0f3350db52b2231511761",
+    "assertions": "27 packaged configuration protection assertions passed",
+    "images": {
+      "after-native/snapshot-after.png": "0915a5f7af316434d9fe51c3bc1a0ad04669853d85f7c8407877a8b01abbe322"
+    }
+  }
+}

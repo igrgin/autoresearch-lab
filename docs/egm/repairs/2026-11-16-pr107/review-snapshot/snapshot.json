@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "kind": "snapshot",
+  "spec": {
+    "root": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a",
+    "record": "/private/tmp/pr107-repair/fix_record.md",
+    "paths": [
+      "docs/BUILD.md",
+      "package-lock.json",
+      "package.json",
+      "scripts/smoke-configuration-protection.mjs",
+      "scripts/smoke.mjs",
+      "scripts/test.mjs",
+      "src/configuration-bridge.ts",
+      "src/configuration/client.ts",
+      "src/configuration/store.ts",
+      "src/coordinator.ts",
+      "src/main.ts",
+      "src/preload.ts",
+      "src/renderer/configuration-cache.ts",
+      "src/renderer/configuration.tsx",
+      "src/security/credentials.ts",
+      "src/security/sanitizer.ts",
+      "tests/configuration.test.ts",
+      "webpack.tests.config.cjs"
+    ],
+    "environment": "macOS arm64; Node24.22.3; Electron45.3.2"
+  },
+  "subject": {
+    "root": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a",
+    "head": "c96fcf722e2c863b01570d17a73d7a693fa7b8ee",
+    "contract": "Observed: main approves a configuration asynchronously without owning credential matching through commit; renderer retains denied or subsequently recognized configuration bodies.\nExpected: matching remains owned from current-policy admission through writer quiescence. Denied reads and credential-policy changes clear configuration/default caches, and delayed replies cannot restore them. Existing immutable snapshots, precedence, Codex and Claude contracts remain intact.\nAuthority: issue #20 and live #15/#16/#17 decisions, particularly #17 sections 3 and 5; PR107-F01/F02 and explicit repair brief.\nScope: defaults/snapshot admission transport, renderer state, deterministic controlled regressions, packaged UI evidence. Parent owns fresh reviews, integration and push. No new policy, schema migration or GitHub publication.\n",
+    "environment": "macOS arm64; Node24.22.3; Electron45.3.2",
+    "files": {
+      "docs/BUILD.md": {
+        "sha256": "dff2339b5cd35b2ba5cd91469678c2ec645992add1727a8343118faa4c88683a",
+        "mode": 420
+      },
+      "package-lock.json": {
+        "sha256": "e375662a2f382c16520e4b61c78c4b68c17599659ae18e021c2d0f0ca384e55a",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "e17fdbfff3a569ba8a513e2bbac8bd8d8e03d77445404892cbf209baf0b7af17",
+        "mode": 420
+      },
+      "scripts/smoke-configuration-protection.mjs": {
+        "sha256": "7d07f7e0c10b8c0d4f7b651bb70803e73ac81b365a25a2ffe077523970f0cc1a",
+        "mode": 420
+      },
+      "scripts/smoke.mjs": {
+        "sha256": "50cf37d07a21a092b11529db646242edd0508b9c7e3d5f8046031984fac19110",
+        "mode": 420
+      },
+      "scripts/test.mjs": {
+        "sha256": "41f43a52357a3c4bb67b2125a7b17329a2a7fecbc13f77e49653052030d99a67",
+        "mode": 420
+      },
+      "src/configuration-bridge.ts": {
+        "sha256": "f6b82f61442987dbf91bdb362100320a8140ef55645e8585036094e6382144e4",
+        "mode": 420
+      },
+      "src/configuration/client.ts": {
+        "sha256": "d58d070a64e853e42c67adef7eb7d7e2e7e8fcb9095a9257a81892d35da08f87",
+        "mode": 420
+      },
+      "src/configuration/store.ts": {
+        "sha256": "81a267ab43819edb3b90a46129a9b6ccbcd4aa796549be5e14c04a407412c11b",
+        "mode": 420
+      },
+      "src/coordinator.ts": {
+        "sha256": "5d87aa32de92b4f4582714942c41d7294abf4b5ca8c6b0250246611b277fdfb2",
+        "mode": 420
+      },
+      "src/main.ts": {
+        "sha256": "1390e937c148e2531b843f960456a6a827de7a1510caff984bec3036450309f8",
+        "mode": 420
+      },
+      "src/preload.ts": {
+        "sha256": "307ea095bc36cede49a959d2348ac10518d2cd0a8408bb42b614d640f5bc4918",
+        "mode": 420
+      },
+      "src/renderer/configuration-cache.ts": {
+        "sha256": "37e9bd635c6ba485e6e595a2a34c6d7454376580a2fea8635676a14e04b54896",
+        "mode": 420
+      },
+      "src/renderer/configuration.tsx": {
+        "sha256": "496aa556fafbe1dd0e82218afec5e928560a37685a89db771feb08530ce60015",
+        "mode": 420
+      },
+      "src/security/credentials.ts": {
+        "sha256": "77434eca1eb575e585a86bc1062e3467a97632929cc4fbb11f8877c589e44ec0",
+        "mode": 420
+      },
+      "src/security/sanitizer.ts": {
+        "sha256": "cfd262e49623b8ac508043476937293651476a303bf698031d5abc2be2f5b05a",
+        "mode": 420
+      },
+      "tests/configuration.test.ts": {
+        "sha256": "5182dc1c7bebc80e26ea8e35795fa857de43346adf2462147d97dca5fca3e079",
+        "mode": 420
+      },
+      "webpack.tests.config.cjs": {
+        "sha256": "ef1137779a010b950e1b1e7076178e27eebbb4244656628c9a29e06b2228fafd",
+        "mode": 420
+      }
+    }
+  },
+  "subject_id": "7cd413c7ddf0e679d216f6eb4fac8771d4b0a426cc3723d8c082fe1642ce7259",
+  "baseline_files": {
+    "docs/BUILD.md": {
+      "sha256": "7f452ae37222f4a44c0b0a7f85348a964203deef98133b12205e0354c61f3a60",
+      "mode": 420
+    },
+    "package-lock.json": {
+      "sha256": "e375662a2f382c16520e4b61c78c4b68c17599659ae18e021c2d0f0ca384e55a",
+      "mode": 420
+    },
+    "package.json": {
+      "sha256": "81edab197a6c44b4d3e491b1089aece17a3529f23a07a2be7729946f81db3de5",
+      "mode": 420
+    },
+    "scripts/smoke-configuration-protection.mjs": {
+      "sha256": null,
+      "mode": null
+    },
+    "scripts/smoke.mjs": {
+      "sha256": "50cf37d07a21a092b11529db646242edd0508b9c7e3d5f8046031984fac19110",
+      "mode": 420
+    },
+    "scripts/test.mjs": {
+      "sha256": "41f43a52357a3c4bb67b2125a7b17329a2a7fecbc13f77e49653052030d99a67",
+      "mode": 420
+    },
+    "src/configuration-bridge.ts": {
+      "sha256": "3c7e4602af1c12a4464255424f93e54bcf9b74482c884a7489342a3be5f668ee",
+      "mode": 420
+    },
+    "src/configuration/client.ts": {
+      "sha256": null,
+      "mode": null
+    },
+    "src/configuration/store.ts": {
+      "sha256": "c1899b2112c07d430b073423e1922ef5c6cd427dfd2b15378f1c9ed3600c6534",
+      "mode": 420
+    },
+    "src/coordinator.ts": {
+      "sha256": "11572ec886f13f3735e4019fc8dd4508ebf4c411df2ed6cac8c356581ebe0004",
+      "mode": 420
+    },
+    "src/main.ts": {
+      "sha256": "126f89dfc5ec84ff3add37ded0fa23876ede128de3a7e1fa155076c92ab65004",
+      "mode": 420
+    },
+    "src/preload.ts": {
+      "sha256": "bb98197b003fdb6c4bd260849551a2b18edbde78c1ff8d04147a105406c45d5f",
+      "mode": 420
+    },
+    "src/renderer/configuration-cache.ts": {
+      "sha256": null,
+      "mode": null
+    },
+    "src/renderer/configuration.tsx": {
+      "sha256": "79cdfa3fc1aac2c7daa4e777948e28e8e5d1f568f2768589eae93496459d030a",
+      "mode": 420
+    },
+    "src/security/credentials.ts": {
+      "sha256": "77434eca1eb575e585a86bc1062e3467a97632929cc4fbb11f8877c589e44ec0",
+      "mode": 420
+    },
+    "src/security/sanitizer.ts": {
+      "sha256": "f8b8f1b13ec7b63e1a6dde946c904c9189f47011dcd449f23803c155c0e48cb0",
+      "mode": 420
+    },
+    "tests/configuration.test.ts": {
+      "sha256": "677bb4283bcfa3b1b16c8184cfb021b68bc9c5949ed80790f85f6ad89a36ffdd",
+      "mode": 420
+    },
+    "webpack.tests.config.cjs": {
+      "sha256": "ef1137779a010b950e1b1e7076178e27eebbb4244656628c9a29e06b2228fafd",
+      "mode": 420
+    }
+  },
+  "before": "/private/tmp/pr107-repair/before/snapshot.json",
+  "verification": "automated",
+  "required_checks": [
+    "check",
+    "make",
+    "regression",
+    "smoke"
+  ],
+  "record_sha256": "461aa633131b66dba2b5e579e552fc70a4660c8d046681c33bc12d683725b031",
+  "resources": [
+    {
+      "path": "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/agents/bugfix_critic.md",
+      "sha256": "6415ec15d314c575fd56af86db11e04f6fd5b3ec8bc29c8eef469d39ecbaedd7",
+      "retained": "resources/0-bugfix_critic.md"
+    },
+    {
+      "path": "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/resources/document_standards/bugfix-standard.md",
+      "sha256": "2a2a6357a4a18e8c1c079fbd07a332e2c0488174d01e914776401a9187e341cb",
+      "retained": "resources/1-bugfix-standard.md"
+    },
+    {
+      "path": "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/skills/egm-fix/references/review-result.schema.json",
+      "sha256": "ce5a94f1159ebec8963a9a255218a2eaf1229ea6a328c54bede93e5ce28182f1",
+      "retained": "resources/2-review-result.schema.json"
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/docs/egm/repairs/2026-11-16-pr107/README.md",
+      "sha256": "126b96ab7a93f373e4214f838b57dbbc50a07cc77823305f1e44a0ae7809fb28",
+      "retained": "resources/3-README.md"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "/private/tmp/pr107-repair/final-regression-compiled/receipt.json",
+      "sha256": "e78fe182b2bfece46b6b78f0507f002f6b6cb49aa8918e585aa33824c18beb47"
+    },
+    {
+      "path": "/private/tmp/pr107-repair/final-check-long/receipt.json",
+      "sha256": "aad15d414d8dae500aa247a5cffebb03f1ea557ce546c6bb074ddf8e932ef1b3"
+    },
+    {
+      "path": "/private/tmp/pr107-repair/final-make-2/receipt.json",
+      "sha256": "72f73c4ba7766b56bb241e557f22048bc71988d44cb9504d84051012657d4dd4"
+    },
+    {
+      "path": "/private/tmp/pr107-repair/final-zip-2/receipt.json",
+      "sha256": "c626ccec79fb2c53598e1d939b0f3fb25c868954da7702d17015307aea61e781"
+    },
+    {
+      "path": "/private/tmp/pr107-repair/final-smoke/receipt.json",
+      "sha256": "34347e748c41bcc5b57c63075dbd884c31dcd7e420ef155e0fe71a5227023f3b"
+    }
+  ],
+  "diff_sha256": "5815146f23470d8b5a0b8213bd4d67b476badfb13bc5f3df78cccdc5ec98c2e4",
+  "reading_list": [
+    "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/agents/bugfix_critic.md",
+    "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/resources/document_standards/bugfix-standard.md",
+    "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/skills/egm-fix/references/review-result.schema.json",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/docs/BUILD.md",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/docs/egm/repairs/2026-11-16-pr107/README.md",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/package-lock.json",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/package.json",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/scripts/smoke-configuration-protection.mjs",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/scripts/smoke.mjs",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/scripts/test.mjs",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/configuration-bridge.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/configuration/client.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/configuration/store.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/coordinator.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/main.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/preload.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/renderer/configuration-cache.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/renderer/configuration.tsx",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/security/credentials.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/src/security/sanitizer.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/tests/configuration.test.ts",
+    "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-90ecb91a/webpack.tests.config.cjs",
+    "/private/tmp/pr107-repair/final-check-long/receipt.json",
+    "/private/tmp/pr107-repair/final-check-long/stderr.txt",
+    "/private/tmp/pr107-repair/final-check-long/stdout.txt",
+    "/private/tmp/pr107-repair/final-make-2/receipt.json",
+    "/private/tmp/pr107-repair/final-make-2/stderr.txt",
+    "/private/tmp/pr107-repair/final-make-2/stdout.txt",
+    "/private/tmp/pr107-repair/final-regression-compiled/receipt.json",
+    "/private/tmp/pr107-repair/final-regression-compiled/stderr.txt",
+    "/private/tmp/pr107-repair/final-regression-compiled/stdout.txt",
+    "/private/tmp/pr107-repair/final-smoke/receipt.json",
+    "/private/tmp/pr107-repair/final-smoke/stderr.txt",
+    "/private/tmp/pr107-repair/final-smoke/stdout.txt",
+    "/private/tmp/pr107-repair/final-zip-2/receipt.json",
+    "/private/tmp/pr107-repair/final-zip-2/stderr.txt",
+    "/private/tmp/pr107-repair/final-zip-2/stdout.txt",
+    "/private/tmp/pr107-repair/fix_record.md",
+    "/private/tmp/pr107-repair/review-snapshot/changes.diff",
+    "/private/tmp/pr107-repair/review-snapshot/snapshot.json"
+  ],
+  "snapshot_id": "84889f1294d1a4b4ddf723f1c2120689dde36b34919745a060a1c03b5c12715e"
+}

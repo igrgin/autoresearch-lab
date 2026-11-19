@@ -1,3 +1,4 @@
+import type { ConfigurationBridge } from './configuration-bridge';
 import type { CreateProject, ProjectRecord, ProjectReply, WorkspaceProjects } from './projects';
 
 export interface ShellStatus {
@@ -5,7 +6,11 @@ export interface ShellStatus {
   sqliteVersion: string;
 }
 
-export interface ShellBridge {
+export interface ShellBridge extends ConfigurationBridge {
+  metadataReady(): Promise<void>;
+  metadataGeneration(): number;
+  metadataRevision(): number;
+  onMetadataInvalidated(listener: () => void): () => void;
   getStatus(): Promise<ShellStatus>;
   listProjects(): Promise<ProjectReply<WorkspaceProjects>>;
   createProject(input: CreateProject): Promise<ProjectReply<ProjectRecord>>;

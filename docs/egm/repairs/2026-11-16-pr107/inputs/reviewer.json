@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "round": 4,
+  "snapshot_id": "pr-107-13499c85645c858311b64736a4a4818fe69f22ae",
+  "reviewer_id": "goldfish-r4-pr-107",
+  "status": "completed",
+  "read_evidence": [
+    {
+      "path": "workspace verification",
+      "symbols": [
+        "pwd and Git top-level: /Users/igrgin/.t3/worktrees/autoresearch-lab/t3-d5dc440f",
+        "Branch: t3/d5dc440f; actual HEAD: f1fa28ef1b470a3c283094a02eb9243eaab05ace",
+        "Origin fetch/push: https://github.com/igrgin/autoresearch-lab.git",
+        "git worktree list --porcelain confirms this distinct worktree and registered product root /Users/igrgin/Documents/home-repo/repos/autoresearch-lab",
+        "git status --short empty before and after inspection",
+        "Reviewed only base 70250cfb20159c3d1341ab2804859135da36312e to head 13499c85645c858311b64736a4a4818fe69f22ae through Git object reads; no Git isolation mismatch observed"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/agents/bugfix_critic.md",
+      "symbols": [
+        "Entire patch-review persona"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.codex/plugins/cache/egm-local/egm/0.2.1/resources/document_standards/bugfix-standard.md",
+      "symbols": [
+        "Contract and cause",
+        "Regression and nearby behavior",
+        "Evidence and findings"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/review-result.schema.json",
+      "symbols": [
+        "Entire return schema and correlation requirements"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/t3-d5dc440f/AGENTS.md",
+      "symbols": [
+        "Project authority, approved specifications, preservation and phase boundaries"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/Documents/home-repo/docs/agent-workflow.md",
+      "symbols": [
+        "Shared skills",
+        "GitHub workflow",
+        "T3 project coordination",
+        "Worker context"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/Documents/home-repo/docs/github-workflow.md",
+      "symbols": [
+        "Authority",
+        "Issues",
+        "Implementation issues",
+        "Spike decision authority"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.agents/skills/code-review/SKILL.md",
+      "symbols": [
+        "Standards and specification review axes; user prohibition on further agents retained"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:docs/designs/concepts_brief.md",
+      "symbols": [
+        "Entire brief",
+        "Project and run setup",
+        "Credential handling",
+        "Observable success criteria"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:docs/designs/SITEMAP.md",
+      "symbols": [
+        "Approved specification index and authority of issue decisions"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:docs/egm/design_draft.md",
+      "symbols": [
+        "Approved Overview and Goals",
+        "Non-Goals",
+        "Open Questions",
+        "Issue plan"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issues/20.md",
+      "symbols": [
+        "Entire body; precedence, immutable saved choices and restart acceptance; no captured comments"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issues/19.md",
+      "symbols": [
+        "Entire body; project identity and reopening contract; no captured comments"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issues/15.md",
+      "symbols": [
+        "Entire body and all comments",
+        "Superseding Decisions 1\u20133",
+        "Single utility-process writer",
+        "Persistence, recovery and migrations"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issues/16.md",
+      "symbols": [
+        "Entire body and all comments",
+        "Superseding Decisions 1\u20134",
+        "Immutable snapshots",
+        "Revision preconditions",
+        "Idempotency and safe records"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issues/17.md",
+      "symbols": [
+        "Entire body and decision comment",
+        "Safe-record admission before persistence/display",
+        "Current and retired matching",
+        "Exposure containment"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issue-index.json",
+      "symbols": [
+        "Relevant entries for issues 19, 20, 21, 28 and adjacent preparation work"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issues/28.md",
+      "symbols": [
+        "Entire body; complete run editing, metric/stopping validation and unprepared distinction"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/issues/21.md",
+      "symbols": [
+        "Entire body; shared credential admission and exposure handling acceptance"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/pr-107/pr.md",
+      "symbols": [
+        "Entire description and captions; captured comments/reviews absent"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/pr-107/metadata.json",
+      "symbols": [
+        "Pinned base/head",
+        "Available check state",
+        "Combined-stack validation qualifications"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/pr-107/files.txt",
+      "symbols": [
+        "All 24 changed paths"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/pr-107/diff.patch",
+      "symbols": [
+        "All textual changes, including full contents of added sources/tests; binary PNG changes inspected through captured images",
+        "Cross-checked pinned Git diff and changed-file statistics"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/configuration.ts",
+      "symbols": [
+        "RunChoices",
+        "DefaultsRecovery",
+        "ConfigurationSnapshot",
+        "ConfigurationRequest"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/configuration-bridge.ts",
+      "symbols": [
+        "Entire ConfigurationBridge"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/configuration/validation.ts",
+      "symbols": [
+        "validateOverrides",
+        "assertSafeConfiguration"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/configuration/store.ts",
+      "symbols": [
+        "Entire ConfigurationStore",
+        "Schema/triggers",
+        "Initialization guards",
+        "handleAdmitted",
+        "handle",
+        "draft",
+        "recovery",
+        "snapshot"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/coordinator.ts",
+      "symbols": [
+        "Entire entrypoint",
+        "admitConfiguration",
+        "Configuration admission/reply routing"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/main.ts",
+      "symbols": [
+        "Entire source",
+        "requestConfiguration",
+        "Admission message handler",
+        "configuration:request",
+        "Credential registration/replacement handlers"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/preload.ts",
+      "symbols": [
+        "Entire typed bridge and configuration IPC operations"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/shell.ts",
+      "symbols": [
+        "Entire ShellBridge extension"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/renderer/configuration.tsx",
+      "symbols": [
+        "Entire source",
+        "DefaultsSettings",
+        "ChoicesEditor",
+        "ProjectConfigurations",
+        "ChoicesSummary"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/renderer/index.tsx",
+      "symbols": [
+        "ProjectConfigurations mounting/keying",
+        "Settings navigation",
+        "Project open/refresh callers"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/renderer/style.css",
+      "symbols": [
+        "All added defaults/configuration styles"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/security/electron-vault.ts",
+      "symbols": [
+        "Entire createSecurityHost",
+        "assertSafeConfiguration",
+        "initialize"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/security/sanitizer.ts",
+      "symbols": [
+        "Entire Sanitizer",
+        "register",
+        "filter",
+        "Recognizable-token and known-value matching"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/security/credentials.ts",
+      "symbols": [
+        "CredentialService",
+        "initialize",
+        "register",
+        "replace",
+        "Retired matching lifecycle"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/catalog/catalog.ts",
+      "symbols": [
+        "Entire ProjectCatalog",
+        "handle(open)",
+        "validateProject",
+        "Project folder/Git/history binding"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/catalog/storage.ts",
+      "symbols": [
+        "Entire openStore; migration checksum, WAL, FULL synchronization and future-schema rejection"
+      ]
+    },
+    {
+      "path": "70250cfb20159c3d1341ab2804859135da36312e:src/coordinator.ts",
+      "symbols": [
+        "Entire predecessor entrypoint; configuration publication path absent"
+      ]
+    },
+    {
+      "path": "70250cfb20159c3d1341ab2804859135da36312e:src/security/electron-vault.ts",
+      "symbols": [
+        "Entire predecessor security host; new configuration assertion compared"
+      ]
+    },
+    {
+      "path": "70250cfb20159c3d1341ab2804859135da36312e",
+      "symbols": [
+        "git ls-tree confirms configuration.ts, configuration/store.ts and renderer/configuration.tsx absent at base"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:tests/configuration.test.ts",
+      "symbols": [
+        "All 317 lines and actual assertions",
+        "Precedence/restart",
+        "Immutable retries",
+        "Admission and defaults-change race",
+        "Missing/foreign/empty stores",
+        "Recovery projections"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:scripts/smoke-defaults.mjs",
+      "symbols": [
+        "Entire source",
+        "checkInheritedAdmission",
+        "replaceDefaultsViaUi",
+        "checkDefaultsRecoveryRestart",
+        "Precedence and immutable snapshot assertions"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:scripts/smoke.mjs",
+      "symbols": [
+        "Entire source",
+        "Unauthorized IPC probe",
+        "Credential fixtures",
+        "Defaults smoke wiring",
+        "Full application restart"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:scripts/test.mjs",
+      "symbols": [
+        "Entire configuration test runner wiring"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:webpack.tests.config.cjs",
+      "symbols": [
+        "Entire test bundle configuration"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:docs/BUILD.md",
+      "symbols": [
+        "Changed capability description",
+        "Defaults and saved configurations",
+        "Host boundaries"
+      ]
+    },
+    {
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:docs/egm/20-defaults-implementation.md",
+      "symbols": [
+        "Entire implementation evidence document; claims checked against assertion sources"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/pr-107/images/initial",
+      "symbols": [
+        "Visually inspected before.png, after.png and after-project.png against PR captions"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/pr-107/images/20-default-recovery",
+      "symbols": [
+        "Visually inspected before.png, after.png and project-after.png",
+        "Read README.md and capture.json; corresponding pinned additions inspected"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/validation/receipt.json",
+      "symbols": [
+        "Combined-stack head/tree correlation",
+        "371-test receipt",
+        "Qualification limits"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/validation/check.log",
+      "symbols": [
+        "Relevant configuration assertion results",
+        "Typecheck/lint invocation",
+        "Suite pass/failure totals"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/validation/make.log",
+      "symbols": [
+        "Complete macOS arm64 packaging receipt"
+      ]
+    },
+    {
+      "path": "/Users/igrgin/.t3/worktrees/autoresearch-lab/coordinate-ready-issues-20261116/docs/egm/goldfish_reviews/2026-11-16-open-prs/round-4/inputs/validation/smoke.log",
+      "symbols": [
+        "Complete packaged smoke receipt; defaults precedence, immutable snapshots and admission results"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "PR107-F01",
+      "severity": "Major",
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/configuration/store.ts",
+      "symbol": "ConfigurationStore.handleAdmitted",
+      "mechanism": "Credential matching is checked in main, but its approval is an unversioned boolean delivered asynchronously to the writer. If a configuration value becomes a registered credential after main approves the resolved choices but before the coordinator consumes that approval, handleAdmitted persists it without checking the changed matching state. The defaults revision checks cannot detect credential registration. Main's subsequent response check can withhold the reply, but the new plaintext snapshot copy already exists in the project database.",
+      "evidence": "At store.ts:99\u2013107, the writer awaits admission and then calls handle; save at :182\u2013188 rechecks only global/project defaults revisions before INSERT. main.ts:96\u2013100 sends only an allowed boolean, and coordinator.ts:14\u201322 resolves the pending admission from that boolean without a policy generation or write lease. CredentialService.replace at security/credentials.ts:100\u2013106 can register a new matching value independently in main during this IPC interval. A concrete trigger is an inherited objective that was safe during preview, then is registered through credential settings before the queued approval resumes the utility writer. This violates the pre-persistence/current-policy boundary in https://github.com/igrgin/autoresearch-lab/issues/17#issuecomment-6867871329, sections 3 and 5. The existing test for a change during admission changes defaults, not credential matching. Base 70250cfb20159c3d1341ab2804859135da36312e has no configuration store or this publication path; the defect is introduced by this diff. Issue https://github.com/igrgin/autoresearch-lab/issues/28 concerns complete run settings and does not defer safe publication of the snapshots already written here; https://github.com/igrgin/autoresearch-lab/issues/21 supplies the existing shared security contract.",
+      "recommendation": "Coordinate credential-matcher mutation with the configuration write through a lease or equivalent ordering mechanism that remains valid through commit; a second asynchronous boolean check alone leaves the same gap. Parent validation: use the existing configuration fixture and an inherited synthetic canary; in handleAdmitted's second admission callback, successfully assertSafeConfiguration first, then register that canary before resolving the callback, modeling delayed delivery of the approved IPC response. Assert that no new snapshot or project database/WAL copy is published under invalidated admission. Also exercise this ordering through the production main/coordinator port, then run npm test and the packaged defaults smoke. These reproductions were not executed by this reviewer."
+    },
+    {
+      "id": "PR107-F02",
+      "severity": "Major",
+      "path": "13499c85645c858311b64736a4a4818fe69f22ae:src/renderer/configuration.tsx",
+      "symbol": "ProjectConfigurations refresh, prepare and saved-configuration read handlers",
+      "mechanism": "A saved configuration that becomes credential-bearing remains displayed from React state even after its explicit reread is rejected by current credential matching. The failed handlers only set an error; they retain selected, draft and cached snapshots. Consequently, clicking View saved configuration again or refreshing after recognition shows a withholding error alongside the raw value that the host has just refused to disclose.",
+      "evidence": "ProjectConfigurations stores the complete selected snapshot at configuration.tsx:94. Its read handler at :121\u2013124 leaves selected unchanged when getConfiguration fails, and :126 continues rendering ChoicesSummary from that cached object. refresh at :98 and its catch at :112 likewise preserve the old state; prepare at :100\u2013105 preserves an existing draft on rejection. main.ts:232\u2013239 correctly rejects unsafe replies, so host admission does not clear this renderer copy. Concrete trigger: save/select a snapshot whose run-override objective is an unrecognized synthetic canary; register or rotate a credential to that exact value in the separate credential window; click that snapshot's View button again. The host rejects it, but the prior objective remains visible. https://github.com/igrgin/autoresearch-lab/issues/17#issuecomment-6867871329 requires current-policy checks on reuse and fencing affected UI/read projections. The supplied smoke covers newly mounted defaults replacement, not denial of an already selected snapshot. This entire component is new relative to base 70250cfb20159c3d1341ab2804859135da36312e. The finding concerns this PR's existing snapshot display, rather than complete configuration editing planned in https://github.com/igrgin/autoresearch-lab/issues/28; the shared exposure boundary from https://github.com/igrgin/autoresearch-lab/issues/21 must also apply to this new cache.",
+      "recommendation": "Invalidate cached configuration bodies when their admission is denied, and clear selected/draft state before replacing it through revalidated reads. Connect surviving configuration caches to credential-policy invalidation so recognized content cannot continue rendering until navigation remounts the component. Parent packaged validation: save and select a snapshot with objective LaterRecognizedSnapshot107, register that synthetic value through the real credential-entry surface, then click View saved configuration again and Refresh saved configurations. Assert the safe withholding error and absence of the canary from displayed text and form values; repeat with a prepared draft and after credential rotation. Add these assertions to the packaged defaults smoke and run npm run smoke after packaging. This reproduction was not executed by this reviewer."
+    }
+  ],
+  "limitations": [
+    "Read-only source review only. No application, tests, builds, installation, reproduction programs, branch changes or writes were performed; no agents were spawned.",
+    "The supplied successful check/make/smoke receipts cover combined stack head f1fa28ef1b470a3c283094a02eb9243eaab05ace, not standalone PR head 13499c85645c858311b64736a4a4818fe69f22ae. Captured metadata has no hosted checks, consistent with the stated main-only workflow; their absence is not a finding.",
+    "The findings identify source-level failure paths. Parent execution is requested for the controlled matcher-change ordering and cached-snapshot/draft withholding procedures specified in the recommendations.",
+    "Captured PNGs establish presentation under controlled fixtures. They do not qualify live provider permissions, authenticated inference, training/GPU execution, remote containment, signed distribution, physical power loss or real disk-full recovery.",
+    "Examined https://github.com/igrgin/autoresearch-lab/issues/28 in full. Complete task/input, initialization, compute, metrics, constraints and stopping configuration validation belongs to that later slice; its absence is not reported against this defaults PR. Existing snapshots are explicitly unprepared.",
+    "Required frozen contracts, selected PR inputs, changed implementation and assertion sources were inspected. Historical reviewer reports and repair artifacts outside the authorized inputs were not consulted."
+  ]
+}

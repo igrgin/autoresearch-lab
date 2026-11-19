@@ -20,7 +20,10 @@ export function createSecurityHost() {
   const recording = new SafeRecording(new PrivateFiles(path.join(app.getPath('userData'), 'admitted-records')), matcher, id => credentials.revoke(id));
   let initialized: Promise<void> | undefined;
   return {
-    credentials, recording,
+    credentials, recording, matcher,
+    assertSafeConfiguration: (value: unknown) => {
+      if (matcher.filter(value).redacted) throw new SecurityError('invalid_input');
+    },
     // No recording/access until all current + remediation matching material has been loaded.
     initialize: () => {
       initialized ??= credentials.initialize().then(() => recording.initialize()).catch(() => {

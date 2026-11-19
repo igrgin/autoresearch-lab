@@ -1,0 +1,15 @@
+{
+  "findings": {
+    "PR107-F01": {
+      "action": "fixed",
+      "evidence": "ConfigurationClient owns matching before dispatch through terminal writer reply or confirmed exit; after/configuration-tests and packaged delayed-admission ordering cover both linearization orders."
+    },
+    "PR107-F02": {
+      "action": "fixed",
+      "evidence": "Matching-change and denied-reuse invalidation clear sibling defaults/draft/snapshot bodies; request generations fence delayed replies; packaged policy-change, dropped-notification denial, rotation and restart fixtures cover the projections."
+    }
+  },
+  "accepted_risks": [],
+  "remaining_issues": [],
+  "independent_review": "pending parent; implemented dispositions are not review convergence"
+}
