@@ -25,6 +25,49 @@ export function metadataPolicyTests({ require, build, fixture, newId, claude = f
     await assert.rejects(policy.receive(async () => { calls++; revision++; throw failure; }, async () => revision), error => error === failure);
     assert.equal(invalidations, 1); assert.equal(calls, 1); assert.equal(policy.revision(), 1);
   });
+  test('a rejected request invalidates sibling caches and fences an in-flight reply', { timeout: 1000 }, async () => {
+    const { MetadataPolicy, metadataReply } = require(path.join(build, 'src/security/metadata-policy.js'));
+    const policy = new MetadataPolicy();
+    let revision = 0;
+    let rejectedDispatches = 0;
+    let siblingDispatches = 0;
+    const readRevision = async () => revision;
+    let defaultsCache = { value: 'existing defaults' };
+    let modelCache = { value: 'existing model' };
+    policy.subscribe(() => { defaultsCache = undefined; });
+    policy.subscribe(() => { modelCache = undefined; });
+
+    const siblingDispatched = Promise.withResolvers();
+    const releaseSibling = Promise.withResolvers();
+    const sibling = policy.receive(async () => {
+      siblingDispatches++;
+      const admittedRevision = revision;
+      siblingDispatched.resolve();
+      await releaseSibling.promise;
+      return metadataReply({ value: 'old model reply' }, admittedRevision);
+    }, readRevision).then(reply => { modelCache = reply; });
+    const siblingRejected = assert.rejects(sibling, /Credential protection changed/);
+    const failure = new Error('controlled rejection after revision change');
+
+    try {
+      await siblingDispatched.promise;
+      await assert.rejects(policy.receive(async () => {
+        rejectedDispatches++;
+        revision++;
+        throw failure;
+      }, readRevision), error => error === failure);
+      assert.equal(policy.revision(), 1, 'the rejected reply must observe the new revision');
+      assert.equal(defaultsCache, undefined);
+      assert.equal(modelCache, undefined);
+    } finally {
+      releaseSibling.resolve();
+      await siblingRejected;
+    }
+
+    assert.equal(modelCache, undefined, 'settling the old sibling reply cannot refill its cache');
+    assert.equal(rejectedDispatches, 1);
+    assert.equal(siblingDispatches, 1);
+  });
   test('unavailable post-reply authority clears caches for success and rejection', async () => {
     const { MetadataPolicy, metadataReply } = require(path.join(build, 'src/security/metadata-policy.js'));
     for (const rejected of [false, true]) {

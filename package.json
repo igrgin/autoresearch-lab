@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src scripts tests *.cjs",
     "check": "npm run typecheck && npm run lint && npm test",
+    "test:focused": "node scripts/test.mjs --focused",
     "package": "electron-forge package --platform=darwin --arch=arm64",
     "make": "electron-forge make --platform=darwin --arch=arm64",
     "build": "npm run check && npm run make",

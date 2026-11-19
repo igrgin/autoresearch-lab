@@ -46,6 +46,27 @@ Security tests use synthetic values and temporary stores without live adapters.
 The Runpod suite exercises the real adapter against controlled REST-v2 responses;
 it does not access a Runpod account or establish GPU/SSH readiness.
 
+## During edits
+
+- Run `npm run test:focused -- imports` for the import domain. It uses the
+  existing Electron suite and skips the 7,000-file stress case. Use another
+  named domain, such as `configuration` or `checkpoints`, to run that suite.
+- Run `node scripts/test-security.mjs` for the metadata policy and other
+  security contracts. Run `node scripts/test-stabilization-native.mjs` when
+  changing native rejection or renderer lifetime behavior. These runners
+  build their own fixtures.
+- Run `npm run check` for final verification, including the import stress case.
+  Record the revision, commands, results, timings, and skips in the delivery
+  record.
+
+The metadata publication contract lives in
+[`MetadataPolicy`](../src/security/metadata-policy.ts). Its shared test in
+[`metadata-policy.mjs`](../tests/metadata-policy.mjs) covers a rejected request
+clearing sibling caches and fencing an already admitted reply. The native
+suite exercises Runpod rejection and Codex pending saves across view unmount.
+Review changes to shared policy against affected consumers and their actual
+operation lifetime. Renderer imports from Electron are checked by ESLint.
+
 ## Packaged smoke check and CI
 
 After building, run:
@@ -74,17 +95,17 @@ utility fixture: whole-instance conflict, unknown stop, no-proof release rejecti
 and restart retention. It does not prove active-run Pause or live remote recovery,
 which the shell cannot yet exercise.
 
-[macOS CI](../.github/workflows/macos-build.yml) runs on every pull request and
-push to `main`. It checks the arm64 runner, installs from the lockfile, runs the
-same build and smoke commands, and uploads the ZIP plus smoke evidence as
+[macOS CI](../.github/workflows/macos-build.yml) runs on pushes to `main`.
+It checks the arm64 runner, installs from the lockfile, runs the same build and
+smoke commands, and uploads the ZIP plus smoke evidence as
 `autoresearch-lab-macos-arm64`. Upload runs only after every preceding step
 succeeds, with missing output treated as an error. A failed check/build/launch
 fails the job and publishes no build artifact.
 
-To verify the negative path on a review branch, temporarily introduce a TypeScript
-error under `src/`, push it to the PR, and confirm the build job fails at checking
-and skips upload (the run's artifact list must be empty). Revert the error and
-verify a new successful run with the ZIP. Do not merge the deliberate failure.
+Before requesting a merge, run the applicable local checks on the exact
+candidate and record its revision and results in the PR. For packaged behavior,
+run `npm run build` and `npm run smoke`. Pull requests have no hosted macOS
+build. Check the main build and artifact after a merge you are operating.
 
 The packaged configuration-protection smoke additionally delays a real
 main/coordinator admission and checks credential entry ordering through commit,

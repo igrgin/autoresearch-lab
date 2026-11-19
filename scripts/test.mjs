@@ -3,6 +3,21 @@ import electron from 'electron';
 import webpack from 'webpack';
 import config from '../webpack.tests.config.cjs';
 
+const domainSuites = ['catalog', 'configuration', 'reservations', 'research', 'research-security-client', 'imports', 'vast', 'codex', 'claude', 'checkpoints'];
+const [mode, suite, ...extra] = process.argv.slice(2);
+const focused = mode === '--focused';
+if (mode !== undefined && (!focused || !domainSuites.includes(suite) || extra.length)) {
+  throw new Error(`Usage: npm run test:focused -- <${domainSuites.join('|')}>`);
+}
+
+const testOptions = ['--test'];
+if (focused && suite === 'imports') {
+  const stressTest = 'inventory above record node limit completes without quarantine and remains usable after restart';
+  console.info(`Focused import run skips "${stressTest}". Run npm run check for the full suite.`);
+  testOptions.push(`--test-skip-pattern=^${stressTest}$`);
+}
+const files = (focused ? [suite] : domainSuites).map(name => `.webpack/tests/${name}.cjs`);
+
 await new Promise((resolve, reject) => {
   const compiler = webpack(config);
   compiler.run((error, stats) => {
@@ -12,4 +27,4 @@ await new Promise((resolve, reject) => {
     resolve();
   });
 });
-execFileSync(electron, ['--test', '.webpack/tests/catalog.cjs', '.webpack/tests/configuration.cjs', '.webpack/tests/reservations.cjs', '.webpack/tests/research.cjs', '.webpack/tests/research-security-client.cjs', '.webpack/tests/imports.cjs', '.webpack/tests/vast.cjs', '.webpack/tests/codex.cjs', '.webpack/tests/claude.cjs', '.webpack/tests/checkpoints.cjs'], { stdio: 'inherit', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
+execFileSync(electron, [...testOptions, ...files], { stdio: 'inherit', env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
