@@ -68,17 +68,17 @@ profile. Playwright controls Electron directly; no browser install is needed.
 It does not prove active-run Pause or remote recovery, which the shell cannot yet
 exercise.
 
-[macOS CI](../.github/workflows/macos-build.yml) runs on every pull request and
-push to `main`. It checks the arm64 runner, installs from the lockfile, runs the
-same build and smoke commands, and uploads the ZIP plus smoke evidence as
+[macOS CI](../.github/workflows/macos-build.yml) runs on pushes to `main`.
+It checks the arm64 runner, installs from the lockfile, runs the same build and
+smoke commands, and uploads the ZIP plus smoke evidence as
 `autoresearch-lab-macos-arm64`. Upload runs only after every preceding step
 succeeds, with missing output treated as an error. A failed check/build/launch
 fails the job and publishes no build artifact.
 
-To verify the negative path on a review branch, temporarily introduce a TypeScript
-error under `src/`, push it to the PR, and confirm the build job fails at checking
-and skips upload (the run's artifact list must be empty). Revert the error and
-verify a new successful run with the ZIP. Do not merge the deliberate failure.
+Before requesting a merge, run the applicable local checks on the exact
+candidate and record its revision and results in the PR. For packaged behavior,
+run `npm run build` and `npm run smoke`. Pull requests have no hosted macOS
+build. Check the main build and artifact after a merge you are operating.
 
 ## Project storage and recovery
 
