@@ -80,6 +80,22 @@ candidate and record its revision and results in the PR. For packaged behavior,
 run `npm run build` and `npm run smoke`. Pull requests have no hosted macOS
 build. Check the main build and artifact after a merge you are operating.
 
+## Shared ownership and test map
+
+Before changing a shared contract, use this map to find the code and existing
+checks on `main`. Use the [design sitemap](designs/SITEMAP.md) for approved
+decisions and amendments.
+
+| Contract | Implementation | Existing checks |
+| --- | --- | --- |
+| Project identity, storage, and recovery | [Project operations](../src/projects.ts), [catalog storage](../src/catalog/storage.ts), [coordinator](../src/coordinator.ts) | [Catalog tests](../tests/catalog.test.ts), [packaged smoke](../scripts/smoke.mjs) |
+| Native IPC and credential entry | [Main process](../src/main.ts), [preload](../src/preload.ts), [credential preload](../src/credential-preload.ts) | [Security tests](../scripts/test-security.mjs), [packaged smoke](../scripts/smoke.mjs) |
+| Credential storage, redaction, and private files | [Credential operations](../src/security/operations.ts), [sanitizer](../src/security/sanitizer.ts), [recording](../src/security/recording.ts), [private files](../src/security/private-files.ts) | [Security tests](../scripts/test-security.mjs) |
+
+For cross-consumer and lifecycle changes, use the
+[reviewer standards](../CODING_STANDARDS.md) to choose the affected paths and
+checks. Retain the original failure when verifying a repair.
+
 ## Project storage and recovery
 
 The utility coordinator stores `registry.sqlite` under Electron's application-data
